@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chapter 3 - Manage Files from Command Line - College of DuPage</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            font-weight: 300;
+        }
+
+        .header .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .instructor-info {
+            background: white;
+            padding: 1rem;
+            margin: 1rem auto;
+            max-width: 1200px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .section {
+            background: white;
+            margin: 2rem 0;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .section h2 {
+            color: #1e3c72;
+            border-bottom: 3px solid #2a5298;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+            font-size: 1.8rem;
+        }
+
+        .section h3 {
+            color: #2a5298;
+            margin: 1.5rem 0 1rem 0;
+            font-size: 1.3rem;
+        }
+
+        .command-box {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 5px;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-family: 'Courier New', monospace;
+            position: relative;
+        }
+
+        .command-box .command {
+            color: #d73502;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .command-box .description {
+            color: #666;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin-top: 0.5rem;
+        }
+
+        .example {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 1rem;
+            border-radius: 5px;
+            margin: 1rem 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+        }
+
+        .example .prompt {
+            color: #68d391;
+        }
+
+        .example .output {
+            color: #e2e8f0;
+            margin-left: 0;
+        }
+
+        .practice-questions {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 5px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .practice-questions h3 {
+            color: #856404;
+            margin-bottom: 1rem;
+        }
+
+        .highlight {
+            background: #fff3cd;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+
+        .question-container {
+            margin: 1rem 0;
+        }
+
+        .question-item {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+        }
+
+        .answer-input {
+            width: 100%;
+            padding: 0.8rem;
+            border: 2px solid #dee2e6;
+            border-radius: 5px;
+            font-size: 1rem;
+            margin: 1rem 0;
+            font-family: 'Courier New', monospace;
+            transition: border-color 0.3s;
+        }
+
+        .answer-input:focus {
+            outline: none;
+            border-color: #2a5298;
+        }
+
+        .check-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-right: 1rem;
+            transition: background-color 0.3s;
+        }
+
+        .check-btn:hover {
+            background: #218838;
+        }
+
+        .feedback {
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 5px;
+            font-weight: bold;
+            display: none;
+        }
+
+        .feedback.correct {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+
+        .feedback.incorrect {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+
+        .show-answer-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        .show-answer-btn:hover {
+            background: #5a6268;
+        }
+
+        .correct-answer {
+            background: #e3f2fd;
+            color: #1565c0;
+            padding: 0.8rem;
+            border-radius: 5px;
+            margin-top: 0.5rem;
+            font-family: 'Courier New', monospace;
+            border-left: 4px solid #2196f3;
+        }
+
+        .score-section {
+            background: #e8f5e8;
+            border: 2px solid #4caf50;
+            border-radius: 8px;
+            padding: 2rem;
+            margin: 2rem 0;
+            text-align: center;
+        }
+
+        .score-section h3 {
+            color: #2e7d32;
+            margin-bottom: 1rem;
+        }
+
+        #scoreDisplay {
+            font-size: 1.2rem;
+            margin: 1rem 0;
+        }
+
+        #scoreDisplay span {
+            font-weight: bold;
+            color: #2e7d32;
+        }
+
+        .reset-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-top: 1rem;
+        }
+
+        .reset-btn:hover {
+            background: #c82333;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .path-example {
+            background: #f0f8ff;
+            border: 1px solid #b3d9ff;
+            border-radius: 5px;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">College of DuPage</div>
+        <h1>Linux Commands Review</h1>
+        <div class="subtitle">Chapter 3. Manage Files from the Command Line</div>
+        <div class="subtitle">CIT Department - Computer Information Technology</div>
+    </div>
+
+    <div class="instructor-info">
+        <h3>Instructor: Tony Chen</h3>
+        <p>CIT Department | College of DuPage | cod.edu</p>
+    </div>
+
+    <div class="container">
+        <section class="section">
+            <h2>File System Paths</h2>
+            
+            <h3>Absolute Paths and Relative Paths</h3>
+            <p><strong>Absolute Path:</strong> A complete path from the root directory (/) to a file or directory.</p>
+            <p><strong>Relative Path:</strong> A path relative to your current working directory.</p>
+            
+            <div class="path-example">
+                <strong>Absolute Path Examples:</strong><br>
+                /home/student/Documents/file.txt<br>
+                /usr/bin/ls<br>
+                /etc/passwd
+            </div>
+            
+            <div class="path-example">
+                <strong>Relative Path Examples:</strong><br>
+                Documents/file.txt<br>
+                ../Pictures/photo.jpg<br>
+                ./script.sh
+            </div>
+
+            <div class="command-box">
+                <div class="command">pwd</div>
+                <div class="description">Print working directory - shows your current location</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ pwd</div>
+                <div class="output">/home/student</div>
+            </div>
+
+            <h3>Navigate Paths in the File System</h3>
+            <div class="command-box">
+                <div class="command">cd directory</div>
+                <div class="description">Change directory to specified location</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ cd /home/student/Documents</div>
+                <div class="prompt">$ pwd</div>
+                <div class="output">/home/student/Documents</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">cd ..</div>
+                <div class="description">Move up one directory (parent directory)</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ pwd</div>
+                <div class="output">/home/student/Documents</div>
+                <div class="prompt">$ cd ..</div>
+                <div class="prompt">$ pwd</div>
+                <div class="output">/home/student</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">cd ~</div>
+                <div class="description">Change to home directory</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ cd ~</div>
+                <div class="prompt">$ pwd</div>
+                <div class="output">/home/student</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">cd -</div>
+                <div class="description">Return to previous directory</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ cd /etc</div>
+                <div class="prompt">$ cd /tmp</div>
+                <div class="prompt">$ cd -</div>
+                <div class="output">/etc</div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>Creating Files and Directories</h2>
+            
+            <h3>Create Files</h3>
+            <div class="command-box">
+                <div class="command">touch filename</div>
+                <div class="description">Create an empty file or update timestamp</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ touch newfile.txt</div>
+                <div class="prompt">$ ls -l newfile.txt</div>
+                <div class="output">-rw-r--r-- 1 student student 0 Jul 11 10:30 newfile.txt</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">touch file1 file2 file3</div>
+                <div class="description">Create multiple files at once</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ touch doc1.txt doc2.txt doc3.txt</div>
+                <div class="prompt">$ ls doc*.txt</div>
+                <div class="output">doc1.txt  doc2.txt  doc3.txt</div>
+            </div>
+
+            <h3>Create Directories</h3>
+            <div class="command-box">
+                <div class="command">mkdir dirname</div>
+                <div class="description">Create a new directory</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ mkdir projects</div>
+                <div class="prompt">$ ls -l</div>
+                <div class="output">drwxr-xr-x 2 student student 4096 Jul 11 10:30 projects</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">mkdir -p path/to/directory</div>
+                <div class="description">Create directory and parent directories if they don't exist</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ mkdir -p work/coding/python</div>
+                <div class="prompt">$ ls -R work</div>
+                <div class="output">work:<br>
+coding<br>
+<br>
+work/coding:<br>
+python<br>
+<br>
+work/coding/python:</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">mkdir dir1 dir2 dir3</div>
+                <div class="description">Create multiple directories at once</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ mkdir docs images videos</div>
+                <div class="prompt">$ ls -l</div>
+                <div class="output">drwxr-xr-x 2 student student 4096 Jul 11 10:30 docs<br>
+drwxr-xr-x 2 student student 4096 Jul 11 10:30 images<br>
+drwxr-xr-x 2 student student 4096 Jul 11 10:30 videos</div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>Copying Files and Directories</h2>
+            
+            <h3>Copy Files</h3>
+            <div class="command-box">
+                <div class="command">cp source destination</div>
+                <div class="description">Copy file from source to destination</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ cp file.txt backup.txt</div>
+                <div class="prompt">$ ls -l *.txt</div>
+                <div class="output">-rw-r--r-- 1 student student 25 Jul 11 10:30 backup.txt<br>
+-rw-r--r-- 1 student student 25 Jul 11 10:30 file.txt</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">cp file1 file2 directory/</div>
+                <div class="description">Copy multiple files to a directory</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ cp doc1.txt doc2.txt backup/</div>
+                <div class="prompt">$ ls backup/</div>
+                <div class="output">doc1.txt  doc2.txt</div>
+            </div>
+
+            <h3>Copy Directories</h3>
+            <div class="command-box">
+                <div class="command">cp -r source_dir destination_dir</div>
+                <div class="description">Copy directory recursively (including subdirectories)</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ cp -r projects backup_projects</div>
+                <div class="prompt">$ ls -l</div>
+                <div class="output">drwxr-xr-x 2 student student 4096 Jul 11 10:30 backup_projects<br>
+drwxr-xr-x 2 student student 4096 Jul 11 10:30 projects</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">cp -i source destination</div>
+                <div class="description">Interactive copy - prompts before overwriting</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ cp -i file.txt existing.txt</div>
+                <div class="output">cp: overwrite 'existing.txt'? y</div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>Moving Files and Directories</h2>
+            
+            <div class="command-box">
+                <div class="command">mv source destination</div>
+                <div class="description">Move/rename files or directories</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ mv oldname.txt newname.txt</div>
+                <div class="prompt">$ ls *.txt</div>
+                <div class="output">newname.txt</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">mv file1 file2 directory/</div>
+                <div class="description">Move multiple files to a directory</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ mv doc1.txt doc2.txt documents/</div>
+                <div class="prompt">$ ls documents/</div>
+                <div class="output">doc1.txt  doc2.txt</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">mv directory new_location/</div>
+                <div class="description">Move entire directory to new location</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ mv projects archive/</div>
+                <div class="prompt">$ ls archive/</div>
+                <div class="output">projects</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">mv -i source destination</div>
+                <div class="description">Interactive move - prompts before overwriting</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ mv -i file.txt existing.txt</div>
+                <div class="output">mv: overwrite 'existing.txt'? n</div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>Removing Files and Directories</h2>
+            
+            <h3>Remove Files</h3>
+            <div class="command-box">
+                <div class="command">rm filename</div>
+                <div class="description">Remove/delete a file</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ rm unwanted.txt</div>
+                <div class="prompt">$ ls unwanted.txt</div>
+                <div class="output">ls: cannot access 'unwanted.txt': No such file or directory</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">rm file1 file2 file3</div>
+                <div class="description">Remove multiple files</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ rm temp1.txt temp2.txt temp3.txt</div>
+                <div class="prompt">$ ls temp*.txt</div>
+                <div class="output">ls: cannot access 'temp*.txt': No such file or directory</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">rm -i filename</div>
+                <div class="description">Interactive removal - prompts for confirmation</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ rm -i important.txt</div>
+                <div class="output">rm: remove regular file 'important.txt'? n</div>
+            </div>
+
+            <h3>Remove Directories</h3>
+            <div class="command-box">
+                <div class="command">rmdir dirname</div>
+                <div class="description">Remove empty directory</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ rmdir empty_folder</div>
+                <div class="prompt">$ ls empty_folder</div>
+                <div class="output">ls: cannot access 'empty_folder': No such file or directory</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">rm -r dirname</div>
+                <div class="description">Remove directory and all contents recursively</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ rm -r old_project</div>
+                <div class="prompt">$ ls old_project</div>
+                <div class="output">ls: cannot access 'old_project': No such file or directory</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">rm -rf dirname</div>
+                <div class="description">Force remove directory and contents (use with caution!)</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ rm -rf temp_folder</div>
+                <div class="output">[No output - directory removed silently]</div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>Creating Links</h2>
+            
+            <h3>Create Hard Links</h3>
+            <div class="command-box">
+                <div class="command">ln source_file link_name</div>
+                <div class="description">Create a hard link to a file</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ ln original.txt hardlink.txt</div>
+                <div class="prompt">$ ls -l *link*.txt</div>
+                <div class="output">-rw-r--r-- 2 student student 25 Jul 11 10:30 hardlink.txt</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">ls -i filename</div>
+                <div class="description">Show inode number to verify hard links</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ ls -i original.txt hardlink.txt</div>
+                <div class="output">123456 hardlink.txt<br>
+123456 original.txt</div>
+            </div>
+
+            <h3>Create Symbolic Links</h3>
+            <div class="command-box">
+                <div class="command">ln -s source_file link_name</div>
+                <div class="description">Create a symbolic (soft) link to a file</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ ln -s /home/student/documents/report.txt shortcut.txt</div>
+                <div class="prompt">$ ls -l shortcut.txt</div>
+                <div class="output">lrwxrwxrwx 1 student student 35 Jul 11 10:30 shortcut.txt -> /home/student/documents/report.txt</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">ln -s directory_path link_name</div>
+                <div class="description">Create symbolic link to a directory</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ ln -s /var/log logs</div>
+                <div class="prompt">$ ls -l logs</div>
+                <div class="output">lrwxrwxrwx 1 student student 8 Jul 11 10:30 logs -> /var/log</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">readlink link_name</div>
+                <div class="description">Show where a symbolic link points</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ readlink shortcut.txt</div>
+                <div class="output">/home/student/documents/report.txt</div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>Shell Expansions and File Name Matching</h2>
+            
+            <h3>Wildcard Expansions</h3>
+            <div class="command-box">
+                <div class="command">ls *.txt</div>
+                <div class="description">Match all files ending with .txt</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ ls *.txt</div>
+                <div class="output">doc1.txt  doc2.txt  report.txt  notes.txt</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">ls file?</div>
+                <div class="description">Match files with single character wildcard</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ ls file?</div>
+                <div class="output">file1  file2  fileA  fileB</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">ls [abc]*</div>
+                <div class="description">Match files starting with a, b, or c</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ ls [abc]*</div>
+                <div class="output">apple.txt  banana.doc  cat.jpg  cherry.png</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">ls [0-9]*</div>
+                <div class="description">Match files starting with numbers 0-9</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ ls [0-9]*</div>
+                <div class="output">1stfile.txt  2ndfile.txt  9report.doc</div>
+            </div>
+
+            <h3>Brace Expansion</h3>
+            <div class="command-box">
+                <div class="command">touch file{1,2,3}.txt</div>
+                <div class="description">Create multiple files using brace expansion</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ touch file{1,2,3}.txt</div>
+                <div class="prompt">$ ls file*.txt</div>
+                <div class="output">file1.txt  file2.txt  file3.txt</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">mkdir {jan,feb,mar}_{2024,2025}</div>
+                <div class="description">Create directories with combined expansions</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ mkdir {jan,feb,mar}_{2024,2025}</div>
+                <div class="prompt">$ ls</div>
+                <div class="output">feb_2024  feb_2025  jan_2024  jan_2025  mar_2024  mar_2025</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">echo {1..10}</div>
+                <div class="description">Sequence expansion - numbers 1 through 10</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ echo {1..10}</div>
+                <div class="output">1 2 3 4 5 6 7 8 9 10</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">echo {a..z}</div>
+                <div class="description">Sequence expansion - letters a through z</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ echo {a..e}</div>
+                <div class="output">a b c d e</div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>Practice Questions</h2>
+            
+            <div class="practice-questions">
+                <h3>Review Questions</h3>
+                <div class="question-container">
+                    <div class="question-item">
+                        <p><strong>1.</strong> What command shows your current working directory?</p>
+                        <input type="text" id="q1" placeholder="Enter your answer..." class="answer-input">
+                        <button onclick="checkAnswer(1, 'pwd')" class="check-btn">Check Answer</button>
+                        <div id="feedback1" class="feedback"></div>
+                    </div>
+
+                    <div class="question-item">
+                        <p><strong>2.</strong> How do you create an empty file named "test.txt"?</p>
+                        <input type="text" id="q2" placeholder="Enter your answer..." class="answer-input">
+                        <button onclick="checkAnswer(2, 'touch test.txt')" class="check-btn">Check Answer</button>
+                        <div id="feedback2" class="feedback"></div>
+                    </div>
+
+                    <div class="question-item">
+                        <p><strong>3.</strong> What command creates a directory and all necessary parent directories?</p>
+                        <input type="text" id="q3" placeholder="Enter your answer..." class="answer-input">
+                        <button onclick="checkAnswer(3, 'mkdir -p')" class="check-btn">Check Answer</button>
+                        <div id="feedback3" class="feedback"></div>
+                    </div>
+
+                    <div class="question-item">
+                        <p><strong>4.</strong> How do you copy a directory and all its contents?</p>
+                        <input type="text" id="q4" placeholder="Enter your answer..." class="answer-input">
+                        <button onclick="checkAnswer(4, 'cp -r')" class="check-btn">Check Answer</button>
+                        <div id="feedback4" class="feedback"></div>
+                    </div>
+
+                    <div class="question-item">
+                        <p><strong>5.</strong> What command moves a file from one location to another?</p>
+                        <input type="text" id="q5" placeholder="Enter your answer..." class="answer-input">
+                        <button onclick="checkAnswer(5, 'mv')" class="check-btn">Check Answer</button>
+                        
