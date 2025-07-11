@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chapter 4 - Get Help in Red Hat Enterprise Linux - College of DuPage</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            font-weight: 300;
+        }
+
+        .header .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .instructor-info {
+            background: white;
+            padding: 1rem;
+            margin: 1rem auto;
+            max-width: 1200px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .section {
+            background: white;
+            margin: 2rem 0;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .section h2 {
+            color: #1e3c72;
+            border-bottom: 3px solid #2a5298;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+            font-size: 1.8rem;
+        }
+
+        .section h3 {
+            color: #2a5298;
+            margin: 1.5rem 0 1rem 0;
+            font-size: 1.3rem;
+        }
+
+        .command-box {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 5px;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-family: 'Courier New', monospace;
+            position: relative;
+        }
+
+        .command-box .command {
+            color: #d73502;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .command-box .description {
+            color: #666;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin-top: 0.5rem;
+        }
+
+        .example {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 1rem;
+            border-radius: 5px;
+            margin: 1rem 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+        }
+
+        .example .prompt {
+            color: #68d391;
+        }
+
+        .example .output {
+            color: #e2e8f0;
+            margin-left: 0;
+        }
+
+        .practice-questions {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 5px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .practice-questions h3 {
+            color: #856404;
+            margin-bottom: 1rem;
+        }
+
+        .highlight {
+            background: #fff3cd;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+
+        .question-container {
+            margin: 1rem 0;
+        }
+
+        .question-item {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+        }
+
+        .answer-input {
+            width: 100%;
+            padding: 0.8rem;
+            border: 2px solid #dee2e6;
+            border-radius: 5px;
+            font-size: 1rem;
+            margin: 1rem 0;
+            font-family: 'Courier New', monospace;
+            transition: border-color 0.3s;
+        }
+
+        .answer-input:focus {
+            outline: none;
+            border-color: #2a5298;
+        }
+
+        .check-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-right: 1rem;
+            transition: background-color 0.3s;
+        }
+
+        .check-btn:hover {
+            background: #218838;
+        }
+
+        .feedback {
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 5px;
+            font-weight: bold;
+            display: none;
+        }
+
+        .feedback.correct {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+
+        .feedback.incorrect {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+
+        .show-answer-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        .show-answer-btn:hover {
+            background: #5a6268;
+        }
+
+        .correct-answer {
+            background: #e3f2fd;
+            color: #1565c0;
+            padding: 0.8rem;
+            border-radius: 5px;
+            margin-top: 0.5rem;
+            font-family: 'Courier New', monospace;
+            border-left: 4px solid #2196f3;
+        }
+
+        .score-section {
+            background: #e8f5e8;
+            border: 2px solid #4caf50;
+            border-radius: 8px;
+            padding: 2rem;
+            margin: 2rem 0;
+            text-align: center;
+        }
+
+        .score-section h3 {
+            color: #2e7d32;
+            margin-bottom: 1rem;
+        }
+
+        #scoreDisplay {
+            font-size: 1.2rem;
+            margin: 1rem 0;
+        }
+
+        #scoreDisplay span {
+            font-weight: bold;
+            color: #2e7d32;
+        }
+
+        .reset-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-top: 1rem;
+        }
+
+        .reset-btn:hover {
+            background: #c82333;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .key-combo {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 3px;
+            padding: 0.2rem 0.5rem;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            color: #495057;
+        }
+
+        .man-section {
+            background: #e7f3ff;
+            border: 1px solid #b8daff;
+            border-radius: 5px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .man-section h4 {
+            color: #0056b3;
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">College of DuPage</div>
+        <h1>Linux Commands Review</h1>
+        <div class="subtitle">Chapter 4. Get Help in Red Hat Enterprise Linux</div>
+        <div class="subtitle">CIT Department - Computer Information Technology</div>
+    </div>
+
+    <div class="instructor-info">
+        <h3>Instructor: Tony Chen</h3>
+        <p>CIT Department | College of DuPage | cod.edu</p>
+    </div>
+
+    <div class="container">
+        <section class="section">
+            <h2>Reading Manual Pages</h2>
+            
+            <h3>The man Command</h3>
+            <p>Manual pages (man pages) are the primary source of documentation for Linux commands. They provide detailed information about command syntax, options, and examples.</p>
+            
+            <div class="command-box">
+                <div class="command">man command</div>
+                <div class="description">Display the manual page for a specific command</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ man ls</div>
+                <div class="output">LS(1)                    User Commands                   LS(1)<br>
+<br>
+NAME<br>
+       ls - list directory contents<br>
+<br>
+SYNOPSIS<br>
+       ls [OPTION]... [FILE]...<br>
+<br>
+DESCRIPTION<br>
+       List information about the FILEs (the current directory by default).<br>
+       Sort entries alphabetically if none of -cftuvSUX nor --sort is specified.</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">man section command</div>
+                <div class="description">Display manual page from specific section</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ man 5 passwd</div>
+                <div class="output">PASSWD(5)               File Formats Manual              PASSWD(5)<br>
+<br>
+NAME<br>
+       passwd - password file<br>
+<br>
+DESCRIPTION<br>
+       The /etc/passwd file contains one line for each user account</div>
+            </div>
+
+            <div class="man-section">
+                <h4>Manual Page Sections</h4>
+                <p><strong>1:</strong> User commands<br>
+                <strong>2:</strong> System calls<br>
+                <strong>3:</strong> Library functions<br>
+                <strong>4:</strong> Device files<br>
+                <strong>5:</strong> File formats and configuration files<br>
+                <strong>6:</strong> Games<br>
+                <strong>7:</strong> Miscellaneous<br>
+                <strong>8:</strong> System administration commands</p>
+            </div>
+
+            <div class="command-box">
+                <div class="command">whatis command</div>
+                <div class="description">Display brief description of a command</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ whatis ls</div>
+                <div class="output">ls (1)               - list directory contents</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">man -f command</div>
+                <div class="description">Same as whatis - show brief command description</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ man -f cp</div>
+                <div class="output">cp (1)               - copy files or directories</div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>Navigate and Search man Pages</h2>
+            
+            <h3>Navigation Keys in man Pages</h3>
+            <p>When viewing a man page, you can use various keys to navigate through the content:</p>
+            
+            <div class="man-section">
+                <h4>Navigation Commands</h4>
+                <p><span class="key-combo">Space</span> or <span class="key-combo">Page Down</span> - Move forward one page<br>
+                <span class="key-combo">b</span> or <span class="key-combo">Page Up</span> - Move backward one page<br>
+                <span class="key-combo">Enter</span> or <span class="key-combo">Down Arrow</span> - Move forward one line<br>
+                <span class="key-combo">Up Arrow</span> - Move backward one line<br>
+                <span class="key-combo">g</span> - Go to beginning of document<br>
+                <span class="key-combo">G</span> - Go to end of document<br>
+                <span class="key-combo">q</span> - Quit the man page</p>
+            </div>
+
+            <h3>Searching Within man Pages</h3>
+            <div class="command-box">
+                <div class="command">/search_term</div>
+                <div class="description">Search forward for a term within the man page</div>
+            </div>
+            <div class="example">
+                <div class="prompt">/recursive</div>
+                <div class="output">[Highlights and jumps to first occurrence of "recursive"]</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">?search_term</div>
+                <div class="description">Search backward for a term within the man page</div>
+            </div>
+            <div class="example">
+                <div class="prompt">?option</div>
+                <div class="output">[Highlights and jumps to previous occurrence of "option"]</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">n</div>
+                <div class="description">Jump to next occurrence of search term</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">N</div>
+                <div class="description">Jump to previous occurrence of search term</div>
+            </div>
+
+            <div class="example">
+                <div class="prompt">$ man ls</div>
+                <div class="output">[In man page, type:]<br>
+/long<br>
+[Press 'n' to find next occurrence]<br>
+[Press 'N' to find previous occurrence]<br>
+[Press 'q' to quit]</div>
+            </div>
+
+            <h3>Getting Help Within man</h3>
+            <div class="command-box">
+                <div class="command">h</div>
+                <div class="description">Display help for man page navigation (while in man page)</div>
+            </div>
+            <div class="example">
+                <div class="prompt">[While viewing a man page, press 'h']</div>
+                <div class="output">SUMMARY OF LESS COMMANDS<br>
+<br>
+      Commands marked with * may be preceded by a number, N.<br>
+      Notes in parentheses indicate the behavior if N is given.<br>
+<br>
+  h  H                 Display this help.<br>
+  q  :q  Q  :Q  ZZ     Exit.</div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>Search for man Pages by Keyword</h2>
+            
+            <h3>The apropos Command</h3>
+            <div class="command-box">
+                <div class="command">apropos keyword</div>
+                <div class="description">Search manual page names and descriptions for keyword</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ apropos copy</div>
+                <div class="output">cp (1)               - copy files or directories<br>
+cpio (1)             - copy files to and from archives<br>
+dd (1)               - convert and copy a file<br>
+install (1)          - copy files and set attributes<br>
+rsync (1)            - a fast, versatile, remote (and local) file-copying tool</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">man -k keyword</div>
+                <div class="description">Same as apropos - search by keyword</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ man -k network</div>
+                <div class="output">ifconfig (8)         - configure a network interface<br>
+netstat (8)          - Print network connections, routing tables<br>
+ping (8)             - send ICMP ECHO_REQUEST to network hosts<br>
+ssh (1)              - OpenSSH SSH client (remote login program)</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">apropos -e keyword</div>
+                <div class="description">Search for exact keyword matches</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ apropos -e file</div>
+                <div class="output">file (1)             - determine file type<br>
+file (1p)            - determine file type</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">apropos "phrase with spaces"</div>
+                <div class="description">Search for phrases containing spaces</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ apropos "file system"</div>
+                <div class="output">df (1)               - report file system disk space usage<br>
+fsck (8)             - file system check<br>
+mount (8)            - mount a file system</div>
+            </div>
+
+            <h3>Using Multiple Keywords</h3>
+            <div class="command-box">
+                <div class="command">apropos keyword1 keyword2</div>
+                <div class="description">Search for commands containing any of the keywords</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ apropos user group</div>
+                <div class="output">chgrp (1)            - change group ownership<br>
+groups (1)           - print the groups a user is in<br>
+id (1)               - print real and effective user and group IDs<br>
+useradd (8)          - add a user account<br>
+usermod (8)          - modify a user account</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">apropos -a keyword1 keyword2</div>
+                <div class="description">Search for commands containing ALL keywords (AND operation)</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ apropos -a user add</div>
+                <div class="output">useradd (8)          - add a user account</div>
+            </div>
+
+            <h3>Additional Help Commands</h3>
+            <div class="command-box">
+                <div class="command">info command</div>
+                <div class="description">Display info documents (more detailed than man pages)</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ info ls</div>
+                <div class="output">File: coreutils.info,  Node: ls invocation,  Next: dir invocation<br>
+<br>
+10.1 'ls': List directory contents<br>
+=====================================<br>
+<br>
+The 'ls' program lists information about files (of any type, including<br>
+directories).  Options and file arguments can be intermixed arbitrarily</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">command --help</div>
+                <div class="description">Display brief help for most commands</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ ls --help</div>
+                <div class="output">Usage: ls [OPTION]... [FILE]...<br>
+List information about the FILEs (the current directory by default).<br>
+Sort entries alphabetically if none of -cftuvSUX nor --sort is specified.<br>
+<br>
+Mandatory arguments to long options are mandatory for short options too.<br>
+  -a, --all                  do not ignore entries starting with .</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">mandb</div>
+                <div class="description">Update the manual page database (run as root)</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ sudo mandb</div>
+                <div class="output">Processing manual pages under /usr/share/man...<br>
+Updating index cache for path `/usr/share/man/man1'. Wait...<br>
+Checking for stray cats under /usr/share/man...<br>
+Checking for stray cats under /var/cache/man...</div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>Practice Questions</h2>
+            
+            <div class="practice-questions">
+                <h3>Review Questions</h3>
+                <div class="question-container">
+                    <div class="question-item">
+                        <p><strong>1.</strong> What command displays the manual page for the "ls" command?</p>
+                        <input type="text" id="q1" placeholder="Enter your answer..." class="answer-input">
+                        <button onclick="checkAnswer(1, 'man ls')" class="check-btn">Check Answer</button>
+                        <div id="feedback1" class="feedback"></div>
+                    </div>
+
+                    <div class="question-item">
+                        <p><strong>2.</strong> Which key do you press to quit a man page?</p>
+                        <input type="text" id="q2" placeholder="Enter your answer..." class="answer-input">
+                        <button onclick="checkAnswer(2, 'q')" class="check-btn">Check Answer</button>
+                        <div id="feedback2" class="feedback"></div>
+                    </div>
+
+                    <div class="question-item">
+                        <p><strong>3.</strong> What command searches for manual pages by keyword?</p>
+                        <input type="text" id="q3" placeholder="Enter your answer..." class="answer-input">
+                        <button onclick="checkAnswer(3, 'apropos')" class="check-btn">Check Answer</button>
+                        <div id="feedback3" class="feedback"></div>
+                    </div>
+
+                    <div class="question-item">
+                        <p><strong>4.</strong> How do you search forward for the word "option" within a man page?</p>
+                        <input type="text" id="q4" placeholder="Enter your answer..." class="answer-input">
+                        <button onclick="checkAnswer(4, '/option')" class="check-btn">Check Answer</button>
+                        <div id="feedback4" class="feedback"></div>
+                    </div>
+
+                    <div class="question-item">
+                        <p><strong>5.</strong> What command shows a brief description of a command?</p>
+                        <input type="text" id="q5" placeholder="Enter your answer..." class="answer-input">
+                        <button onclick="checkAnswer(5, 'whatis')" class="check-btn">Check Answer</button>
+                        <div id="feedback5" class="feedback"></div>
+                    </div>
+
+                    <div class="question-item">
+                        <p><strong>6.</strong> Which key moves you forward one page in a man page?</p>
+                        <input type="text" id="q6" placeholder="Enter your answer..." class="answer-input">
+                        <button onclick="checkAnswer(6, 'Space')" class="check-btn">Check Answer</button>
+                        <div id="feedback6" class="feedback"></div>
+                    </div>
+
+                    <div class="question-item">
+                        <p><strong>7.</strong> How do you view the manual page for the passwd file format (section 5)?</p>
+                        <input type="text" id="q7" placeholder="Enter your answer..." class="answer-input">
+                        <button onclick="checkAnswer(7, 'man 5 passwd')" class="check-btn">Check Answer</button>
+                        <div id="feedback7" class="feedback"></div>
+                    </div>
+
+                    <div class="question-item">
+                        <p><strong>8.</strong> What key do you press to find the next occurrence of a search term in a man page?</p>
+                        <input type="text" id="q8" placeholder="Enter your answer..." class="answer-input">
+                        <button onclick="checkAnswer(8, 'n')" class="check-btn">Check Answer</button>
+                        <div id="feedback8" class="feedback"></div>
+                    </div>
+
+                    <div class="question-item">
+                        <p><strong>9.</strong> What is an alternative command to "apropos"?</p>
+                        <input type="text" id="q9" placeholder="Enter your answer..." class="answer-input">
+                        <button onclick="checkAnswer(9, 'man -k')" class="check-btn">Check Answer</button>
+                        <div id="feedback9" class="feedback"></div>
+                    </div>
+
+                    <div class="question-item">
+                        <p><strong>10.</strong> How do you get quick help for most Linux commands?</p>
+                        <input type="text" id="q10" placeholder="Enter your answer..." class="answer-input">
+                        <button onclick="checkAnswer(10, 'command --help')" class="check-btn">Check Answer</button>
+                        <div id="feedback10" class="feedback"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="practice-questions">
+                <h3>Command Practice Scenarios</h3>
+                <div class="question-container">
+                    <div class="question-item">
+                        <p><strong>Scenario 1:</strong> You want to find all commands related to "network". What command would you use?</p>
+                        <input type="text" id="s1" placeholder="Enter your answer..." class="answer-input">
+                        <button onclick="checkScenario(1, 'apropos network')" class="check-btn">Check Answer</button>
+                        <div id="sfeedback1" class="feedback"></div>
+                    </div>
+
+                    <div class="question-item">
+                        <p><strong>Scenario 2:</strong> You're reading a man page and want to search for "recursive". How do you do this?</p>
+                        <input type="text" id="s2" placeholder="Enter your answer..." class="answer-input">
+                        <button onclick="checkScenario(2, '/recursive')" class="check-btn">Check Answer</button>
+                        <div id="sfeedback2" class="feedback"></div>
+                    </div>
+
+                    <div class="question-item">
+                        <p><strong>Scenario 3:</strong> You need to understand the format of the /etc/passwd file. Which man page should you read?</p>
+                        <input type="text" id="s3" placeholder="Enter your answer..." class="answer-input">
+                        <button onclick="checkScenario(3, 'man 5 passwd')" class="check-btn">Check Answer</button>
+                        <div id="sfeedback3" class="feedback"></div>
+                    </div>
+
+                    <div class="question-item">
+                        <p><strong>Scenario 4:</strong> You want a quick summary of what the "cp" command does. What's the fastest way?</p>
+                        <input type="text" id="s4" placeholder="Enter your answer..." class="answer-input">
+                        <button onclick="checkScenario(4, 'whatis cp')" class="check-btn">Check Answer</button>
+                        <div id="sfeedback4" class="feedback"></div>
+                    </div>
+
+                    <div class="question-item">
+                        <p><strong>Scenario 5:</strong> You're in a man page and want to go to the very beginning. Which key do you press?</p>
+                        <input type="text" id="s5" placeholder="Enter your answer..." class="answer-input">
+                        <button onclick="checkScenario(5, 'g')" class="check-btn">Check Answer</button>
+                        <div id="sfeedback5" class="feedback"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="score-section">
+                <h3>Your Progress</h3>
+                <div id="scoreDisplay">
+                    <p>Review Questions: <span id="reviewScore">0/10</span></p>
+                    <p>Scenario Questions: <span id="scenarioScore">0/5</span></p>
+                    <p>Total Score: <span id="totalScore">0/15</span></p>
+                </div>
+                <button onclick="resetQuiz()" class="reset-btn">Reset All Answers</button>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // Score tracking
+        let reviewCorrect = 0;
+        let scenarioCorrect = 0;
+        let reviewAttempted = new Set();
+        let scenarioAttempted = new Set();
+
+        // Alternative answers for flexible checking
+        const alternatives = {
+            1: ['man ls'],
+            2: ['q'],
+            3: ['apropos', 'man -k'],
+            4: ['/option'],
+            5: ['whatis', 'man -f'],
+            6: ['space', 'spacebar', 'page down'],
+            7: ['man 5 passwd'],
+            8: ['n'],
+            9: ['man -k', 'apropos'],
+            10: ['command --help', '--help']
+        };
+
+        const scenarioAlternatives = {
+            1: ['apropos network', 'man -k network'],
+            2: ['/recursive'],
+            3: ['man 5 passwd'],
+            4: ['whatis cp', 'man -f cp'],
+            5: ['g']
+        };
+
+        function normalizeAnswer(answer) {
+            return answer.toLowerCase().trim().replace(/\s+/g, ' ');
+        }
+
+        function checkAnswer(questionNum, correctAnswer) {
+            const userAnswer = document.getElementById(`q${questionNum}`).value;
+            const feedbackElement = document.getElementById(`feedback${questionNum}`);
+            const normalizedUser = normalizeAnswer(userAnswer);
+            const normalizedCorrect = normalizeAnswer(correctAnswer);
+            
+            // Check if answer matches any alternative
+            let isCorrect = normalizedUser === normalizedCorrect;
+            if (!isCorrect && alternatives[questionNum]) {
+                isCorrect = alternatives[questionNum].some(alt => normalizeAnswer(alt) === normalizedUser);
+            }
+            
+            if (isCorrect) {
+                
