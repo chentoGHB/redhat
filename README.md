@@ -12,4 +12,21 @@ Read Manual Pages; Navigate and Search man Pages; Search for man Pages by Keywor
  use College of DuPage cod.edu format and Tony Chen name on the teacher on top of the page, CIT department, include example for each command and include practice questions. For the practice questions and practice scenarios, please provide a way users can enter and answer and provide feedback to the user when the answer is incorrect and chance to view the correct answer. For all the examples shown, make sure lines are separated correctly, not a long running sentence. No hot link on the top of the page. Add title Chapter 4.  Get Help in Red Hat Enterprise Linux above the CIT department.
 # redhat93c5
 Use the previous section as template, Act as an expert html and javascript coder create an linux review page include the content of Standard Input, Standard Output, and Standard Error; Redirect Output to a File; Construct Pipelines; Edit Files with Vim; Rearrange Existing Text; Visual Mode in Vim; Change the Shell Environment; Configure Bash with Shell Variables use College of DuPage cod.edu format and Tony Chen name on the teacher on top of the page, CIT department, include example for each command and include practice questions. For the practice questions and practice scenarios, please provide a way users can enter and answer and provide feedback to the user when the answer is incorrect and chance to view the correct answer. For all the examples shown, make sure lines are separated correctly, not a long running sentence. No hot link on the top of the page. Add title Chapter 5. Create, View, and Edit Text Files above the CIT department.
+# redhat93c6
+Use the previous section as template,  Act as an expert html and javascript coder create an linux review page include the content of 
+What Is a User?; What Is a Group?; Gain Superuser Access; Switch User Accounts; Run Commands with Sudo; Configure sudo; Create Users from the Command Line; Modify Existing Users from the Command Line; Delete Users from the Command Line; Set Passwords from the Command Line; Create Groups from the Command Line; Modify Existing Groups from the Command Line; Delete Groups from the Command Line; Change Group Membership from the Command Line; Shadow Passwords and Password Policy; Configure Password Aging; Restrict Access; 
+ use College of DuPage cod.edu format and Tony Chen name on the teacher on top of the page, CIT department, include example for each command and include practice questions. For the practice questions and practice scenarios, please provide a way users can enter and answer and provide feedback to the user when the answer is incorrect and chance to view the correct answer. For all the examples shown, make sure lines are separated correctly, not a long running sentence. No hot link on the top of the page. Add title Chapter 6.  Manage Local Users and Groups above the CIT department.
+ # redhat93c7
 
+ # redhat93c8
+
+ # redhat93c9
+
+ # redhat93c10
+
+ # redhat93c11
+
+ # redhat93c12
+
+ # redhat93c13
+ 
