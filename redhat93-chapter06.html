@@ -1,0 +1,1209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chapter 6 - Manage Local Users and Groups - College of DuPage</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            font-weight: 300;
+        }
+
+        .header .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .instructor-info {
+            background: white;
+            padding: 1rem;
+            margin: 1rem auto;
+            max-width: 1200px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .section {
+            background: white;
+            margin: 2rem 0;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .section h2 {
+            color: #1e3c72;
+            border-bottom: 3px solid #2a5298;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+            font-size: 1.8rem;
+        }
+
+        .section h3 {
+            color: #2a5298;
+            margin: 1.5rem 0 1rem 0;
+            font-size: 1.3rem;
+        }
+
+        .command-box {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 5px;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-family: 'Courier New', monospace;
+            position: relative;
+        }
+
+        .command-box .command {
+            color: #d73502;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .command-box .description {
+            color: #666;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin-top: 0.5rem;
+        }
+
+        .example {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 1rem;
+            border-radius: 5px;
+            margin: 1rem 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+        }
+
+        .example .prompt {
+            color: #68d391;
+        }
+
+        .example .output {
+            color: #e2e8f0;
+            margin-left: 0;
+        }
+
+        .practice-questions {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 5px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .practice-questions h3 {
+            color: #856404;
+            margin-bottom: 1rem;
+        }
+
+        .highlight {
+            background: #fff3cd;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+
+        .question-container {
+            margin: 1rem 0;
+        }
+
+        .question-item {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+        }
+
+        .answer-input {
+            width: 100%;
+            padding: 0.8rem;
+            border: 2px solid #dee2e6;
+            border-radius: 5px;
+            font-size: 1rem;
+            margin: 1rem 0;
+            font-family: 'Courier New', monospace;
+            transition: border-color 0.3s;
+        }
+
+        .answer-input:focus {
+            outline: none;
+            border-color: #2a5298;
+        }
+
+        .check-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-right: 1rem;
+            transition: background-color 0.3s;
+        }
+
+        .check-btn:hover {
+            background: #218838;
+        }
+
+        .feedback {
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 5px;
+            font-weight: bold;
+            display: none;
+        }
+
+        .feedback.correct {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+
+        .feedback.incorrect {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+
+        .show-answer-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        .show-answer-btn:hover {
+            background: #5a6268;
+        }
+
+        .correct-answer {
+            background: #e3f2fd;
+            color: #1565c0;
+            padding: 0.8rem;
+            border-radius: 5px;
+            margin-top: 0.5rem;
+            font-family: 'Courier New', monospace;
+            border-left: 4px solid #2196f3;
+        }
+
+        .score-section {
+            background: #e8f5e8;
+            border: 2px solid #4caf50;
+            border-radius: 8px;
+            padding: 2rem;
+            margin: 2rem 0;
+            text-align: center;
+        }
+
+        .score-section h3 {
+            color: #2e7d32;
+            margin-bottom: 1rem;
+        }
+
+        #scoreDisplay {
+            font-size: 1.2rem;
+            margin: 1rem 0;
+        }
+
+        #scoreDisplay span {
+            font-weight: bold;
+            color: #2e7d32;
+        }
+
+        .reset-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-top: 1rem;
+        }
+
+        .reset-btn:hover {
+            background: #c82333;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-box {
+            background: #e7f3ff;
+            border: 1px solid #b8daff;
+            border-radius: 5px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .info-box h4 {
+            color: #0056b3;
+            margin-bottom: 0.5rem;
+        }
+
+        .warning-box {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 5px;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-left: 4px solid #ffc107;
+        }
+
+        .warning-box h4 {
+            color: #856404;
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">College of DuPage</div>
+        <h1>Linux Commands Review</h1>
+        <div class="subtitle">Chapter 6. Manage Local Users and Groups</div>
+        <div class="subtitle">CIT Department - Computer Information Technology</div>
+    </div>
+
+    <div class="instructor-info">
+        <h3>Instructor: Tony Chen</h3>
+        <p>CIT Department | College of DuPage | cod.edu</p>
+    </div>
+
+    <div class="container">
+        <section class="section">
+            <h2>Understanding Users and Groups</h2>
+            
+            <h3>What Is a User?</h3>
+            <p>A user is an identity that can log into a Linux system and access resources. Each user has:</p>
+            <ul style="margin: 1rem 0; padding-left: 2rem;">
+                <li><strong>Username:</strong> Human-readable identifier</li>
+                <li><strong>User ID (UID):</strong> Unique numeric identifier</li>
+                <li><strong>Home Directory:</strong> Personal workspace</li>
+                <li><strong>Shell:</strong> Command interpreter</li>
+                <li><strong>Password:</strong> Authentication credential</li>
+            </ul>
+
+            <div class="info-box">
+                <h4>User Types</h4>
+                <p><strong>Root (UID 0):</strong> Superuser with unlimited privileges<br>
+                <strong>System Users (UID 1-999):</strong> Service accounts for daemons<br>
+                <strong>Regular Users (UID 1000+):</strong> Normal user accounts</p>
+            </div>
+
+            <div class="command-box">
+                <div class="command">id username</div>
+                <div class="description">Display user and group information</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ id student</div>
+                <div class="output">uid=1001(student) gid=1001(student) groups=1001(student),10(wheel)</div>
+            </div>
+
+            <h3>What Is a Group?</h3>
+            <p>A group is a collection of users that share common permissions. Groups provide:</p>
+            <ul style="margin: 1rem 0; padding-left: 2rem;">
+                <li><strong>Shared Access:</strong> Multiple users can access same resources</li>
+                <li><strong>Permission Management:</strong> Easier to manage permissions for multiple users</li>
+                <li><strong>Primary Group:</strong> Default group for new files</li>
+                <li><strong>Supplementary Groups:</strong> Additional group memberships</li>
+            </ul>
+
+            <div class="command-box">
+                <div class="command">groups username</div>
+                <div class="description">Display groups a user belongs to</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ groups student</div>
+                <div class="output">student wheel developers</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">getent group groupname</div>
+                <div class="description">Display group information</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ getent group wheel</div>
+                <div class="output">wheel:x:10:student,admin</div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>Superuser Access and Account Switching</h2>
+            
+            <h3>Gain Superuser Access</h3>
+            <div class="command-box">
+                <div class="command">su -</div>
+                <div class="description">Switch to root user with root's environment</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ su -</div>
+                <div class="output">Password:<br>
+[root@server ~]#</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">su</div>
+                <div class="description">Switch to root user keeping current environment</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ su</div>
+                <div class="output">Password:<br>
+[root@server student]#</div>
+            </div>
+
+            <h3>Switch User Accounts</h3>
+            <div class="command-box">
+                <div class="command">su - username</div>
+                <div class="description">Switch to specified user with their environment</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ su - john</div>
+                <div class="output">Password:<br>
+[john@server ~]$</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">exit</div>
+                <div class="description">Return to previous user session</div>
+            </div>
+            <div class="example">
+                <div class="prompt">[root@server ~]# exit</div>
+                <div class="output">logout<br>
+[student@server ~]$</div>
+            </div>
+
+            <h3>Run Commands with Sudo</h3>
+            <div class="command-box">
+                <div class="command">sudo command</div>
+                <div class="description">Execute command as root (requires sudo privileges)</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ sudo ls /root</div>
+                <div class="output">[sudo] password for student:<br>
+anaconda-ks.cfg  initial-setup-ks.cfg</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">sudo -u username command</div>
+                <div class="description">Execute command as specified user</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ sudo -u apache touch /var/www/html/test.html</div>
+                <div class="prompt">$ ls -l /var/www/html/test.html</div>
+                <div class="output">-rw-r--r--. 1 apache apache 0 Jul 11 10:30 /var/www/html/test.html</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">sudo -i</div>
+                <div class="description">Start interactive root shell</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ sudo -i</div>
+                <div class="output">[sudo] password for student:<br>
+[root@server ~]#</div>
+            </div>
+
+            <h3>Configure sudo</h3>
+            <div class="command-box">
+                <div class="command">visudo</div>
+                <div class="description">Edit sudo configuration file safely</div>
+            </div>
+            <div class="example">
+                <div class="prompt"># visudo</div>
+                <div class="output">[Opens /etc/sudoers in editor]<br>
+## Allow root to run any commands anywhere<br>
+root    ALL=(ALL)       ALL<br>
+<br>
+## Allow members of 'wheel' group to execute commands<br>
+%wheel  ALL=(ALL)       ALL</div>
+            </div>
+
+            <div class="info-box">
+                <h4>Sudo Configuration Examples</h4>
+                <p><strong>user ALL=(ALL) ALL</strong> - User can run any command as any user<br>
+                <strong>%group ALL=(ALL) NOPASSWD: ALL</strong> - Group members don't need password<br>
+                <strong>user ALL=(ALL) /bin/systemctl</strong> - User can only run systemctl</p>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>User Management from Command Line</h2>
+            
+            <h3>Create Users from the Command Line</h3>
+            <div class="command-box">
+                <div class="command">useradd username</div>
+                <div class="description">Create new user with default settings</div>
+            </div>
+            <div class="example">
+                <div class="prompt"># useradd john</div>
+                <div class="prompt"># id john</div>
+                <div class="output">uid=1002(john) gid=1002(john) groups=1002(john)</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">useradd -m username</div>
+                <div class="description">Create user and home directory</div>
+            </div>
+            <div class="example">
+                <div class="prompt"># useradd -m alice</div>
+                <div class="prompt"># ls -la /home/alice</div>
+                <div class="output">total 12<br>
+drwx------. 2 alice alice  62 Jul 11 10:30 .<br>
+drwxr-xr-x. 4 root  root   35 Jul 11 10:30 ..</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">useradd -u UID -g group -s shell -c "comment" username</div>
+                <div class="description">Create user with specific options</div>
+            </div>
+            <div class="example">
+                <div class="prompt"># useradd -u 1500 -g users -s /bin/bash -c "Bob Smith" bob</div>
+                <div class="prompt"># getent passwd bob</div>
+                <div class="output">bob:x:1500:100:Bob Smith:/home/bob:/bin/bash</div>
+            </div>
+
+            <h3>Modify Existing Users from the Command Line</h3>
+            <div class="command-box">
+                <div class="command">usermod -c "new comment" username</div>
+                <div class="description">Change user's comment field</div>
+            </div>
+            <div class="example">
+                <div class="prompt"># usermod -c "John Doe - Developer" john</div>
+                <div class="prompt"># getent passwd john</div>
+                <div class="output">john:x:1002:1002:John Doe - Developer:/home/john:/bin/bash</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">usermod -s /new/shell username</div>
+                <div class="description">Change user's login shell</div>
+            </div>
+            <div class="example">
+                <div class="prompt"># usermod -s /bin/zsh alice</div>
+                <div class="prompt"># getent passwd alice | cut -d: -f7</div>
+                <div class="output">/bin/zsh</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">usermod -G group1,group2 username</div>
+                <div class="description">Set user's supplementary groups</div>
+            </div>
+            <div class="example">
+                <div class="prompt"># usermod -G wheel,developers john</div>
+                <div class="prompt"># groups john</div>
+                <div class="output">john wheel developers</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">usermod -L username</div>
+                <div class="description">Lock user account</div>
+            </div>
+            <div class="example">
+                <div class="prompt"># usermod -L john</div>
+                <div class="prompt"># passwd -S john</div>
+                <div class="output">john LK 2025-07-11 0 99999 7 -1 (Password locked.)</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">usermod -U username</div>
+                <div class="description">Unlock user account</div>
+            </div>
+            <div class="example">
+                <div class="prompt"># usermod -U john</div>
+                <div class="prompt"># passwd -S john</div>
+                <div class="output">john PS 2025-07-11 0 99999 7 -1 (Password set, SHA512 crypt.)</div>
+            </div>
+
+            <h3>Delete Users from the Command Line</h3>
+            <div class="command-box">
+                <div class="command">userdel username</div>
+                <div class="description">Delete user account (keeps home directory)</div>
+            </div>
+            <div class="example">
+                <div class="prompt"># userdel bob</div>
+                <div class="prompt"># id bob</div>
+                <div class="output">id: 'bob': no such user</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">userdel -r username</div>
+                <div class="description">Delete user account and home directory</div>
+            </div>
+            <div class="example">
+                <div class="prompt"># userdel -r alice</div>
+                <div class="prompt"># ls /home/alice</div>
+                <div class="output">ls: cannot access '/home/alice': No such file or directory</div>
+            </div>
+
+            <div class="warning-box">
+                <h4>⚠️ Warning</h4>
+                <p>Always backup important data before deleting users. The -r option permanently removes the home directory and all files.</p>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>Password Management</h2>
+            
+            <h3>Set Passwords from the Command Line</h3>
+            <div class="command-box">
+                <div class="command">passwd username</div>
+                <div class="description">Set or change user password interactively</div>
+            </div>
+            <div class="example">
+                <div class="prompt"># passwd john</div>
+                <div class="output">Changing password for user john.<br>
+New password:<br>
+Retype new password:<br>
+passwd: password updated successfully</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">echo "password" | passwd --stdin username</div>
+                <div class="description">Set password non-interactively (Red Hat/CentOS)</div>
+            </div>
+            <div class="example">
+                <div class="prompt"># echo "newpassword123" | passwd --stdin john</div>
+                <div class="output">Changing password for user john.<br>
+passwd: password updated successfully</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">passwd -l username</div>
+                <div class="description">Lock user password</div>
+            </div>
+            <div class="example">
+                <div class="prompt"># passwd -l john</div>
+                <div class="output">Locking password for user john.<br>
+passwd: password changed</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">passwd -u username</div>
+                <div class="description">Unlock user password</div>
+            </div>
+            <div class="example">
+                <div class="prompt"># passwd -u john</div>
+                <div class="output">Unlocking password for user john.<br>
+passwd: password changed</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">passwd -S username</div>
+                <div class="description">Display password status</div>
+            </div>
+            <div class="example">
+                <div class="prompt"># passwd -S john</div>
+                <div class="output">john PS 2025-07-11 0 99999 7 -1 (Password set, SHA512 crypt.)</div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>Group Management from Command Line</h2>
+            
+            <h3>Create Groups from the Command Line</h3>
+            <div class="command-box">
+                <div class="command">groupadd groupname</div>
+                <div class="description">Create new group with default settings</div>
+            </div>
+            <div class="example">
+                <div class="prompt"># groupadd developers</div>
+                <div class="prompt"># getent group developers</div>
+                <div class="output">developers:x:1003:</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">groupadd -g GID groupname</div>
+                <div class="description">Create group with specific GID</div>
+            </div>
+            <div class="example">
+                <div class="prompt"># groupadd -g 2000 managers</div>
+                <div class="prompt"># getent group managers</div>
+                <div class="output">managers:x:2000:</div>
+            </div>
+
+            <h3>Modify Existing Groups from the Command Line</h3>
+            <div class="command-box">
+                <div class="command">groupmod -n newname oldname</div>
+                <div class="description">Rename a group</div>
+            </div>
+            <div class="example">
+                <div class="prompt"># groupmod -n programmers developers</div>
+                <div class="prompt"># getent group programmers</div>
+                <div class="output">programmers:x:1003:</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">groupmod -g newGID groupname</div>
+                <div class="description">Change group ID</div>
+            </div>
+            <div class="example">
+                <div class="prompt"># groupmod -g 1500 programmers</div>
+                <div class="prompt"># getent group programmers</div>
+                <div class="output">programmers:x:1500:</div>
+            </div>
+
+            <h3>Delete Groups from the Command Line</h3>
+            <div class="command-box">
+                <div class="command">groupdel groupname</div>
+                <div class="description">Delete a group</div>
+            </div>
+            <div class="example">
+                <div class="prompt"># groupdel managers</div>
+                <div class="prompt"># getent group managers</div>
+                <div class="output">[No output - group deleted]</div>
+            </div>
+
+            <div class="warning-box">
+                <h4>⚠️ Note</h4>
+                <p>You cannot delete a group if it's the primary group of any user. Change users' primary groups first or delete the users.</p>
+            </div>
+
+            <h3>Change Group Membership from the Command Line</h3>
+            <div class="command-box">
+                <div class="command">gpasswd -a username groupname</div>
+                <div class="description">Add user to group</div>
+            </div>
+            <div class="example">
+                <div class="prompt"># gpasswd -a john programmers</div>
+                <div class="output">Adding user john to group programmers</div>
+                <div class="prompt"># groups john</div>
+                <div class="output">john programmers</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">gpasswd -d username groupname</div>
+                <div class="description">Remove user from group</div>
+            </div>
+            <div class="example">
+                <div class="prompt"># gpasswd -d john programmers</div>
+                <div class="output">Removing user john from group programmers</div>
+                <div class="prompt"># groups john</div>
+                <div class="output">john</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">gpasswd -M user1,user2,user3 groupname</div>
+                <div class="description">Set group members (replaces existing members)</div>
+            </div>
+            <div class="example">
+                <div class="prompt"># gpasswd -M john,alice,bob programmers</div>
+                <div class="prompt"># getent group programmers</div>
+                <div class="output">programmers:x:1500:john,alice,bob</div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>Shadow Passwords and Security</h2>
+            
+            <h3>Shadow Passwords and Password Policy</h3>
+            <p>Linux uses shadow passwords stored in <span class="highlight">/etc/shadow</span> for enhanced security:</p>
+            
+            <div class="info-box">
+                <h4>Shadow Password Fields</h4>
+                <p><strong>1. Username</strong> - Login name<br>
+                <strong>2. Password</strong> - Encrypted password hash<br>
+                <strong>3. Last changed</strong> - Days since Jan 1, 1970<br>
+                <strong>4. Minimum days</strong> - Before password can be changed<br>
+                <strong>5. Maximum days</strong> - Before password must be changed<br>
+                <strong>6. Warning days</strong> - Before password expires<br>
+                <strong>7. Inactive days</strong> - After password expires<br>
+                <strong>8. Expiration date</strong> - Account expiration<br>
+                <strong>9. Reserved</strong> - For future use</p>
+            </div>
+
+            <div class="command-box">
+                <div class="command">chage -l username</div>
+                <div class="description">Display password aging information</div>
+            </div>
+            <div class="example">
+                <div class="prompt"># chage -l john</div>
+                <div class="output">Last password change                    : Jul 11, 2025<br>
+Password expires                        : never<br>
+Password inactive                       : never<br>
+Account expires                         : never<br>
+Minimum number of days between password change : 0<br>
+Maximum number of days between password change : 99999<br>
+Number of days of warning before password expires : 7</div>
+            </div>
+
+            <h3>Configure Password Aging</h3>
+            <div class="command-box">
+                <div class="command">chage -M days username</div>
+                <div class="description">Set maximum password age</div>
+            </div>
+            <div class="example">
+                <div class="prompt"># chage -M 90 john</div>
+                <div class="prompt"># chage -l john | grep "Maximum"</div>
+                <div class="output">Maximum number of days between password change : 90</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">chage -m days username</div>
+                <div class="description">Set minimum password age</div>
+            </div>
+            <div class="example">
+                <div class="prompt"># chage -m 7 john</div>
+                <div class="prompt"># chage -l john | grep "Minimum"</div>
+                <div class="output">Minimum number of days between password change : 7</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">chage -W days username</div>
+                <div class="description">Set password warning period</div>
+            </div>
+            <div class="example">
+                <div class="prompt"># chage -W 14 john</div>
+                <div class="prompt"># chage -l john | grep "warning"</div>
+                <div class="output">Number of days of warning before password expires : 14</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">chage -E YYYY-MM-DD username</div>
+                <div class="description">Set account expiration date</div>
+            </div>
+            <div class="example">
+                <div class="prompt"># chage -E 2025-12-31 john</div>
+                <div class="prompt"># chage -l john | grep "Account expires"</div>
+                <div class="output">Account expires                         : Dec 31, 2025</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">chage -d 0 username</div>
+                <div class="description">Force user to change password on next login</div>
+            </div>
+            <div class="example">
+                <div class="prompt"># chage -d 0 john</div>
+                <div class="prompt"># chage -l john | grep "Last password"</div>
+                <div class="output">Last password change                    : password must be changed</div>
+            </div>
+
+            <h3>Restrict Access</h3>
+            <div class="command-box">
+                <div class="command">usermod -s /sbin/nologin username</div>
+                <div class="description">Prevent user from logging in interactively</div>
+            </div>
+            <div class="example">
+                <div class="prompt"># usermod -s /sbin/nologin serviceuser</div>
+                <div class="prompt"># getent passwd serviceuser | cut -d: -f7</div>
+                <div class="output">/sbin/nologin</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">usermod -L username</div>
+                <div class="description">Lock user account</div>
+            </div>
+            <div class="example">
+                <div class="prompt"># usermod -L tempuser</div>
+                <div class="prompt"># passwd -S tempuser</div>
+                <div class="output">tempuser LK 2025-07-11 0 99999 7 -1 (Password locked.)</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">chage -E -1 username</div>
+                <div class="description">Remove account expiration</div>
+            </div>
+            <div class="example">
+                <div class="prompt"># chage -E -1 john</div>
+                <div class="prompt"># chage -l john | grep "Account expires"</div>
+                <div class="output">Account expires                         : never</div>
+            </div>
+
+            <div class="info-box">
+                <h4>Common Password Policies</h4>
+                <p><strong>Maximum age:</strong> 90 days (force regular changes)<br>
+                <strong>Minimum age:</strong> 1-7 days (prevent immediate changes)<br>
+                <strong>Warning period:</strong> 7-14 days (advance notice)<br>
+                <strong>Complexity:</strong> Configure in /etc/security/pwquality.conf</p>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>Practice Questions</h2>
+            
+            <div class="practice-questions">
+                <h3>Review Questions</h3>
+                <div class="question-container">
+                    <div class="question-item">
+                        <p><strong>1.</strong> What command creates a new user account?</p>
+                        <input type="text" id="q1" placeholder="Enter your answer..." class="answer-input">
+                        <button onclick="checkAnswer(1, 'useradd')" class="check-btn">Check Answer</button>
+                        <div id="feedback1" class="feedback"></div>
+                    </div>
+
+                    <div class="question-item">
+                        <p><strong>2.</strong> What command switches to the root user with root's environment?</p>
+                        <input type="text" id="q2" placeholder="Enter your answer..." class="answer-input">
+                        <button onclick="checkAnswer(2, 'su -')" class="check-btn">Check Answer</button>
+                        <div id="feedback2" class="feedback"></div>
+                    </div>
+
+                    <div class="question-item">
+                        <p><strong>3.</strong> What command adds a user to a group?</p>
+                        <input type="text" id="q3" placeholder="Enter your answer..." class="answer-input">
+                        <button onclick="checkAnswer(3, 'gpasswd -a')" class="check-btn">Check Answer</button>
+                        <div id="feedback3" class="feedback"></div>
+                    </div>
+
+                    <div class="question-item">
+                        <p><strong>4.</strong> What command deletes a user account and their home directory?</p>
+                        <input type="text" id="q4" placeholder="Enter your answer..." class="answer-input">
+                        <button onclick="checkAnswer(4, 'userdel -r')" class="check-btn">Check Answer</button>
+                        <div id="feedback4" class="feedback"></div>
+                    </div>
+
+                    <div class="question-item">
+                        <p><strong>5.</strong> What command creates a new group?</p>
+                        <input type="text" id="q5" placeholder="Enter your answer..." class="answer-input">
+                        <button onclick="checkAnswer(5, 'groupadd')" class="check-btn">Check Answer</button>
+                        <div id="feedback5" class="feedback"></div>
+                    </div>
+
+                    <div class="question-item">
+                        <p><strong>6.</strong> What command displays password aging information for a user?</p>
+                        <input type="text" id="q6" placeholder="Enter your answer..." class="answer-input">
+                        <button onclick="checkAnswer(6, 'chage -l')" class="check-btn">Check Answer</button>
+                        <div id="feedback6" class="feedback"></div>
+                    </div>
+
+                    <div class="question-item">
+                        <p><strong>7.</strong> What command safely edits the sudo configuration file?</p>
+                        <input type="text" id="q7" placeholder="Enter your answer..." class="answer-input">
+                        <button onclick="checkAnswer(7, 'visudo')" class="check-btn">Check Answer</button>
+                        <div id="feedback7" class="feedback"></div>
+                    </div>
+
+                    <div class="question-item">
+                        <p><strong>8.</strong> What command locks a user account?</p>
+                        <input type="text" id="q8" placeholder="Enter your answer..." class="answer-input">
+                        <button onclick="checkAnswer(8, 'usermod -L')" class="check-btn">Check Answer</button>
+                        <div id="feedback8" class="feedback"></div>
+                    </div>
+
+                    <div class="question-item">
+                        <p><strong>9.</strong> What command shows which groups a user belongs to?</p>
+                        <input type="text" id="q9" placeholder="Enter your answer..." class="answer-input">
+                        <button onclick="checkAnswer(9, 'groups')" class="check-btn">Check Answer</button>
+                        <div id="feedback9" class="feedback"></div>
+                    </div>
+
+                    <div class="question-item">
+                        <p><strong>10.</strong> What command forces a user to change their password on next login?</p>
+                        <input type="text" id="q10" placeholder="Enter your answer..." class="answer-input">
+                        <button onclick="checkAnswer(10, 'chage -d 0')" class="check-btn">Check Answer</button>
+                        <div id="feedback10" class="feedback"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="practice-questions">
+                <h3>Command Practice Scenarios</h3>
+                <div class="question-container">
+                    <div class="question-item">
+                        <p><strong>Scenario 1:</strong> You need to create a user "alice" with UID 1500 and home directory. What command do you use?</p>
+                        <input type="text" id="s1" placeholder="Enter your answer..." class="answer-input">
+                        <button onclick="checkScenario(1, 'useradd -u 1500 -m alice')" class="check-btn">Check Answer</button>
+                        <div id="sfeedback1" class="feedback"></div>
+                    </div>
+
+                    <div class="question-item">
+                        <p><strong>Scenario 2:</strong> You want to add user "john" to the "developers" group. What command do you use?</p>
+                        <input type="text" id="s2" placeholder="Enter your answer..." class="answer-input">
+                        <button onclick="checkScenario(2, 'gpasswd -a john developers')" class="check-btn">Check Answer</button>
+                        <div id="sfeedback2" class="feedback"></div>
+                    </div>
+
+                    <div class="question-item">
+                        <p><strong>Scenario 3:</strong> You need to set a password policy where passwords expire every 60 days for user "bob". What command do you use?</p>
+                        <input type="text" id="s3" placeholder="Enter your answer..." class="answer-input">
+                        <button onclick="checkScenario(3, 'chage -M 60 bob')" class="check-btn">Check Answer</button>
+                        <div id="sfeedback3" class="feedback"></div>
+                    </div>
+
+                    <div class="question-item">
+                        <p><strong>Scenario 4:</strong> You want to create a group called "managers" with GID 2000. What command do you use?</p>
+                        <input type="text" id="s4" placeholder="Enter your answer..." class="answer-input">
+                        <button onclick="checkScenario(4, 'groupadd -g 2000 managers')" class="check-btn">Check Answer</button>
+                        <div id="sfeedback4" class="feedback"></div>
+                    </div>
+
+                    <div class="question-item">
+                        <p><strong>Scenario 5:</strong> You need to run the "systemctl restart httpd" command as root using sudo. What command do you use?</p>
+                        <input type="text" id="s5" placeholder="Enter your answer..." class="answer-input">
+                        <button onclick="checkScenario(5, 'sudo systemctl restart httpd')" class="check-btn">Check Answer</button>
+                        <div id="sfeedback5" class="feedback"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="score-section">
+                <h3>Your Progress</h3>
+                <div id="scoreDisplay">
+                    <p>Review Questions: <span id="reviewScore">0/10</span></p>
+                    <p>Scenario Questions: <span id="scenarioScore">0/5</span></p>
+                    <p>Total Score: <span id="totalScore">0/15</span></p>
+                </div>
+                <button onclick="resetQuiz()" class="reset-btn">Reset All Answers</button>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // Score tracking
+        let reviewCorrect = 0;
+        let scenarioCorrect = 0;
+        let reviewAttempted = new Set();
+        let scenarioAttempted = new Set();
+
+        // Alternative answers for flexible checking
+        const alternatives = {
+            1: ['useradd'],
+            2: ['su -'],
+            3: ['gpasswd -a', 'usermod -aG'],
+            4: ['userdel -r'],
+            5: ['groupadd'],
+            6: ['chage -l'],
+            7: ['visudo'],
+            8: ['usermod -L', 'passwd -l'],
+            9: ['groups', 'id'],
+            10: ['chage -d 0']
+        };
+
+        const scenarioAlternatives = {
+            1: ['useradd -u 1500 -m alice', 'useradd -m -u 1500 alice'],
+            2: ['gpasswd -a john developers', 'usermod -aG developers john'],
+            3: ['chage -M 60 bob'],
+            4: ['groupadd -g 2000 managers'],
+            5: ['sudo systemctl restart httpd']
+        };
+
+        function normalizeAnswer(answer) {
+            return answer.toLowerCase().trim().replace(/\s+/g, ' ');
+        }
+
+        function checkAnswer(questionNum, correctAnswer) {
+            const userAnswer = document.getElementById(`q${questionNum}`).value;
+            const feedbackElement = document.getElementById(`feedback${questionNum}`);
+            const normalizedUser = normalizeAnswer(userAnswer);
+            const normalizedCorrect = normalizeAnswer(correctAnswer);
+            
+            // Check if answer matches any alternative
+            let isCorrect = normalizedUser === normalizedCorrect;
+            if (!isCorrect && alternatives[questionNum]) {
+                isCorrect = alternatives[questionNum].some(alt => normalizeAnswer(alt) === normalizedUser);
+            }
+            
+            if (isCorrect) {
+                feedbackElement.className = 'feedback correct';
+                feedbackElement.innerHTML = '✓ Correct! Well done!';
+                if (!reviewAttempted.has(questionNum)) {
+                    reviewCorrect++;
+                    reviewAttempted.add(questionNum);
+                }
+            } else {
+                feedbackElement.className = 'feedback incorrect';
+                feedbackElement.innerHTML = `
+                    ✗ Incorrect. Try again!
+                    <button class="show-answer-btn" onclick="showCorrectAnswer(${questionNum}, '${correctAnswer}')">
+                        Show Correct Answer
+                    </button>
+                `;
+                if (!reviewAttempted.has(questionNum)) {
+                    reviewAttempted.add(questionNum);
+                }
+            }
+            
+            updateScore();
+        }
+
+        function checkScenario(scenarioNum, correctAnswer) {
+            const userAnswer = document.getElementById(`s${scenarioNum}`).value;
+            const feedbackElement = document.getElementById(`sfeedback${scenarioNum}`);
+            const normalizedUser = normalizeAnswer(userAnswer);
+            const normalizedCorrect = normalizeAnswer(correctAnswer);
+            
+            // Check if answer matches any alternative
+            let isCorrect = normalizedUser === normalizedCorrect;
+            if (!isCorrect && scenarioAlternatives[scenarioNum]) {
+                isCorrect = scenarioAlternatives[scenarioNum].some(alt => normalizeAnswer(alt) === normalizedUser);
+            }
+            
+            if (isCorrect) {
+                feedbackElement.className = 'feedback correct';
+                feedbackElement.innerHTML = '✓ Correct! Excellent problem-solving!';
+                if (!scenarioAttempted.has(scenarioNum)) {
+                    scenarioCorrect++;
+                    scenarioAttempted.add(scenarioNum);
+                }
+            } else {
+                feedbackElement.className = 'feedback incorrect';
+                feedbackElement.innerHTML = `
+                    ✗ Incorrect. Think about the scenario again.
+                    <button class="show-answer-btn" onclick="showScenarioAnswer(${scenarioNum}, '${correctAnswer}')">
+                        Show Correct Answer
+                    </button>
+                `;
+                if (!scenarioAttempted.has(scenarioNum)) {
+                    scenarioAttempted.add(scenarioNum);
+                }
+            }
+            
+            updateScore();
+        }
+
+        function showCorrectAnswer(questionNum, correctAnswer) {
+            const feedbackElement = document.getElementById(`feedback${questionNum}`);
+            const explanations = {
+                1: 'The "useradd" command creates new user accounts with default or specified settings.',
+                2: 'The "su -" command switches to root with root\'s environment variables.',
+                3: 'The "gpasswd -a" command adds a user to a group.',
+                4: 'The "userdel -r" command deletes a user account and removes their home directory.',
+                5: 'The "groupadd" command creates new groups.',
+                6: 'The "chage -l" command displays password aging and expiration information.',
+                7: 'The "visudo" command safely edits the sudo configuration file with syntax checking.',
+                8: 'The "usermod -L" command locks a user account by disabling the password.',
+                9: 'The "groups" command shows all groups a user belongs to.',
+                10: 'The "chage -d 0" command forces a password change on next login.'
+            };
+            
+            feedbackElement.innerHTML = `
+                ✗ Incorrect.
+                <div class="correct-answer">
+                    <strong>Correct Answer:</strong> ${correctAnswer}<br>
+                    <strong>Explanation:</strong> ${explanations[questionNum]}
+                </div>
+            `;
+        }
+
+        function showScenarioAnswer(scenarioNum, correctAnswer) {
+            const feedbackElement = document.getElementById(`sfeedback${scenarioNum}`);
+            const explanations = {
+                1: 'The -u option specifies the UID and -m creates the home directory.',
+                2: 'The gpasswd -a command adds a user to a supplementary group.',
+                3: 'The -M option sets the maximum number of days before password expires.',
+                4: 'The -g option specifies the GID when creating a group.',
+                5: 'The sudo command allows running commands with elevated privileges.'
+            };
+            
+            feedbackElement.innerHTML = `
+                ✗ Incorrect.
+                <div class="correct-answer">
+                    <strong>Correct Answer:</strong> ${correctAnswer}<br>
+                    <strong>Explanation:</strong> ${explanations[scenarioNum]}
+                </div>
+            `;
+        }
+
+        function updateScore() {
+            document.getElementById('reviewScore').textContent = `${reviewCorrect}/10`;
+            document.getElementById('scenarioScore').textContent = `${scenarioCorrect}/5`;
+            document.getElementById('totalScore').textContent = `${reviewCorrect + scenarioCorrect}/15`;
+        }
+
+        function resetQuiz() {
+            // Reset scores
+            reviewCorrect = 0;
+            scenarioCorrect = 0;
+            reviewAttempted.clear();
+            scenarioAttempted.clear();
+            
+            // Clear all inputs
+            for (let i = 1; i <= 10; i++) {
+                document.getElementById(`q${i}`).value = '';
+                document.getElementById(`feedback${i}`).className = 'feedback';
+                document.getElementById(`feedback${i}`).style.display = 'none';
+            }
+            
+            for (let i = 1; i <= 5; i++) {
+                document.getElementById(`s${i}`).value = '';
+                document.getElementById(`sfeedback${i}`).className = 'feedback';
+                document.getElementById(`sfeedback${i}`).style.display = 'none';
+            }
+            
+            updateScore();
+        }
+
+        // Allow Enter key to submit answers
+        document.addEventListener('DOMContentLoaded', function() {
+            // Review questions
+            for (let i = 1; i <= 10; i++) {
+                document.getElementById(`q${i}`).addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        const correctAnswers = {
+                            1: 'useradd',
+                            2: 'su -',
+                            3: 'gpasswd -a',
+                            4: 'userdel -r',
+                            5: 'groupadd',
+                            6: 'chage -l',
+                            7: 'visudo',
+                            8: 'usermod -L',
+                            9: 'groups',
+                            10: 'chage -d 0'
+                        };
+                        checkAnswer(i, correctAnswers[i]);
+                    }
+                });
+            }
+            
+            // Scenario questions
+            for (let i = 1; i <= 5; i++) {
+                document.getElementById(`s${i}`).addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        const correctAnswers = {
+                            1: 'useradd -u 1500 -m alice',
+                            2: 'gpasswd -a john developers',
+                            3: 'chage -M 60 bob',
+                            4: 'groupadd -g 2000 managers',
+                            5: 'sudo systemctl restart httpd'
+                        };
+                        checkScenario(i, correctAnswers[i]);
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
