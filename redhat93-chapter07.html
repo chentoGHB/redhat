@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linux Chapter 7 Review - Control Access to Files</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+        }
+
+        .header {
+            background-color: #003366;
+            color: white;
+            padding: 20px 0;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .header h2 {
+            font-size: 1.8em;
+            margin-bottom: 5px;
+            color: #cccccc;
+        }
+
+        .header .instructor {
+            font-size: 1.2em;
+            margin-top: 10px;
+            color: #ffffff;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border-left: 4px solid #003366;
+            background-color: #f9f9f9;
+        }
+
+        .section h3 {
+            color: #003366;
+            font-size: 1.5em;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #003366;
+            padding-bottom: 5px;
+        }
+
+        .code-block {
+            background-color: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0;
+            overflow-x: auto;
+            border-left: 4px solid #4299e1;
+        }
+
+        .code-line {
+            display: block;
+            margin: 3px 0;
+        }
+
+        .command {
+            color: #68d391;
+            font-weight: bold;
+        }
+
+        .output {
+            color: #fbb6ce;
+        }
+
+        .comment {
+            color: #a0aec0;
+            font-style: italic;
+        }
+
+        .practice-section {
+            background-color: #e6f3ff;
+            border: 2px solid #003366;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .practice-section h4 {
+            color: #003366;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .question {
+            background-color: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            border-left: 4px solid #4299e1;
+        }
+
+        .question-text {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #2d3748;
+        }
+
+        .answer-input {
+            width: 100%;
+            padding: 8px;
+            border: 2px solid #cbd5e0;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+
+        .answer-input:focus {
+            outline: none;
+            border-color: #4299e1;
+        }
+
+        .button {
+            background-color: #003366;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+
+        .button:hover {
+            background-color: #004080;
+        }
+
+        .button.reset {
+            background-color: #e53e3e;
+        }
+
+        .button.reset:hover {
+            background-color: #c53030;
+        }
+
+        .feedback {
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        .feedback.correct {
+            background-color: #c6f6d5;
+            color: #22543d;
+            border: 1px solid #9ae6b4;
+        }
+
+        .feedback.incorrect {
+            background-color: #fed7d7;
+            color: #742a2a;
+            border: 1px solid #fc8181;
+        }
+
+        .correct-answer {
+            background-color: #bee3f8;
+            color: #2a4365;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+
+        .table th, .table td {
+            border: 1px solid #cbd5e0;
+            padding: 10px;
+            text-align: left;
+        }
+
+        .table th {
+            background-color: #003366;
+            color: white;
+        }
+
+        .table tr:nth-child(even) {
+            background-color: #f7fafc;
+        }
+
+        .permission-visual {
+            display: inline-block;
+            background-color: #2d3748;
+            color: #e2e8f0;
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            margin: 2px;
+        }
+
+        .reset-all-container {
+            text-align: center;
+            margin: 30px 0;
+            padding: 20px;
+            background-color: #fed7e2;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Chapter 7: Control Access to Files</h1>
+        <h2>Computer Information Technology Department</h2>
+        <div class="instructor">Instructor: Tony Chen</div>
+        <div style="font-size: 0.9em; margin-top: 5px;">College of DuPage - cod.edu</div>
+    </div>
+
+    <div class="container">
+        <!-- Linux File-system Permissions -->
+        <div class="section">
+            <h3>🔐 Linux File-system Permissions Overview</h3>
+            <p>Linux uses a permission system to control access to files and directories. Every file and directory has three types of permissions for three categories of users:</p>
+            
+            <table class="table">
+                <tr>
+                    <th>User Category</th>
+                    <th>Description</th>
+                    <th>Symbol</th>
+                </tr>
+                <tr>
+                    <td>Owner (User)</td>
+                    <td>The user who owns the file</td>
+                    <td>u</td>
+                </tr>
+                <tr>
+                    <td>Group</td>
+                    <td>Users who belong to the file's group</td>
+                    <td>g</td>
+                </tr>
+                <tr>
+                    <td>Others</td>
+                    <td>All other users on the system</td>
+                    <td>o</td>
+                </tr>
+            </table>
+
+            <table class="table">
+                <tr>
+                    <th>Permission</th>
+                    <th>Symbol</th>
+                    <th>Octal Value</th>
+                    <th>Effect on Files</th>
+                    <th>Effect on Directories</th>
+                </tr>
+                <tr>
+                    <td>Read</td>
+                    <td>r</td>
+                    <td>4</td>
+                    <td>View file contents</td>
+                    <td>List directory contents</td>
+                </tr>
+                <tr>
+                    <td>Write</td>
+                    <td>w</td>
+                    <td>2</td>
+                    <td>Modify file contents</td>
+                    <td>Create/delete files in directory</td>
+                </tr>
+                <tr>
+                    <td>Execute</td>
+                    <td>x</td>
+                    <td>1</td>
+                    <td>Run file as program</td>
+                    <td>Access directory (cd into it)</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- View Permissions -->
+        <div class="section">
+            <h3>👀 View File and Directory Permissions</h3>
+            <p>Use the <code>ls -l</code> command to view detailed permissions:</p>
+            
+            <div class="code-block">
+                <span class="code-line"><span class="command">ls -l</span></span>
+                <span class="code-line"><span class="output">-rw-r--r-- 1 tchen staff 1024 Jan 15 10:30 document.txt</span></span>
+                <span class="code-line"><span class="output">drwxr-xr-x 2 tchen staff   68 Jan 15 09:15 mydir</span></span>
+                <span class="code-line"><span class="comment"># First character: file type (- = file, d = directory)</span></span>
+                <span class="code-line"><span class="comment"># Next 9 characters: permissions (rwx for owner, group, others)</span></span>
+            </div>
+
+            <div class="code-block">
+                <span class="code-line"><span class="command">ls -la</span> <span class="comment"># Show all files including hidden</span></span>
+                <span class="code-line"><span class="command">ls -ld /home</span> <span class="comment"># Show directory permissions only</span></span>
+                <span class="code-line"><span class="command">stat filename</span> <span class="comment"># Detailed file information</span></span>
+            </div>
+
+            <p>Permission string breakdown:</p>
+            <div class="permission-visual">-rwxr--r--</div>
+            <p style="margin-top: 10px;">
+                - = file type<br>
+                rwx = owner permissions (read, write, execute)<br>
+                r-- = group permissions (read only)<br>
+                r-- = others permissions (read only)
+            </p>
+        </div>
+
+        <!-- Symbolic Method -->
+        <div class="section">
+            <h3>🔤 Change Permissions with Symbolic Method</h3>
+            <p>The symbolic method uses letters and symbols to modify permissions:</p>
+            
+            <div class="code-block">
+                <span class="code-line"><span class="comment"># Syntax: chmod [who][operator][permissions] file</span></span>
+                <span class="code-line"><span class="comment"># who: u(user), g(group), o(others), a(all)</span></span>
+                <span class="code-line"><span class="comment"># operator: +(add), -(remove), =(set exactly)</span></span>
+                <span class="code-line"><span class="comment"># permissions: r(read), w(write), x(execute)</span></span>
+            </div>
+
+            <div class="code-block">
+                <span class="code-line"><span class="command">chmod u+x script.sh</span> <span class="comment"># Add execute for owner</span></span>
+                <span class="code-line"><span class="command">chmod g-w document.txt</span> <span class="comment"># Remove write for group</span></span>
+                <span class="code-line"><span class="command">chmod o=r file.txt</span> <span class="comment"># Set others to read only</span></span>
+                <span class="code-line"><span class="command">chmod a+r readme.txt</span> <span class="comment"># Add read for all</span></span>
+                <span class="code-line"><span class="command">chmod u+rwx,g+rx,o+r myfile</span> <span class="comment"># Multiple permissions</span></span>
+                <span class="code-line"><span class="command">chmod -R u+w mydir/</span> <span class="comment"># Recursive for directory</span></span>
+            </div>
+        </div>
+
+        <!-- Octal Method -->
+        <div class="section">
+            <h3>🔢 Change Permissions with Octal Method</h3>
+            <p>The octal method uses three digits (0-7) representing owner, group, and others permissions:</p>
+            
+            <table class="table">
+                <tr>
+                    <th>Octal</th>
+                    <th>Binary</th>
+                    <th>Permission</th>
+                    <th>Description</th>
+                </tr>
+                <tr><td>0</td><td>000</td><td>---</td><td>No permissions</td></tr>
+                <tr><td>1</td><td>001</td><td>--x</td><td>Execute only</td></tr>
+                <tr><td>2</td><td>010</td><td>-w-</td><td>Write only</td></tr>
+                <tr><td>3</td><td>011</td><td>-wx</td><td>Write and execute</td></tr>
+                <tr><td>4</td><td>100</td><td>r--</td><td>Read only</td></tr>
+                <tr><td>5</td><td>101</td><td>r-x</td><td>Read and execute</td></tr>
+                <tr><td>6</td><td>110</td><td>rw-</td><td>Read and write</td></tr>
+                <tr><td>7</td><td>111</td><td>rwx</td><td>All permissions</td></tr>
+            </table>
+
+            <div class="code-block">
+                <span class="code-line"><span class="command">chmod 755 script.sh</span> <span class="comment"># rwxr-xr-x</span></span>
+                <span class="code-line"><span class="command">chmod 644 document.txt</span> <span class="comment"># rw-r--r--</span></span>
+                <span class="code-line"><span class="command">chmod 600 private.txt</span> <span class="comment"># rw-------</span></span>
+                <span class="code-line"><span class="command">chmod 777 shared_file</span> <span class="comment"># rwxrwxrwx</span></span>
+                <span class="code-line"><span class="command">chmod -R 755 /home/user/public/</span> <span class="comment"># Recursive</span></span>
+            </div>
+        </div>
+
+        <!-- Ownership -->
+        <div class="section">
+            <h3>👤 Change File and Directory Ownership</h3>
+            <p>Use <code>chown</code> to change owner and <code>chgrp</code> to change group:</p>
+            
+            <div class="code-block">
+                <span class="code-line"><span class="command">chown newowner file.txt</span> <span class="comment"># Change owner only</span></span>
+                <span class="code-line"><span class="command">chown newowner:newgroup file.txt</span> <span class="comment"># Change owner and group</span></span>
+                <span class="code-line"><span class="command">chown :newgroup file.txt</span> <span class="comment"># Change group only</span></span>
+                <span class="code-line"><span class="command">chown -R user:group directory/</span> <span class="comment"># Recursive change</span></span>
+            </div>
+
+            <div class="code-block">
+                <span class="code-line"><span class="command">chgrp developers project.txt</span> <span class="comment"># Change group ownership</span></span>
+                <span class="code-line"><span class="command">chgrp -R staff /home/shared/</span> <span class="comment"># Recursive group change</span></span>
+            </div>
+
+            <div class="code-block">
+                <span class="code-line"><span class="command">id</span> <span class="comment"># Show current user and group IDs</span></span>
+                <span class="code-line"><span class="command">groups</span> <span class="comment"># Show groups user belongs to</span></span>
+                <span class="code-line"><span class="command">whoami</span> <span class="comment"># Show current username</span></span>
+            </div>
+        </div>
+
+        <!-- Default Permissions -->
+        <div class="section">
+            <h3>⚙️ Manage Default Permissions and umask</h3>
+            <p>The <code>umask</code> utility controls default permissions for newly created files and directories:</p>
+            
+            <div class="code-block">
+                <span class="code-line"><span class="command">umask</span> <span class="comment"># Show current umask value</span></span>
+                <span class="code-line"><span class="output">0022</span></span>
+                <span class="code-line"><span class="command">umask -S</span> <span class="comment"># Show symbolic representation</span></span>
+                <span class="code-line"><span class="output">u=rwx,g=rx,o=rx</span></span>
+            </div>
+
+            <p><strong>How umask works:</strong></p>
+            <ul style="margin: 10px 0 10px 20px;">
+                <li>Default file permissions: 666 (rw-rw-rw-)</li>
+                <li>Default directory permissions: 777 (rwxrwxrwx)</li>
+                <li>umask subtracts permissions from defaults</li>
+            </ul>
+
+            <div class="code-block">
+                <span class="code-line"><span class="comment"># umask 022 calculation:</span></span>
+                <span class="code-line"><span class="comment"># Files: 666 - 022 = 644 (rw-r--r--)</span></span>
+                <span class="code-line"><span class="comment"># Directories: 777 - 022 = 755 (rwxr-xr-x)</span></span>
+            </div>
+
+            <div class="code-block">
+                <span class="code-line"><span class="command">umask 002</span> <span class="comment"># Set new umask (group writable)</span></span>
+                <span class="code-line"><span class="command">umask 077</span> <span class="comment"># Very restrictive (user only)</span></span>
+                <span class="code-line"><span class="command">touch newfile.txt</span> <span class="comment"># Test new defaults</span></span>
+                <span class="code-line"><span class="command">mkdir newdir</span> <span class="comment"># Test directory defaults</span></span>
+            </div>
+        </div>
+
+        <!-- Special Permissions -->
+        <div class="section">
+            <h3>⭐ Special Permissions</h3>
+            <p>Linux has three special permission bits beyond the standard rwx:</p>
+            
+            <table class="table">
+                <tr>
+                    <th>Permission</th>
+                    <th>Octal</th>
+                    <th>Symbol</th>
+                    <th>Effect on Files</th>
+                    <th>Effect on Directories</th>
+                </tr>
+                <tr>
+                    <td>SUID (Set User ID)</td>
+                    <td>4000</td>
+                    <td>s (in user execute)</td>
+                    <td>Run as file owner</td>
+                    <td>No effect</td>
+                </tr>
+                <tr>
+                    <td>SGID (Set Group ID)</td>
+                    <td>2000</td>
+                    <td>s (in group execute)</td>
+                    <td>Run as file group</td>
+                    <td>Inherit group ownership</td>
+                </tr>
+                <tr>
+                    <td>Sticky Bit</td>
+                    <td>1000</td>
+                    <td>t (in others execute)</td>
+                    <td>No effect</td>
+                    <td>Only owner can delete files</td>
+                </tr>
+            </table>
+
+            <div class="code-block">
+                <span class="code-line"><span class="command">chmod 4755 /usr/bin/passwd</span> <span class="comment"># Set SUID</span></span>
+                <span class="code-line"><span class="command">chmod 2755 /shared/project</span> <span class="comment"># Set SGID</span></span>
+                <span class="code-line"><span class="command">chmod 1777 /tmp</span> <span class="comment"># Set sticky bit</span></span>
+                <span class="code-line"><span class="command">chmod u+s myprogram</span> <span class="comment"># Symbolic SUID</span></span>
+                <span class="code-line"><span class="command">chmod g+s shared_dir</span> <span class="comment"># Symbolic SGID</span></span>
+                <span class="code-line"><span class="command">chmod +t public_dir</span> <span class="comment"># Symbolic sticky bit</span></span>
+            </div>
+
+            <div class="code-block">
+                <span class="code-line"><span class="command">ls -l /usr/bin/passwd</span></span>
+                <span class="code-line"><span class="output">-rwsr-xr-x 1 root root 68208 Jul 14 2021 /usr/bin/passwd</span></span>
+                <span class="code-line"><span class="comment"># Notice the 's' in place of 'x' for user permissions</span></span>
+            </div>
+        </div>
+
+        <!-- Practice Questions -->
+        <div class="practice-section">
+            <h4>🧠 Practice Questions</h4>
+            
+            <div class="question">
+                <div class="question-text">1. What octal permission represents rwxr-x---?</div>
+                <input type="text" class="answer-input" id="q1" placeholder="Enter your answer (e.g., 755)">
+                <button class="button" onclick="checkAnswer('q1', '750', 'rwx = 7 (4+2+1), r-x = 5 (4+0+1), --- = 0')">Check Answer</button>
+                <button class="button" onclick="showAnswer('q1', '750', 'rwx = 7 (4+2+1), r-x = 5 (4+0+1), --- = 0')">Show Answer</button>
+                <div id="q1-feedback"></div>
+            </div>
+
+            <div class="question">
+                <div class="question-text">2. What command adds execute permission for the owner of file.sh?</div>
+                <input type="text" class="answer-input" id="q2" placeholder="Enter your answer">
+                <button class="button" onclick="checkAnswer('q2', 'chmod u+x file.sh', 'u = user (owner), + = add, x = execute permission')">Check Answer</button>
+                <button class="button" onclick="showAnswer('q2', 'chmod u+x file.sh', 'u = user (owner), + = add, x = execute permission')">Show Answer</button>
+                <div id="q2-feedback"></div>
+            </div>
+
+            <div class="question">
+                <div class="question-text">3. What does umask 027 result in for new file permissions?</div>
+                <input type="text" class="answer-input" id="q3" placeholder="Enter symbolic format (e.g., rwxr-xr-x)">
+                <button class="button" onclick="checkAnswer('q3', 'rw-r-----', 'Files start at 666, subtract 027: 666 - 027 = 640 (rw-r-----).')">Check Answer</button>
+                <button class="button" onclick="showAnswer('q3', 'rw-r-----', 'Files start at 666, subtract 027: 666 - 027 = 640 (rw-r-----).')">Show Answer</button>
+                <div id="q3-feedback"></div>
+            </div>
+
+            <div class="question">
+                <div class="question-text">4. What command changes the owner of myfile.txt to 'alice' and group to 'developers'?</div>
+                <input type="text" class="answer-input" id="q4" placeholder="Enter your answer">
+                <button class="button" onclick="checkAnswer('q4', 'chown alice:developers myfile.txt', 'chown uses the format owner:group filename')">Check Answer</button>
+                <button class="button" onclick="showAnswer('q4', 'chown alice:developers myfile.txt', 'chown uses the format owner:group filename')">Show Answer</button>
+                <div id="q4-feedback"></div>
+            </div>
+
+            <div class="question">
+                <div class="question-text">5. What symbolic permission represents the octal 644?</div>
+                <input type="text" class="answer-input" id="q5" placeholder="Enter symbolic format (e.g., rwxr-xr-x)">
+                <button class="button" onclick="checkAnswer('q5', 'rw-r--r--', '6 = rw- (4+2+0), 4 = r-- (4+0+0), 4 = r-- (4+0+0)')">Check Answer</button>
+                <button class="button" onclick="showAnswer('q5', 'rw-r--r--', '6 = rw- (4+2+0), 4 = r-- (4+0+0), 4 = r-- (4+0+0)')">Show Answer</button>
+                <div id="q5-feedback"></div>
+            </div>
+
+            <div class="question">
+                <div class="question-text">6. What command removes write permission for group and others on secret.txt?</div>
+                <input type="text" class="answer-input" id="q6" placeholder="Enter your answer">
+                <button class="button" onclick="checkAnswer('q6', 'chmod go-w secret.txt', 'go = group and others, - = remove, w = write permission')">Check Answer</button>
+                <button class="button" onclick="showAnswer('q6', 'chmod go-w secret.txt', 'go = group and others, - = remove, w = write permission')">Show Answer</button>
+                <div id="q6-feedback"></div>
+            </div>
+
+            <div class="question">
+                <div class="question-text">7. What special permission bit is represented by 't' in the others execute position?</div>
+                <input type="text" class="answer-input" id="q7" placeholder="Enter your answer">
+                <button class="button" onclick="checkAnswer('q7', 'sticky bit', 'The sticky bit appears as t in the others execute position')">Check Answer</button>
+                <button class="button" onclick="showAnswer('q7', 'sticky bit', 'The sticky bit appears as t in the others execute position')">Show Answer</button>
+                <div id="q7-feedback"></div>
+            </div>
+
+            <div class="question">
+                <div class="question-text">8. What umask value would result in new directories having 750 permissions?</div>
+                <input type="text" class="answer-input" id="q8" placeholder="Enter your answer (e.g., 022)">
+                <button class="button" onclick="checkAnswer('q8', '027', 'Directories start at 777, to get 750: 777 - 027 = 750')">Check Answer</button>
+                <button class="button" onclick="showAnswer('q8', '027', 'Directories start at 777, to get 750: 777 - 027 = 750')">Show Answer</button>
+                <div id="q8-feedback"></div>
+            </div>
+
+            <div class="question">
+                <div class="question-text">9. What does the execute permission on a directory allow you to do?</div>
+                <input type="text" class="answer-input" id="q9" placeholder="Enter your answer">
+                <button class="button" onclick="checkAnswer('q9', 'access the directory', 'Execute permission on directories allows you to cd into them and access their contents')">Check Answer</button>
+                <button class="button" onclick="showAnswer('q9', 'access the directory', 'Execute permission on directories allows you to cd into them and access their contents')">Show Answer</button>
+                <div id="q9-feedback"></div>
+            </div>
+
+            <div class="question">
+                <div class="question-text">10. What command sets SGID permission on a directory called 'project'?</div>
+                <input type="text" class="answer-input" id="q10" placeholder="Enter your answer">
+                <button class="button" onclick="checkAnswer('q10', 'chmod g+s project', 'SGID is set using g+s in symbolic notation')">Check Answer</button>
+                <button class="button" onclick="showAnswer('q10', 'chmod g+s project', 'SGID is set using g+s in symbolic notation')">Show Answer</button>
+                <div id="q10-feedback"></div>
+            </div>
+        </div>
+
+        <div class="reset-all-container">
+            <h4>Reset All Answers</h4>
+            <p>Click the button below to clear all your answers and start over.</p>
+            <button class="button reset" onclick="resetAllAnswers()">Reset All Answers</button>
+            <p style="margin-top: 10px; font-size: 0.9em; color: #666;">
+                If "Reset All Answers" does not work, refresh and reload the page.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        function checkAnswer(questionId, correctAnswer, explanation) {
+            const userAnswer = document.getElementById(questionId).value.trim().toLowerCase();
+            const feedbackDiv = document.getElementById(questionId + '-feedback');
+            
+            // Handle multiple acceptable answers
+            const acceptable = correctAnswer.toLowerCase().split('|');
+            
+            if (acceptable.includes(userAnswer)) {
+                feedbackDiv.innerHTML = '<div class="feedback correct">✓ Correct! ' + explanation + '</div>';
+            } else {
+                feedbackDiv.innerHTML = '<div class="feedback incorrect">✗ Incorrect. Try again or click "Show Answer" for help.</div>';
+            }
+        }
+
+        function showAnswer(questionId, correctAnswer, explanation) {
+            const feedbackDiv = document.getElementById(questionId +
