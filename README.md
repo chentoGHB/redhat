@@ -22,6 +22,13 @@ Linux File-system Permissions; Effects of Permissions on Files and Directories r
  use College of DuPage cod.edu format and Tony Chen name on the teacher on top of the page, CIT department, include example for each command and include practice questions. For the practice questions and practice scenarios, please provide a way users can enter and answer and provide feedback to the user when the answer is incorrect and chance to view the correct answer. For all the examples shown, make sure lines are separated correctly, not a long running sentence. No hot link on the top of the page. Add title Chapter 7.  Control Access to Files above the CIT department.
 If "Rest All Answer" does not work, refresh and reload the page.
  # redhat93c8
+ Use the previous section as template,  Act as an expert html and javascript coder create an linux review page include the content of 
+Monitor and Manage Linux Processes; efinition of a Process; Describe Process States; the top command; the ps command; Describe Jobs and Sessions; Run Jobs in the Background; send a foreground process to the background,;bg command;  Process Control with Signals; kil command;Control Specific Processes Use the pkill command;  Terminate Background Jobs; Administratively Log Out Users; Load Average Calculation; 
+ use College of DuPage cod.edu format and Tony Chen name on the teacher on top of the page, CIT department, include example for each command and include practice questions. For the practice questions and practice scenarios, please provide a way users can enter and answer and provide feedback to the user when the answer is incorrect and chance to view the correct answer. For all the examples shown, make sure lines are separated correctly, not a long running sentence. No hot link on the top of the page. Add title Chapter 8.  Monitor and Manage Linux Processes above the CIT department.
+If "Rest All Answer" does not work, refresh and reload the page.
+
+Edit
+
 
  # redhat93c9
 
