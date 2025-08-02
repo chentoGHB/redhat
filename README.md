@@ -27,10 +27,12 @@ Monitor and Manage Linux Processes; efinition of a Process; Describe Process Sta
  use College of DuPage cod.edu format and Tony Chen name on the teacher on top of the page, CIT department, include example for each command and include practice questions. For the practice questions and practice scenarios, please provide a way users can enter and answer and provide feedback to the user when the answer is incorrect and chance to view the correct answer. For all the examples shown, make sure lines are separated correctly, not a long running sentence. No hot link on the top of the page. Add title Chapter 8.  Monitor and Manage Linux Processes above the CIT department.
 If "Rest All Answer" does not work, refresh and reload the page.
 
-Edit
-
 
  # redhat93c9
+Use the previous section as template,  Act as an expert html and javascript coder create an linux review page include the content of 
+Use the systemctl command to explore the system's current state.; View a unit's status with the systemctl status; Verify the Status of a Service; Start and Stop Services; Restart and Reload Services; List Unit Dependencies; Mask and Unmask Services; Enable Services to Start or Stop at Boot; 
+ use College of DuPage cod.edu format and Tony Chen name on the teacher on top of the page, CIT department, include example for each command and include practice questions. For the practice questions and practice scenarios, please provide a way users can enter and answer and provide feedback to the user when the answer is incorrect and chance to view the correct answer. For all the examples shown, make sure lines are separated correctly, not a long running sentence. No hot link on the top of the page. Add title Chapter 9.  Control Services and Daemons above the CIT department.
+If "Rest All Answer" does not work, refresh and reload the page.
 
  # redhat93c10
 
