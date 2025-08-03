@@ -35,7 +35,10 @@ Use the systemctl command to explore the system's current state.; View a unit's 
 If "Rest All Answer" does not work, refresh and reload the page.
 
  # redhat93c10
-
+Use the previous section as template,  Act as an expert html and javascript coder create an linux review page include the content of 
+Access the Remote Command Line with SSH; Secure Shell Examples; ssh command runs the  command on the remote system without accessing the remote interactive shell; Identifying Remote Users using w command; Strict Host Key Checking; The ssh-keygen command; SSH Known Hosts Key Management; a passphrase-protected private key is created with the public key.; Share the Public Key; test the remote access, with the corresponding private key; Non-interactive Authentication with the Key Manager; SSH Client Configuration; Prohibit the Superuser from Logging In; Prohibit Password-based Authentication for SSH
+ use College of DuPage cod.edu format and Tony Chen name on the teacher on top of the page, CIT department, include example for each command and include practice questions. For the practice questions and practice scenarios, please provide a way users can enter and answer and provide feedback to the user when the answer is incorrect and chance to view the correct answer. For all the examples shown, make sure lines are separated correctly, not a long running sentence. No hot link on the top of the page. Add title 10.  Configure and Secure SSH above the CIT department.
+If "Rest All Answer" does not work, refresh and reload the page.
  # redhat93c11
 
  # redhat93c12
