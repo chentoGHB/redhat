@@ -1,0 +1,1168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chapter 10 - Configure and Secure SSH - College of DuPage</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            font-weight: 300;
+        }
+
+        .header .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .instructor-info {
+            background: white;
+            padding: 1rem;
+            margin: 1rem auto;
+            max-width: 1200px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .section {
+            background: white;
+            margin: 2rem 0;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .section h2 {
+            color: #1e3c72;
+            border-bottom: 3px solid #2a5298;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+            font-size: 1.8rem;
+        }
+
+        .section h3 {
+            color: #2a5298;
+            margin: 1.5rem 0 1rem 0;
+            font-size: 1.3rem;
+        }
+
+        .command-box {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 5px;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-family: 'Courier New', monospace;
+            position: relative;
+        }
+
+        .command-box .command {
+            color: #d73502;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .command-box .description {
+            color: #666;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin-top: 0.5rem;
+        }
+
+        .example {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 1rem;
+            border-radius: 5px;
+            margin: 1rem 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+        }
+
+        .example .prompt {
+            color: #68d391;
+        }
+
+        .example .output {
+            color: #e2e8f0;
+            margin-left: 0;
+        }
+
+        .practice-questions {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 5px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .practice-questions h3 {
+            color: #856404;
+            margin-bottom: 1rem;
+        }
+
+        .highlight {
+            background: #fff3cd;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+
+        .question-container {
+            margin: 1rem 0;
+        }
+
+        .question-item {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+        }
+
+        .answer-input {
+            width: 100%;
+            padding: 0.8rem;
+            border: 2px solid #dee2e6;
+            border-radius: 5px;
+            font-size: 1rem;
+            margin: 1rem 0;
+            font-family: 'Courier New', monospace;
+            transition: border-color 0.3s;
+        }
+
+        .answer-input:focus {
+            outline: none;
+            border-color: #2a5298;
+        }
+
+        .check-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-right: 1rem;
+            transition: background-color 0.3s;
+        }
+
+        .check-btn:hover {
+            background: #218838;
+        }
+
+        .feedback {
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 5px;
+            font-weight: bold;
+            display: none;
+        }
+
+        .feedback.correct {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+
+        .feedback.incorrect {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+
+        .show-answer-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        .show-answer-btn:hover {
+            background: #5a6268;
+        }
+
+        .correct-answer {
+            background: #d1ecf1;
+            color: #0c5460;
+            padding: 0.8rem;
+            border-radius: 5px;
+            margin-top: 0.5rem;
+            font-family: 'Courier New', monospace;
+            border-left: 4px solid #17a2b8;
+        }
+
+        .score-section {
+            background: #e8f5e8;
+            border: 2px solid #4caf50;
+            border-radius: 8px;
+            padding: 2rem;
+            margin: 2rem 0;
+            text-align: center;
+        }
+
+        .score-section h3 {
+            color: #2e7d32;
+            margin-bottom: 1rem;
+        }
+
+        #scoreDisplay {
+            font-size: 1.2rem;
+            margin: 1rem 0;
+        }
+
+        #scoreDisplay span {
+            font-weight: bold;
+            color: #2e7d32;
+        }
+
+        .reset-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-top: 1rem;
+        }
+
+        .reset-btn:hover {
+            background: #c82333;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-box {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .info-box h4 {
+            color: #000000;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-box p {
+            color: #000000;
+        }
+
+        .warning-box {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            border-radius: 5px;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-left: 4px solid #dc3545;
+        }
+
+        .warning-box h4 {
+            color: #000000;
+            margin-bottom: 0.5rem;
+        }
+
+        .warning-box p {
+            color: #000000;
+        }
+
+        .reset-note {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            border-radius: 5px;
+            padding: 1rem;
+            margin: 1rem 0;
+            color: #721c24;
+            text-align: center;
+        }
+
+        .ssh-config {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">College of DuPage</div>
+        <h1>Linux Commands Review</h1>
+        <div class="subtitle">Chapter 10. Configure and Secure SSH</div>
+        <div class="subtitle">CIT Department - Computer Information Technology</div>
+    </div>
+
+    <div class="instructor-info">
+        <h3>Instructor: Tony Chen</h3>
+        <p>CIT Department | College of DuPage | cod.edu</p>
+    </div>
+
+    <div class="container">
+        <section class="section">
+            <h2>Understanding SSH (Secure Shell)</h2>
+            
+            <h3>Introduction to SSH</h3>
+            <p>SSH (Secure Shell) is a cryptographic network protocol that provides secure remote access to systems. It offers:</p>
+            <ul style="margin: 1rem 0; padding-left: 2rem;">
+                <li><strong>Encrypted Communication:</strong> All data is encrypted during transmission</li>
+                <li><strong>Authentication:</strong> Password-based and key-based authentication</li>
+                <li><strong>Remote Command Execution:</strong> Execute commands on remote systems</li>
+                <li><strong>File Transfer:</strong> Secure file copying with scp and sftp</li>
+                <li><strong>Port Forwarding:</strong> Secure tunneling of network connections</li>
+            </ul>
+
+            <div class="info-box">
+                <h4>SSH Security Features</h4>
+                <p><strong>Encryption:</strong> Uses symmetric and asymmetric encryption<br>
+                <strong>Host Verification:</strong> Verifies server identity with host keys<br>
+                <strong>User Authentication:</strong> Multiple authentication methods<br>
+                <strong>Data Integrity:</strong> Ensures data hasn't been tampered with<br>
+                <strong>Port Security:</strong> Default port 22, can be changed for security</p>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>Access the Remote Command Line with SSH</h2>
+            
+            <h3>Basic SSH Connection</h3>
+            <div class="command-box">
+                <div class="command">ssh username@hostname</div>
+                <div class="description">Connect to remote system using SSH</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ ssh student@server.cod.edu</div>
+                <div class="output">The authenticity of host 'server.cod.edu (192.168.1.100)' can't be established.<br>
+ECDSA key fingerprint is SHA256:abc123def456ghi789jkl012mno345pqr678stu901vwx234yz.<br>
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes<br>
+Warning: Permanently added 'server.cod.edu,192.168.1.100' (ECDSA) to the list of known hosts.<br>
+student@server.cod.edu's password:<br>
+Last login: Mon Jul 11 10:30:15 2025 from 192.168.1.50<br>
+[student@server ~]$</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">ssh -p port username@hostname</div>
+                <div class="description">Connect using non-standard port</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ ssh -p 2222 student@server.cod.edu</div>
+                <div class="output">student@server.cod.edu's password:<br>
+Last login: Mon Jul 11 11:15:20 2025 from 192.168.1.50<br>
+[student@server ~]$</div>
+            </div>
+
+            <h3>Secure Shell Examples</h3>
+            <div class="command-box">
+                <div class="command">ssh -v username@hostname</div>
+                <div class="description">Verbose output for debugging connection issues</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ ssh -v student@server.cod.edu</div>
+                <div class="output">OpenSSH_8.0p1, OpenSSL 1.1.1c FIPS  28 May 2019<br>
+debug1: Reading configuration data /etc/ssh/ssh_config<br>
+debug1: Connecting to server.cod.edu [192.168.1.100] port 22.<br>
+debug1: Connection established.<br>
+debug1: identity file /home/user/.ssh/id_rsa type 0<br>
+debug1: Authentication succeeded (publickey).</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">ssh -X username@hostname</div>
+                <div class="description">Enable X11 forwarding for GUI applications</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ ssh -X student@server.cod.edu</div>
+                <div class="output">student@server.cod.edu's password:<br>
+Last login: Mon Jul 11 11:20:30 2025 from 192.168.1.50<br>
+[student@server ~]$ firefox &amp;<br>
+[Firefox opens on local display]</div>
+            </div>
+
+            <h3>ssh command runs the command on the remote system</h3>
+            <div class="command-box">
+                <div class="command">ssh username@hostname 'command'</div>
+                <div class="description">Execute command on remote system without interactive shell</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ ssh student@server.cod.edu 'uptime'</div>
+                <div class="output">student@server.cod.edu's password:<br>
+ 11:25:15 up 2 days,  5:18,  3 users,  load average: 0.15, 0.25, 0.30</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">ssh username@hostname 'ls -la /home'</div>
+                <div class="description">Execute complex commands remotely</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ ssh student@server.cod.edu 'ls -la /home'</div>
+                <div class="output">student@server.cod.edu's password:<br>
+total 12<br>
+drwxr-xr-x.  3 root    root    4096 Jul  9 08:00 .<br>
+drwxr-xr-x. 17 root    root    4096 Jul  9 08:00 ..<br>
+drwx------. 15 student student 4096 Jul 11 11:20 student</div>
+            </div>
+
+            <h3>Identifying Remote Users using w command</h3>
+            <div class="command-box">
+                <div class="command">ssh username@hostname 'w'</div>
+                <div class="description">Check who is logged in on remote system</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ ssh student@server.cod.edu 'w'</div>
+                <div class="output">student@server.cod.edu's password:<br>
+ 11:30:15 up 2 days,  5:23,  3 users,  load average: 0.12, 0.20, 0.28<br>
+USER     TTY      FROM             LOGIN@   IDLE   JCPU   PCPU WHAT<br>
+root     tty1     -                09:00    2:30m  0.03s  0.03s -bash<br>
+student  pts/0    192.168.1.50     11:25    0.00s  0.02s  0.00s w<br>
+admin    pts/1    192.168.1.75     10:45    5:00   0.15s  0.02s vim</div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>SSH Host Key Management</h2>
+            
+            <h3>Strict Host Key Checking</h3>
+            <p>SSH uses host keys to verify server identity and prevent man-in-the-middle attacks.</p>
+            
+            <div class="command-box">
+                <div class="command">ssh -o StrictHostKeyChecking=yes username@hostname</div>
+                <div class="description">Require strict host key verification</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ ssh -o StrictHostKeyChecking=yes student@newserver.cod.edu</div>
+                <div class="output">Host key verification failed.<br>
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@<br>
+@    WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!     @<br>
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@<br>
+Connection closed.</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">ssh -o StrictHostKeyChecking=no username@hostname</div>
+                <div class="description">Disable strict host key checking (not recommended for production)</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ ssh -o StrictHostKeyChecking=no student@newserver.cod.edu</div>
+                <div class="output">Warning: Permanently added 'newserver.cod.edu' (ECDSA) to the list of known hosts.<br>
+student@newserver.cod.edu's password:</div>
+            </div>
+
+            <h3>SSH Known Hosts Key Management</h3>
+            <div class="command-box">
+                <div class="command">ssh-keyscan hostname</div>
+                <div class="description">Retrieve public host keys from server</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ ssh-keyscan server.cod.edu</div>
+                <div class="output"># server.cod.edu:22 SSH-2.0-OpenSSH_8.0<br>
+server.cod.edu ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC7...<br>
+server.cod.edu ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbm...</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">ssh-keygen -R hostname</div>
+                <div class="description">Remove host key from known_hosts file</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ ssh-keygen -R server.cod.edu</div>
+                <div class="output"># Host server.cod.edu found: line 5<br>
+/home/student/.ssh/known_hosts updated.<br>
+Original contents retained as /home/student/.ssh/known_hosts.old</div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>SSH Key-Based Authentication</h2>
+            
+            <h3>The ssh-keygen command</h3>
+            <div class="command-box">
+                <div class="command">ssh-keygen</div>
+                <div class="description">Generate SSH key pair (default RSA 3072-bit)</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ ssh-keygen</div>
+                <div class="output">Generating public/private rsa key pair.<br>
+Enter file in which to save the key (/home/student/.ssh/id_rsa):<br>
+Enter passphrase (empty for no passphrase):<br>
+Enter same passphrase again:<br>
+Your identification has been saved in /home/student/.ssh/id_rsa.<br>
+Your public key has been saved in /home/student/.ssh/id_rsa.pub.<br>
+The key fingerprint is:<br>
+SHA256:abc123def456ghi789jkl012mno345pqr678stu901vwx234yz student@client.cod.edu</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">ssh-keygen -t ed25519</div>
+                <div class="description">Generate Ed25519 key pair (recommended for new keys)</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ ssh-keygen -t ed25519</div>
+                <div class="output">Generating public/private ed25519 key pair.<br>
+Enter file in which to save the key (/home/student/.ssh/id_ed25519):<br>
+Enter passphrase (empty for no passphrase):<br>
+Enter same passphrase again:<br>
+Your identification has been saved in /home/student/.ssh/id_ed25519.<br>
+Your public key has been saved in /home/student/.ssh/id_ed25519.pub.</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">ssh-keygen -t rsa -b 4096 -C "comment"</div>
+                <div class="description">Generate 4096-bit RSA key with comment</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ ssh-keygen -t rsa -b 4096 -C "student@cod.edu"</div>
+                <div class="output">Generating public/private rsa key pair.<br>
+Enter file in which to save the key (/home/student/.ssh/id_rsa):<br>
+Enter passphrase (empty for no passphrase):<br>
+Enter same passphrase again:<br>
+Your identification has been saved in /home/student/.ssh/id_rsa.<br>
+Your public key has been saved in /home/student/.ssh/id_rsa.pub.</div>
+            </div>
+
+            <div class="info-box">
+                <h4>SSH Key Types</h4>
+                <p><strong>RSA:</strong> Widely supported, minimum 2048-bit (3072-bit recommended)<br>
+                <strong>Ed25519:</strong> Modern, fast, secure (recommended for new keys)<br>
+                <strong>ECDSA:</strong> Elliptic curve, good performance<br>
+                <strong>DSA:</strong> Deprecated, not recommended</p>
+            </div>
+
+            <h3>Passphrase-Protected Private Key</h3>
+            <p>A passphrase-protected private key provides additional security by requiring a passphrase to use the key.</p>
+            
+            <div class="example">
+                <div class="prompt">$ ssh-keygen -t ed25519</div>
+                <div class="output">Generating public/private ed25519 key pair.<br>
+Enter file in which to save the key (/home/student/.ssh/id_ed25519):<br>
+Enter passphrase (empty for no passphrase): [strong-passphrase]<br>
+Enter same passphrase again: [strong-passphrase]<br>
+Your identification has been saved in /home/student/.ssh/id_ed25519.<br>
+Your public key has been saved in /home/student/.ssh/id_ed25519.pub.<br>
+The key fingerprint is:<br>
+SHA256:xyz789abc123def456ghi789jkl012mno345pqr678stu student@client.cod.edu</div>
+            </div>
+
+            <h3>Share the Public Key</h3>
+            <div class="command-box">
+                <div class="command">ssh-copy-id username@hostname</div>
+                <div class="description">Copy public key to remote server's authorized_keys</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ ssh-copy-id student@server.cod.edu</div>
+                <div class="output">/usr/bin/ssh-copy-id: INFO: Source of key(s) to be installed: "/home/student/.ssh/id_rsa.pub"<br>
+/usr/bin/ssh-copy-id: INFO: attempting to log in with the new key(s), to filter out any that are already installed<br>
+/usr/bin/ssh-copy-id: INFO: 1 key(s) remain to be installed -- if you are prompted now, it is to install the new key(s)<br>
+student@server.cod.edu's password:<br>
+<br>
+Number of key(s) added: 1<br>
+<br>
+Now try logging into the machine, with:   "ssh 'student@server.cod.edu'"<br>
+and check to make sure that only the key(s) you wanted were added.</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">cat ~/.ssh/id_rsa.pub | ssh username@hostname 'cat >> ~/.ssh/authorized_keys'</div>
+                <div class="description">Manually copy public key to remote server</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ cat ~/.ssh/id_rsa.pub | ssh student@server.cod.edu 'cat >> ~/.ssh/authorized_keys'</div>
+                <div class="output">student@server.cod.edu's password:<br>
+[Public key appended to authorized_keys]</div>
+            </div>
+
+            <h3>Test Remote Access with Private Key</h3>
+            <div class="command-box">
+                <div class="command">ssh username@hostname</div>
+                <div class="description">Test key-based authentication</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ ssh student@server.cod.edu</div>
+                <div class="output">Enter passphrase for key '/home/student/.ssh/id_rsa':<br>
+Last login: Mon Jul 11 12:00:15 2025 from 192.168.1.50<br>
+[student@server ~]$</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">ssh -i keyfile username@hostname</div>
+                <div class="description">Use specific private key file</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ ssh -i ~/.ssh/id_ed25519 student@server.cod.edu</div>
+                <div class="output">Enter passphrase for key '/home/student/.ssh/id_ed25519':<br>
+Last login: Mon Jul 11 12:05:30 2025 from 192.168.1.50<br>
+[student@server ~]$</div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>SSH Key Management and Automation</h2>
+            
+            <h3>Non-interactive Authentication with Key Manager</h3>
+            <div class="command-box">
+                <div class="command">ssh-agent</div>
+                <div class="description">Start SSH authentication agent</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ eval $(ssh-agent)</div>
+                <div class="output">Agent pid 12345</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">ssh-add</div>
+                <div class="description">Add private key to SSH agent</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ ssh-add</div>
+                <div class="output">Enter passphrase for /home/student/.ssh/id_rsa:<br>
+Identity added: /home/student/.ssh/id_rsa (student@client.cod.edu)</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">ssh-add -l</div>
+                <div class="description">List keys loaded in SSH agent</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ ssh-add -l</div>
+                <div class="output">3072 SHA256:abc123def456ghi789jkl012mno345pqr678stu901vwx234yz student@client.cod.edu (RSA)</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">ssh-add -D</div>
+                <div class="description">Remove all keys from SSH agent</div>
+            </div>
+            <div class="example">
+                <div class="prompt">$ ssh-add -D</div>
+                <div class="output">All identities removed.</div>
+            </div>
+
+            <h3>SSH Client Configuration</h3>
+            <div class="command-box">
+                <div class="command">~/.ssh/config</div>
+                <div class="description">Client-side SSH configuration file</div>
+            </div>
+            <div class="ssh-config">
+Host server1<br>
+&nbsp;&nbsp;&nbsp;&nbsp;HostName server.cod.edu<br>
+&nbsp;&nbsp;&nbsp;&nbsp;User student<br>
+&nbsp;&nbsp;&nbsp;&nbsp;Port 22<br>
+&nbsp;&nbsp;&nbsp;&nbsp;IdentityFile ~/.ssh/id_rsa<br>
+<br>
+Host *.cod.edu<br>
+&nbsp;&nbsp;&nbsp;&nbsp;User student<br>
+&nbsp;&nbsp;&nbsp;&nbsp;IdentityFile ~/.ssh/id_ed25519<br>
+&nbsp;&nbsp;&nbsp;&nbsp;ServerAliveInterval 60<br>
+<br>
+Host *<br>
+&nbsp;&nbsp;&nbsp;&nbsp;ServerAliveInterval 60<br>
+&nbsp;&nbsp;&nbsp;&nbsp;ServerAliveCountMax 3<br>
+&nbsp;&nbsp;&nbsp;&nbsp;StrictHostKeyChecking ask
+            </div>
+
+            <div class="example">
+                <div class="prompt">$ ssh server1</div>
+                <div class="output">[Connects to server.cod.edu as student using specified key]<br>
+Last login: Mon Jul 11 12:15:45 2025 from 192.168.1.50<br>
+[student@server ~]$</div>
+            </div>
+
+            <div class="info-box">
+                <h4>Common SSH Client Configuration Options</h4>
+                <p><strong>Host:</strong> Defines connection profiles<br>
+                <strong>HostName:</strong> Actual server address<br>
+                <strong>User:</strong> Default username<br>
+                <strong>Port:</strong> SSH port number<br>
+                <strong>IdentityFile:</strong> Private key file path<br>
+                <strong>ServerAliveInterval:</strong> Keep-alive interval<br>
+                <strong>StrictHostKeyChecking:</strong> Host key verification policy</p>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>SSH Security Configuration</h2>
+            
+            <h3>Server-side SSH Configuration (/etc/ssh/sshd_config)</h3>
+            <p>The SSH daemon configuration file controls server-side security settings.</p>
+            
+            <h3>Prohibit the Superuser from Logging In</h3>
+            <div class="command-box">
+                <div class="command">PermitRootLogin no</div>
+                <div class="description">Disable root login via SSH</div>
+            </div>
+            <div class="ssh-config">
+# /etc/ssh/sshd_config<br>
+PermitRootLogin no
+            </div>
+            <div class="example">
+                <div class="prompt">$ ssh root@server.cod.edu</div>
+                <div class="output">root@server.cod.edu's password:<br>
+Permission denied, please try again.</div>
+            </div>
+
+            <div class="command-box">
+                <div class="command">PermitRootLogin prohibit-password</div>
+                <div class="description">Allow root login only with key-based authentication</div>
+            </div>
+            <div class="ssh-config">
+# /etc/ssh/sshd_config<br>
+PermitRootLogin prohibit-password
+            </div>
+
+            <h3>Prohibit Password-based Authentication for SSH</h3>
+            <div class="command-box">
+                <div class="command">PasswordAuthentication no</div>
+                <div class="description">Disable password authentication (key-only)</div>
+            </div>
+            <div class="ssh-config">
+# /etc/ssh/sshd_config<br>
+PasswordAuthentication no<br>
+ChallengeResponseAuthentication no<br>
+UsePAM yes
+            </div>
+
+            <div class="warning-box">
+                <h4>⚠️ Security Warning</h4>
+                <p>Before disabling password authentication, ensure you have working key-based authentication set up. Always test SSH key access before applying this change to prevent lockout.</p>
+            </div>
+
+            <div class="command-box">
+                <div class="command">systemctl reload sshd</div>
+                <div class="description">Apply SSH configuration changes</div>
+            </div>
+            <div class="example">
+                <div class="prompt"># systemctl reload sshd</div>
+                <div class="output">[SSH daemon reloads configuration]</div>
+            </div>
+
+            <h3>Additional SSH Security Settings</h3>
+            <div class="ssh-config">
+# /etc/ssh/sshd_config - Security Hardening<br>
+<br>
+# Change default port<br>
+Port 2222<br>
+<br>
+# Limit user access<br>
+AllowUsers student admin<br>
+DenyUsers guest<br>
+AllowGroups sshusers<br>
+<br>
+# Authentication settings<br>
+MaxAuthTries 3<br>
+LoginGraceTime 60<br>
+<br>
+# Protocol and cipher settings<br>
+Protocol 2<br>
+Ciphers aes128-ctr,aes192-ctr,aes256-ctr<br>
+MACs hmac-sha2-256,hmac-sha2-512<br>
+<br>
+# Disable unused features<br>
+X11Forwarding no<br>
+AllowTcpForwarding no<br>
+GatewayPorts no<br>
+PermitTunnel no
+            </div>
+
+            <div class="info-box">
+                <h4>SSH Security Best Practices</h4>
+                <p><strong>Change Default Port:</strong> Use non-standard port (e.g., 2222)<br>
+                <strong>Use Strong Keys:</strong> Ed25519 or RSA 4096-bit minimum<br>
+                <strong>Disable Root Login:</strong> Use sudo for administrative tasks<br>
+                <strong>Key-only Authentication:</strong> Disable password authentication<br>
+                <strong>Limit Access:</strong> Use AllowUsers/AllowGroups directives<br>
+                <strong>Monitor Logs:</strong> Review /var/log/secure regularly</p>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>Practice Questions</h2>
+            
+            <div class="reset-note">
+                <strong>Note:</strong> If "Reset All Answers" doesn't work, please refresh and reload the page.
+            </div>
+            
+            <div class="practice-questions">
+                <h3>Review Questions</h3>
+                <div class="question-container">
+                    <div class="question-item">
+                        <p><strong>1.</strong> What command generates an SSH key pair?</p>
+                        <input type="text" id="q1" placeholder="Enter your answer..." class="answer-input">
+                        <button onclick="checkAnswer(1, 'ssh-keygen')" class="check-btn">Check Answer</button>
+                        <div id="feedback1" class="feedback"></div>
+                    </div>
+
+                    <div class="question-item">
+                        <p><strong>2.</strong> What command copies your public key to a remote server?</p>
+                        <input type="text" id="q2" placeholder="Enter your answer..." class="answer-input">
+                        <button onclick="checkAnswer(2, 'ssh-copy-id')" class="check-btn">Check Answer</button>
+                        <div id="feedback2" class="feedback"></div>
+                    </div>
+
+                    <div class="question-item">
+                        <p><strong>3.</strong> What SSH configuration directive disables root login?</p>
+                        <input type="text" id="q3" placeholder="Enter your answer..." class="answer-input">
+                        <button onclick="checkAnswer(3, 'PermitRootLogin no')" class="check-btn">Check Answer</button>
+                        <div id="feedback3" class="feedback"></div>
+                    </div>
+
+                    <div class="question-item">
+                        <p><strong>4.</strong> What command removes a host key from known_hosts?</p>
+                        <input type="text" id="q4" placeholder="Enter your answer..." class="answer-input">
+                        <button onclick="checkAnswer(4, 'ssh-keygen -R')" class="check-btn">Check Answer</button>
+                        <div id="feedback4" class="feedback"></div>
+                    </div>
+
+                    <div class="question-item">
+                        <p><strong>5.</strong> What command starts the SSH authentication agent?</p>
+                        <input type="text" id="q5" placeholder="Enter your answer..." class="answer-input">
+                        <button onclick="checkAnswer(5, 'ssh-agent')" class="check-btn">Check Answer</button>
+                        <div id="feedback5" class="feedback"></div>
+                    </div>
+
+                    <div class="question-item">
+                        <p><strong>6.</strong> What SSH configuration directive disables password authentication?</p>
+                        <input type="text" id="q6" placeholder="Enter your answer..." class="answer-input">
+                        <button onclick="checkAnswer(6, 'PasswordAuthentication no')" class="check-btn">Check Answer</button>
+                        <div id="feedback6" class="feedback"></div>
+                    </div>
+
+                    <div class="question-item">
+                        <p><strong>7.</strong> What command adds a private key to the SSH agent?</p>
+                        <input type="text" id="q7" placeholder="Enter your answer..." class="answer-input">
+                        <button onclick="checkAnswer(7, 'ssh-add')" class="check-btn">Check Answer</button>
+                        <div id="feedback7" class="feedback"></div>
+                    </div>
+
+                    <div class="question-item">
+                        <p><strong>8.</strong> What option enables verbose output for SSH connections?</p>
+                        <input type="text" id="q8" placeholder="Enter your answer..." class="answer-input">
+                        <button onclick="checkAnswer(8, '-v')" class="check-btn">Check Answer</button>
+                        <div id="feedback8" class="feedback"></div>
+                    </div>
+
+                    <div class="question-item">
+                        <p><strong>9.</strong> What command retrieves public host keys from a server?</p>
+                        <input type="text" id="q9" placeholder="Enter your answer..." class="answer-input">
+                        <button onclick="checkAnswer(9, 'ssh-keyscan')" class="check-btn">Check Answer</button>
+                        <div id="feedback9" class="feedback"></div>
+                    </div>
+
+                    <div class="question-item">
+                        <p><strong>10.</strong> What SSH option specifies a non-standard port?</p>
+                        <input type="text" id="q10" placeholder="Enter your answer..." class="answer-input">
+                        <button onclick="checkAnswer(10, '-p')" class="check-btn">Check Answer</button>
+                        <div id="feedback10" class="feedback"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="practice-questions">
+                <h3>Command Practice Scenarios</h3>
+                <div class="question-container">
+                    <div class="question-item">
+                        <p><strong>Scenario 1:</strong> You want to generate an Ed25519 SSH key pair. What command do you use?</p>
+                        <input type="text" id="s1" placeholder="Enter your answer..." class="answer-input">
+                        <button onclick="checkScenario(1, 'ssh-keygen -t ed25519')" class="check-btn">Check Answer</button>
+                        <div id="sfeedback1" class="feedback"></div>
+                    </div>
+
+                    <div class="question-item">
+                        <p><strong>Scenario 2:</strong> You need to execute the "uptime" command on a remote server without logging in interactively. What command do you use?</p>
+                        <input type="text" id="s2" placeholder="Enter your answer..." class="answer-input">
+                        <button onclick="checkScenario(2, 'ssh username@hostname uptime')" class="check-btn">Check Answer</button>
+                        <div id="sfeedback2" class="feedback"></div>
+                    </div>
+
+                    <div class="question-item">
+                        <p><strong>Scenario 3:</strong> You want to connect to SSH on port 2222. What command do you use?</p>
+                        <input type="text" id="s3" placeholder="Enter your answer..." class="answer-input">
+                        <button onclick="checkScenario(3, 'ssh -p 2222 username@hostname')" class="check-btn">Check Answer</button>
+                        <div id="sfeedback3" class="feedback"></div>
+                    </div>
+
+                    <div class="question-item">
+                        <p><strong>Scenario 4:</strong> You need to list all keys currently loaded in the SSH agent. What command do you use?</p>
+                        <input type="text" id="s4" placeholder="Enter your answer..." class="answer-input">
+                        <button onclick="checkScenario(4, 'ssh-add -l')" class="check-btn">Check Answer</button>
+                        <div id="sfeedback4" class="feedback"></div>
+                    </div>
+
+                    <div class="question-item">
+                        <p><strong>Scenario 5:</strong> You want to copy your public key to server.cod.edu for user "admin". What command do you use?</p>
+                        <input type="text" id="s5" placeholder="Enter your answer..." class="answer-input">
+                        <button onclick="checkScenario(5, 'ssh-copy-id admin@server.cod.edu')" class="check-btn">Check Answer</button>
+                        <div id="sfeedback5" class="feedback"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="score-section">
+                <h3>Your Progress</h3>
+                <div id="scoreDisplay">
+                    <p>Review Questions: <span id="reviewScore">0/10</span></p>
+                    <p>Scenario Questions: <span id="scenarioScore">0/5</span></p>
+                    <p>Total Score: <span id="totalScore">0/15</span></p>
+                </div>
+                <button onclick="resetQuiz()" class="reset-btn">Reset All Answers</button>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // Score tracking
+        let reviewCorrect = 0;
+        let scenarioCorrect = 0;
+        let reviewAttempted = new Set();
+        let scenarioAttempted = new Set();
+
+        // Alternative answers for flexible checking
+        const alternatives = {
+            1: ['ssh-keygen'],
+            2: ['ssh-copy-id'],
+            3: ['permitrootlogin no', 'permitrootlogin=no'],
+            4: ['ssh-keygen -r', 'ssh-keygen -R hostname'],
+            5: ['ssh-agent', 'eval $(ssh-agent)'],
+            6: ['passwordauthentication no', 'passwordauthentication=no'],
+            7: ['ssh-add'],
+            8: ['-v', '--verbose'],
+            9: ['ssh-keyscan'],
+            10: ['-p', '--port']
+        };
+
+        const scenarioAlternatives = {
+            1: ['ssh-keygen -t ed25519'],
+            2: ['ssh username@hostname uptime', 'ssh user@host uptime', 'ssh username@hostname \'uptime\''],
+            3: ['ssh -p 2222 username@hostname', 'ssh --port 2222 username@hostname'],
+            4: ['ssh-add -l', 'ssh-add --list-public'],
+            5: ['ssh-copy-id admin@server.cod.edu']
+        };
+
+        function normalizeAnswer(answer) {
+            return answer.toLowerCase().trim().replace(/\s+/g, ' ');
+        }
+
+        function checkAnswer(questionNum, correctAnswer) {
+            const userAnswer = document.getElementById(`q${questionNum}`).value;
+            const feedbackElement = document.getElementById(`feedback${questionNum}`);
+            const normalizedUser = normalizeAnswer(userAnswer);
+            const normalizedCorrect = normalizeAnswer(correctAnswer);
+            
+            // Check if answer matches any alternative
+            let isCorrect = normalizedUser === normalizedCorrect;
+            if (!isCorrect && alternatives[questionNum]) {
+                isCorrect = alternatives[questionNum].some(alt => normalizeAnswer(alt) === normalizedUser);
+            }
+            
+            if (isCorrect) {
+                feedbackElement.className = 'feedback correct';
+                feedbackElement.innerHTML = '✓ Correct! Well done!';
+                if (!reviewAttempted.has(questionNum)) {
+                    reviewCorrect++;
+                    reviewAttempted.add(questionNum);
+                }
+            } else {
+                feedbackElement.className = 'feedback incorrect';
+                feedbackElement.innerHTML = `
+                    ✗ Incorrect. Try again!
+                    <button class="show-answer-btn" onclick="showCorrectAnswer(${questionNum}, '${correctAnswer}')">
+                        Show Correct Answer
+                    </button>
+                `;
+                if (!reviewAttempted.has(questionNum)) {
+                    reviewAttempted.add(questionNum);
+                }
+            }
+            
+            updateScore();
+        }
+
+        function checkScenario(scenarioNum, correctAnswer) {
+            const userAnswer = document.getElementById(`s${scenarioNum}`).value;
+            const feedbackElement = document.getElementById(`sfeedback${scenarioNum}`);
+            const normalizedUser = normalizeAnswer(userAnswer);
+            const normalizedCorrect = normalizeAnswer(correctAnswer);
+            
+            // Check if answer matches any alternative
+            let isCorrect = normalizedUser === normalizedCorrect;
+            if (!isCorrect && scenarioAlternatives[scenarioNum]) {
+                isCorrect = scenarioAlternatives[scenarioNum].some(alt => normalizeAnswer(alt) === normalizedUser);
+            }
+            
+            if (isCorrect) {
+                feedbackElement.className = 'feedback correct';
+                feedbackElement.innerHTML = '✓ Correct! Excellent problem-solving!';
+                if (!scenarioAttempted.has(scenarioNum)) {
+                    scenarioCorrect++;
+                    scenarioAttempted.add(scenarioNum);
+                }
+            } else {
+                feedbackElement.className = 'feedback incorrect';
+                feedbackElement.innerHTML = `
+                    ✗ Incorrect. Think about the scenario again.
+                    <button class="show-answer-btn" onclick="showScenarioAnswer(${scenarioNum}, '${correctAnswer}')">
+                        Show Correct Answer
+                    </button>
+                `;
+                if (!scenarioAttempted.has(scenarioNum)) {
+                    scenarioAttempted.add(scenarioNum);
+                }
+            }
+            
+            updateScore();
+        }
+
+        function showCorrectAnswer(questionNum, correctAnswer) {
+            const feedbackElement = document.getElementById(`feedback${questionNum}`);
+            const explanations = {
+                1: 'The "ssh-keygen" command generates SSH key pairs for authentication.',
+                2: 'The "ssh-copy-id" command securely copies your public key to a remote server\'s authorized_keys file.',
+                3: '"PermitRootLogin no" in /etc/ssh/sshd_config disables root login via SSH.',
+                4: 'The "ssh-keygen -R" command removes a host key from the known_hosts file.',
+                5: 'The "ssh-agent" command starts the SSH authentication agent for managing keys.',
+                6: '"PasswordAuthentication no" disables password-based authentication, requiring keys.',
+                7: 'The "ssh-add" command adds private keys to the SSH authentication agent.',
+                8: 'The "-v" option enables verbose output for debugging SSH connections.',
+                9: 'The "ssh-keyscan" command retrieves public host keys from remote servers.',
+                10: 'The "-p" option specifies a non-standard port for SSH connections.'
+            };
+            
+            feedbackElement.innerHTML = `
+                ✗ Incorrect.
+                <div class="correct-answer">
+                    <strong>Correct Answer:</strong> ${correctAnswer}<br>
+                    <strong>Explanation:</strong> ${explanations[questionNum]}
+                </div>
+            `;
+        }
+
+        function showScenarioAnswer(scenarioNum, correctAnswer) {
+            const feedbackElement = document.getElementById(`sfeedback${scenarioNum}`);
+            const explanations = {
+                1: 'The "-t ed25519" option specifies the key type for generating Ed25519 keys.',
+                2: 'Adding the command after the hostname executes it remotely without interactive login.',
+                3: 'The "-p" option specifies the port number for SSH connections.',
+                4: 'The "-l" option lists all keys currently loaded in the SSH agent.',
+                5: 'ssh-copy-id automatically copies your public key to the specified user and server.'
+            };
+            
+            feedbackElement.innerHTML = `
+                ✗ Incorrect.
+                <div class="correct-answer">
+                    <strong>Correct Answer:</strong> ${correctAnswer}<br>
+                    <strong>Explanation:</strong> ${explanations[scenarioNum]}
+                </div>
+            `;
+        }
+
+        function updateScore() {
+            document.getElementById('reviewScore').textContent = `${reviewCorrect}/10`;
+            document.getElementById('scenarioScore').textContent = `${scenarioCorrect}/5`;
+            document.getElementById('totalScore').textContent = `${reviewCorrect + scenarioCorrect}/15`;
+        }
+
+        function resetQuiz() {
+            // Reset scores
+            reviewCorrect = 0;
+            scenarioCorrect = 0;
+            reviewAttempted.clear();
+            scenarioAttempted.clear();
+            
+            // Clear all inputs
+            for (let i = 1; i <= 10; i++) {
+                document.getElementById(`q${i}`).value = '';
+                document.getElementById(`feedback${i}`).className = 'feedback';
+                document.getElementById(`feedback${i}`).style.display = 'none';
+            }
+            
+            for (let i = 1; i <= 5; i++) {
+                document.getElementById(`s${i}`).value = '';
+                document.getElementById(`sfeedback${i}`).className = 'feedback';
+                document.getElementById(`sfeedback${i}`).style.display = 'none';
+            }
+            
+            updateScore();
+        }
+
+        // Allow Enter key to submit answers
+        document.addEventListener('DOMContentLoaded', function() {
+            // Review questions
+            for (let i = 1; i <= 10; i++) {
+                document.getElementById(`q${i}`).addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        const correctAnswers = {
+                            1: 'ssh-keygen',
+                            2: 'ssh-copy-id',
+                            3: 'PermitRootLogin no',
+                            4: 'ssh-keygen -R',
+                            5: 'ssh-agent',
+                            6: 'PasswordAuthentication no',
+                            7: 'ssh-add',
+                            8: '-v',
+                            9: 'ssh-keyscan',
+                            10: '-p'
+                        };
+                        checkAnswer(i, correctAnswers[i]);
+                    }
+                });
+            }
+            
+            // Scenario questions
+            for (let i = 1; i <= 5; i++) {
+                document.getElementById(`s${i}`).addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        const correctAnswers = {
+                            1: 'ssh-keygen -t ed25519',
+                            2: 'ssh username@hostname uptime',
+                            3: 'ssh -p 2222 username@hostname',
+                            4: 'ssh-add -l',
+                            5: 'ssh-copy-id admin@server.cod.edu'
+                        };
+                        checkScenario(i, correctAnswers[i]);
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
