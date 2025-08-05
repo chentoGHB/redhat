@@ -55,7 +55,7 @@ Subscribe a System with the RHEL Web Console; Subscribe a System with the Comman
 
 use College of DuPage cod.edu format and Tony Chen name on the teacher on top of the page, CIT department, include example for each command and include practice questions. For the practice questions and practice scenarios, please provide a way users can enter and answer and provide feedback to the user when the answer is incorrect and chance to view the correct answer. 
 
-For all the examples shown, make sure lines are separated correctly, not a long running sentence. No hot link on the top of the page. Add title 12.  Install and Update Software Packages above the CIT department. If "Rest All Answer" does not work, refresh and reload the page.
+For all the examples shown, make sure lines are separated correctly, not a long running sentence. No hot link on the top of the page. Add title chapter 12.  Install and Update Software Packages above the CIT department. If "Rest All Answer" does not work, refresh and reload the page.
  # redhat93c13
  
  # redhat93c14
