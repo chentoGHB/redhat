@@ -49,7 +49,13 @@ use College of DuPage cod.edu format and Tony Chen name on the teacher on top of
 For all the examples shown, make sure lines are separated correctly, not a long running sentence. No hot link on the top of the page. Add title Chapter 11.  Manage Networking
 above the CIT department. If "Rest All Answer" does not work, refresh and reload the page.
  # redhat93c12
+Use the previous section as template, Act as an expert html and javascript coder create an linux review page include the content of 
 
+Subscribe a System with the RHEL Web Console; Subscribe a System with the Command-line Tool; Subscribe a System by Using the rhc Command; Software Packages and RPM; RPM package file names consist of four elements (plus the .rpm suffix): name-version-release.architecture:Examine RPM Packages; The rpm utility is a low-level tool that can retrieve information about the contents of package files and installed packages. ; Install RPM Packages; Use the rpm command to install an RPM package that you downloaded to your local directory.; Manage Software Packages with DNF; Find Software with DNF; Install and Remove Software with DNF; Install and Remove Groups of Software with DNF; Manage Package Module Streams with DNF; Enable Red Hat Software Repositories; Add DNF Repositories; RPM Configuration Packages for Local Repositories; 
+
+use College of DuPage cod.edu format and Tony Chen name on the teacher on top of the page, CIT department, include example for each command and include practice questions. For the practice questions and practice scenarios, please provide a way users can enter and answer and provide feedback to the user when the answer is incorrect and chance to view the correct answer. 
+
+For all the examples shown, make sure lines are separated correctly, not a long running sentence. No hot link on the top of the page. Add title 12.  Install and Update Software Packages above the CIT department. If "Rest All Answer" does not work, refresh and reload the page.
  # redhat93c13
  
  # redhat93c14
