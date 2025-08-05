@@ -57,5 +57,12 @@ use College of DuPage cod.edu format and Tony Chen name on the teacher on top of
 
 For all the examples shown, make sure lines are separated correctly, not a long running sentence. No hot link on the top of the page. Add title chapter 12.  Install and Update Software Packages above the CIT department. If "Rest All Answer" does not work, refresh and reload the page.
  # redhat93c13
- 
+ Use the previous section as template, Act as an expert html and javascript coder create an linux review page include the content of 
+
+Storage Management Concepts; Extents File System (XFS) ; Extended File System (ext4); Extensible File Allocation Table (exFAT); File Systems and Mount Points; File Systems, Storage, and Block Devices; Disk Partitions; Another way of organizing disks and partitions is with Logical Volume Management (LVM). ; Use the df command to display an overview of local and remote file-system devices; The df command -h or -H options ; Use the du command for more detailed information about a specific directory tree space. ; Identify a Block Device; lsblk; Mount File System with the Partition Name; Mount File System with Partition UUID; Unmount File Systems; The locate command searches for files based on the name or path to the file. ; The find command locates files by searching in real time in the file-system hierarchy. 
+
+use College of DuPage cod.edu format and Tony Chen name on the teacher on top of the page, CIT department, include example for each command and include practice questions. For the practice questions and practice scenarios, please provide a way users can enter and answer and provide feedback to the user when the answer is incorrect and chance to view the correct answer. 
+
+For all the examples shown, make sure lines are separated correctly, not a long running sentence. No hot link on the top of the page. Add title Chapter 13.  Access Linux File Systems above the CIT department. If "Rest All Answer" does not work, refresh and reload the page.
+
  # redhat93c14
