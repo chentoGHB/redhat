@@ -66,3 +66,12 @@ use College of DuPage cod.edu format and Tony Chen name on the teacher on top of
 For all the examples shown, make sure lines are separated correctly, not a long running sentence. No hot link on the top of the page. Add title Chapter 13.  Access Linux File Systems above the CIT department. If "Rest All Answer" does not work, refresh and reload the page.
 
  # redhat93c14
+Use the previous section as template, Act as an expert html and javascript coder create an linux review page include the content of
+
+Also mimic the look of webconsole; Enable the Web Console; Log in to the Web Console; switching to administrative access,; Change Passwords in the Web Console; Configure Network Interfaces and the Firewall; Monitor System Statistics in Real Time; Run Commands from a Terminal Session; Create Diagnostic Reports; Manage System Services with the Web Console; Administer User Accounts; Red Hat Customer Portal;Contact Red Hat Customer Support;  Red Hat Insights; Install Red Hat Insights Clients; Red Hat Insights Console Navigation
+
+Also mimic 
+
+use College of DuPage cod.edu format and Tony Chen name on the teacher on top of the page, CIT department, include example for each command and include practice questions. For the practice questions and practice scenarios, please provide a way users can enter and answer and provide feedback to the user when the answer is incorrect and chance to view the correct answer.
+
+For all the examples shown, make sure lines are separated correctly, not a long running sentence. No hot link on the top of the page. Add title Chapter 14.  Analyze Servers and Get Support above the CIT department. If "Rest All Answer" does not work, refresh and reload the page.
