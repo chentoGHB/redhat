@@ -1,0 +1,1182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linux Text Files & Environment Commands - Chapter 5</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --terminal-bg: #0d1117;
+            --terminal-secondary: #161b22;
+            --terminal-border: #21262d;
+            --terminal-green: #7dc383;
+            --terminal-amber: #ffa657;
+            --terminal-blue: #58a6ff;
+            --terminal-purple: #bc8cff;
+            --terminal-red: #ff6b6b;
+            --terminal-cyan: #39d9c4;
+            --text-primary: #f0f6fc;
+            --text-secondary: #8b949e;
+            --text-muted: #6e7681;
+            --accent: var(--terminal-green);
+            --warning: var(--terminal-amber);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            background: var(--terminal-bg);
+            color: var(--text-primary);
+            line-height: 1.6;
+            font-size: 14px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            position: relative;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            0% { opacity: 0.5; }
+            100% { opacity: 1; filter: blur(0.5px); }
+        }
+
+        .title {
+            font-family: 'Space Mono', monospace;
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--accent), var(--terminal-blue));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(125, 195, 131, 0.3);
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+        }
+
+        .course-info {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background: var(--terminal-secondary);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            color: var(--warning);
+            font-size: 0.9rem;
+            margin-top: 1rem;
+        }
+
+        .search-container {
+            position: sticky;
+            top: 2rem;
+            z-index: 100;
+            background: var(--terminal-secondary);
+            border: 1px solid var(--terminal-border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(125, 195, 131, 0.2);
+        }
+
+        .search-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 0.4rem 0.8rem;
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 6px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            font-size: 0.85rem;
+        }
+
+        .filter-btn:hover,
+        .filter-btn.active {
+            background: var(--accent);
+            color: var(--terminal-bg);
+            border-color: var(--accent);
+            transform: translateY(-1px);
+        }
+
+        .command-section {
+            margin-bottom: 2rem;
+            background: var(--terminal-secondary);
+            border: 1px solid var(--terminal-border);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            opacity: 0;
+            animation: fadeInUp 0.6s ease forwards;
+        }
+
+        .command-section:nth-child(even) {
+            animation-delay: 0.1s;
+        }
+
+        .command-section:nth-child(odd) {
+            animation-delay: 0.2s;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .section-header {
+            padding: 1.5rem;
+            background: linear-gradient(135deg, var(--terminal-border), var(--terminal-secondary));
+            border-bottom: 1px solid var(--terminal-border);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.3s ease;
+        }
+
+        .section-header:hover {
+            background: linear-gradient(135deg, var(--terminal-border), rgba(125, 195, 131, 0.1));
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 500;
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .section-icon {
+            font-size: 1rem;
+            color: var(--terminal-blue);
+        }
+
+        .toggle-icon {
+            transition: transform 0.3s ease;
+            color: var(--text-secondary);
+        }
+
+        .section-content {
+            padding: 1.5rem;
+            display: none;
+            animation: slideDown 0.3s ease;
+        }
+
+        .section-content.expanded {
+            display: block;
+        }
+
+        .command-section.expanded .toggle-icon {
+            transform: rotate(180deg);
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                max-height: 0;
+                padding-top: 0;
+                padding-bottom: 0;
+            }
+            to {
+                opacity: 1;
+                max-height: 1000px;
+                padding-top: 1.5rem;
+                padding-bottom: 1.5rem;
+            }
+        }
+
+        .command-grid {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .command-item {
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 1rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .command-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 3px;
+            height: 100%;
+            background: var(--accent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .command-item:hover {
+            border-color: var(--accent);
+            transform: translateX(5px);
+            box-shadow: 0 4px 20px rgba(125, 195, 131, 0.2);
+        }
+
+        .command-item:hover::before {
+            opacity: 1;
+        }
+
+        .command-name {
+            font-family: 'Space Mono', monospace;
+            font-weight: 700;
+            font-size: 1rem;
+            color: var(--terminal-blue);
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .copy-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 0.2rem;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            opacity: 0;
+        }
+
+        .command-item:hover .copy-btn {
+            opacity: 1;
+        }
+
+        .copy-btn:hover {
+            background: var(--terminal-border);
+            color: var(--accent);
+        }
+
+        .command-description {
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .command-example {
+            background: rgba(0, 0, 0, 0.3);
+            border-left: 3px solid var(--terminal-purple);
+            padding: 0.5rem;
+            border-radius: 0 4px 4px 0;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--terminal-purple);
+            margin-top: 0.5rem;
+        }
+
+        .example-line {
+            margin-bottom: 0.3rem;
+        }
+
+        .example-line:last-child {
+            margin-bottom: 0;
+        }
+
+        .prompt {
+            color: var(--accent);
+            margin-right: 0.5rem;
+        }
+
+        .command-text {
+            color: var(--text-primary);
+            cursor: pointer;
+        }
+
+        .command-text:hover {
+            background: rgba(125, 195, 131, 0.1);
+            padding: 2px 4px;
+            margin: -2px -4px;
+            border-radius: 3px;
+        }
+
+        .output-text {
+            color: var(--text-muted);
+            font-style: italic;
+            margin-left: 1rem;
+        }
+
+        .security-tips {
+            background: rgba(255, 166, 87, 0.1);
+            border: 1px solid var(--warning);
+            border-radius: 6px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .tips-title {
+            color: var(--warning);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .tip-list {
+            list-style: none;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        .tip-list li {
+            margin-bottom: 0.25rem;
+            padding-left: 1rem;
+            position: relative;
+        }
+
+        .tip-list li::before {
+            content: '▶';
+            position: absolute;
+            left: 0;
+            color: var(--warning);
+            font-size: 0.7rem;
+        }
+
+        .vim-modes {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        .vim-mode {
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 6px;
+            padding: 0.75rem;
+            transition: all 0.3s ease;
+        }
+
+        .vim-mode:hover {
+            border-color: var(--terminal-purple);
+            background: rgba(188, 140, 255, 0.05);
+        }
+
+        .mode-name {
+            font-family: 'Space Mono', monospace;
+            font-weight: 700;
+            color: var(--terminal-purple);
+            margin-bottom: 0.3rem;
+        }
+
+        .mode-desc {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+        }
+
+        .redirection-table {
+            display: grid;
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        .redirect-item {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 1rem;
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 6px;
+            padding: 0.75rem;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .redirect-item:hover {
+            border-color: var(--terminal-cyan);
+            background: rgba(57, 217, 196, 0.05);
+        }
+
+        .redirect-operator {
+            font-family: 'Space Mono', monospace;
+            font-weight: 700;
+            color: var(--terminal-cyan);
+            padding: 0.25rem 0.5rem;
+            background: rgba(57, 217, 196, 0.1);
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .redirect-desc {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        .variable-examples {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .var-example {
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .var-example:hover {
+            border-color: var(--terminal-amber);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(255, 166, 87, 0.2);
+        }
+
+        .var-name {
+            font-family: 'Space Mono', monospace;
+            font-weight: 700;
+            font-size: 1rem;
+            color: var(--terminal-amber);
+            margin-bottom: 0.3rem;
+        }
+
+        .var-purpose {
+            color: var(--text-primary);
+            font-weight: 500;
+            margin-bottom: 0.3rem;
+            font-size: 0.9rem;
+        }
+
+        .var-desc {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--accent);
+            color: var(--terminal-bg);
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-family: 'Space Mono', monospace;
+            font-weight: 500;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .footer {
+            margin-top: 3rem;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            padding: 2rem;
+            border-top: 1px solid var(--terminal-border);
+        }
+
+        .college-branding {
+            color: var(--accent);
+            font-weight: 500;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .title {
+                font-size: 2rem;
+            }
+            
+            .search-container {
+                position: static;
+            }
+            
+            .filter-buttons {
+                justify-content: center;
+            }
+            
+            .vim-modes,
+            .variable-examples {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1 class="title">Text Files & Environment</h1>
+            <p class="subtitle">Chapter 5: Create, View, and Edit Text Files</p>
+            <div class="course-info">College of DuPage - CIT 1450 Linux/Unix Systems</div>
+        </header>
+
+        <div class="search-container">
+            <input type="text" class="search-input" placeholder="🔍 Search commands, descriptions, or examples..." id="searchInput">
+            <div class="filter-buttons">
+                <button class="filter-btn active" data-category="all">All Commands</button>
+                <button class="filter-btn" data-category="redirection">I/O Redirection</button>
+                <button class="filter-btn" data-category="pipelines">Pipelines</button>
+                <button class="filter-btn" data-category="vim">Text Editing</button>
+                <button class="filter-btn" data-category="variables">Variables</button>
+                <button class="filter-btn" data-category="environment">Environment</button>
+            </div>
+        </div>
+
+        <div class="command-section" data-category="redirection">
+            <div class="section-header" onclick="toggleSection(this)">
+                <div class="section-title">
+                    <span class="section-icon">📤</span>
+                    I/O Redirection & Output Control
+                </div>
+                <span class="toggle-icon">▼</span>
+            </div>
+            <div class="section-content">
+                <div class="command-grid">
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('command > file')">
+                            Output Redirection
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">Redirect standard output and error streams to files for logging and analysis</div>
+                        <div class="redirection-table">
+                            <div class="redirect-item">
+                                <div class="redirect-operator" onclick="copyCommand('> file')">></div>
+                                <div class="redirect-desc">Redirect stdout to file (overwrite)</div>
+                            </div>
+                            <div class="redirect-item">
+                                <div class="redirect-operator" onclick="copyCommand('>> file')">>></div>
+                                <div class="redirect-desc">Redirect stdout to file (append)</div>
+                            </div>
+                            <div class="redirect-item">
+                                <div class="redirect-operator" onclick="copyCommand('2> file')">2></div>
+                                <div class="redirect-desc">Redirect stderr to file (overwrite)</div>
+                            </div>
+                            <div class="redirect-item">
+                                <div class="redirect-operator" onclick="copyCommand('2>/dev/null')">2>/dev/null</div>
+                                <div class="redirect-desc">Discard error messages</div>
+                            </div>
+                            <div class="redirect-item">
+                                <div class="redirect-operator" onclick="copyCommand('&> file')">&></div>
+                                <div class="redirect-desc">Redirect both stdout and stderr</div>
+                            </div>
+                            <div class="redirect-item">
+                                <div class="redirect-operator" onclick="copyCommand('> file 2>&1')">2>&1</div>
+                                <div class="redirect-desc">Merge stderr with stdout</div>
+                            </div>
+                        </div>
+                        <div class="command-example">
+                            <div class="example-line">
+                                <span class="prompt">[analyst@security-server ~]$</span>
+                                <span class="command-text" onclick="copyCommand('nmap -sS 192.168.1.0/24 > scan_results.txt')">nmap -sS 192.168.1.0/24 > scan_results.txt</span>
+                            </div>
+                            <div class="output-text">Save scan results to file</div>
+                            <div class="example-line">
+                                <span class="prompt">[analyst@security-server ~]$</span>
+                                <span class="command-text" onclick="copyCommand('find /var/log -name \"*.log\" 2>/dev/null > log_files.txt')">find /var/log -name "*.log" 2>/dev/null > log_files.txt</span>
+                            </div>
+                            <div class="output-text">Find logs, suppress permission errors</div>
+                        </div>
+                        <div class="security-tips">
+                            <div class="tips-title">🛡️ Security Applications</div>
+                            <ul class="tip-list">
+                                <li>Save vulnerability scan results for analysis and reporting</li>
+                                <li>Redirect audit logs to secure storage locations</li>
+                                <li>Suppress errors when scanning restricted directories</li>
+                                <li>Create timestamped evidence files for incident response</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="command-section" data-category="pipelines">
+            <div class="section-header" onclick="toggleSection(this)">
+                <div class="section-title">
+                    <span class="section-icon">🔗</span>
+                    Pipelines & Data Processing
+                </div>
+                <span class="toggle-icon">▼</span>
+            </div>
+            <div class="section-content">
+                <div class="command-grid">
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('command1 | command2')">
+                            Pipe Operator |
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">Connect command output to input of another command for data processing chains</div>
+                        <div class="command-example">
+                            <div class="example-line">
+                                <span class="prompt">[analyst@security-server ~]$</span>
+                                <span class="command-text" onclick="copyCommand('ps aux | grep suspicious')">ps aux | grep suspicious</span>
+                            </div>
+                            <div class="output-text">Find specific processes</div>
+                            <div class="example-line">
+                                <span class="prompt">[analyst@security-server ~]$</span>
+                                <span class="command-text" onclick="copyCommand('netstat -tuln | grep :22')">netstat -tuln | grep :22</span>
+                            </div>
+                            <div class="output-text">Check if SSH service is listening</div>
+                            <div class="example-line">
+                                <span class="prompt">[analyst@security-server ~]$</span>
+                                <span class="command-text" onclick="copyCommand('cat access.log | grep \"404\" | wc -l')">cat access.log | grep "404" | wc -l</span>
+                            </div>
+                            <div class="output-text">Count 404 errors in web logs</div>
+                        </div>
+                        <div class="security-tips">
+                            <div class="tips-title">🔍 Analysis Workflows</div>
+                            <ul class="tip-list">
+                                <li>Chain commands for complex log analysis</li>
+                                <li>Filter network connections by port or protocol</li>
+                                <li>Process large datasets efficiently with streaming</li>
+                                <li>Build reusable analysis pipelines</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('command | tee file')">
+                            tee
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">Copy input to both output and files - view results while saving them</div>
+                        <div class="command-example">
+                            <div class="example-line">
+                                <span class="prompt">[analyst@security-server ~]$</span>
+                                <span class="command-text" onclick="copyCommand('nmap -sn 192.168.1.0/24 | tee host_discovery.txt')">nmap -sn 192.168.1.0/24 | tee host_discovery.txt</span>
+                            </div>
+                            <div class="output-text">View scan progress while saving results</div>
+                            <div class="example-line">
+                                <span class="prompt">[analyst@security-server ~]$</span>
+                                <span class="command-text" onclick="copyCommand('tcpdump -i eth0 | tee -a network_capture.log')">tcpdump -i eth0 | tee -a network_capture.log</span>
+                            </div>
+                            <div class="output-text">Monitor traffic live while logging</div>
+                        </div>
+                        <div class="security-tips">
+                            <div class="tips-title">📊 Real-time Monitoring</div>
+                            <ul class="tip-list">
+                                <li>Monitor security scans in real-time while saving logs</li>
+                                <li>Use <code>tee -a</code> to append to existing log files</li>
+                                <li>Ideal for long-running security operations</li>
+                                <li>Create multiple output streams for different audiences</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="command-section" data-category="vim">
+            <div class="section-header" onclick="toggleSection(this)">
+                <div class="section-title">
+                    <span class="section-icon">✏️</span>
+                    Text Editing with Vim
+                </div>
+                <span class="toggle-icon">▼</span>
+            </div>
+            <div class="section-content">
+                <div class="command-grid">
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('vim filename')">
+                            vim / vi
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">Powerful terminal text editor essential for system administration and configuration</div>
+                        <div class="vim-modes">
+                            <div class="vim-mode">
+                                <div class="mode-name">Command Mode</div>
+                                <div class="mode-desc">Navigate, cut, paste, delete. Default mode when opening vim.</div>
+                            </div>
+                            <div class="vim-mode">
+                                <div class="mode-name">Insert Mode (i)</div>
+                                <div class="mode-desc">Type text content. Press Esc to return to command mode.</div>
+                            </div>
+                            <div class="vim-mode">
+                                <div class="mode-name">Visual Mode (v)</div>
+                                <div class="mode-desc">Select text. Shift+V for lines, Ctrl+V for blocks.</div>
+                            </div>
+                            <div class="vim-mode">
+                                <div class="mode-name">Extended Mode (:)</div>
+                                <div class="mode-desc">Commands like :w (save), :q (quit), :wq (save & quit).</div>
+                            </div>
+                        </div>
+                        <div class="command-example">
+                            <div class="example-line">
+                                <span class="prompt">[admin@security-server ~]$</span>
+                                <span class="command-text" onclick="copyCommand('vim /etc/ssh/sshd_config')">vim /etc/ssh/sshd_config</span>
+                            </div>
+                            <div class="output-text">Edit SSH daemon configuration</div>
+                            <div class="example-line">
+                                <span class="prompt">[admin@security-server ~]$</span>
+                                <span class="command-text" onclick="copyCommand('vim ~/.bashrc')">vim ~/.bashrc</span>
+                            </div>
+                            <div class="output-text">Customize shell environment</div>
+                        </div>
+                        <div class="security-tips">
+                            <div class="tips-title">⚙️ Essential Commands</div>
+                            <ul class="tip-list">
+                                <li><code>:w</code> - Save file, <code>:q</code> - Quit, <code>:wq</code> - Save and quit</li>
+                                <li><code>:q!</code> - Quit without saving changes</li>
+                                <li><code>u</code> - Undo, <code>x</code> - Delete character</li>
+                                <li><code>dd</code> - Delete line, <code>yy</code> - Copy line, <code>p</code> - Paste</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('vimtutor')">
+                            vimtutor
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">Interactive vim tutorial for learning essential editing skills</div>
+                        <div class="command-example">
+                            <div class="example-line">
+                                <span class="prompt">[student@workstation ~]$</span>
+                                <span class="command-text" onclick="copyCommand('vimtutor')">vimtutor</span>
+                            </div>
+                            <div class="output-text">Launch interactive vim tutorial</div>
+                        </div>
+                        <div class="security-tips">
+                            <div class="tips-title">📚 Learning Strategy</div>
+                            <ul class="tip-list">
+                                <li>Essential for security professionals who manage servers</li>
+                                <li>Learn basic navigation: h, j, k, l (left, down, up, right)</li>
+                                <li>Practice with configuration files in safe environment</li>
+                                <li>Master vim to edit files over SSH connections</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="command-section" data-category="variables">
+            <div class="section-header" onclick="toggleSection(this)">
+                <div class="section-title">
+                    <span class="section-icon">💾</span>
+                    Shell Variables & Configuration
+                </div>
+                <span class="toggle-icon">▼</span>
+            </div>
+            <div class="section-content">
+                <div class="command-grid">
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('VARIABLE=value')">
+                            Variable Assignment
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">Create and use shell variables for automation and configuration</div>
+                        <div class="command-example">
+                            <div class="example-line">
+                                <span class="prompt">[analyst@security-server ~]$</span>
+                                <span class="command-text" onclick="copyCommand('TARGET=192.168.1.100')">TARGET=192.168.1.100</span>
+                            </div>
+                            <div class="output-text">Set target IP variable</div>
+                            <div class="example-line">
+                                <span class="prompt">[analyst@security-server ~]$</span>
+                                <span class="command-text" onclick="copyCommand('echo $TARGET')">echo $TARGET</span>
+                            </div>
+                            <div class="output-text">192.168.1.100</div>
+                            <div class="example-line">
+                                <span class="prompt">[analyst@security-server ~]$</span>
+                                <span class="command-text" onclick="copyCommand('nmap -sS $TARGET')">nmap -sS $TARGET</span>
+                            </div>
+                            <div class="output-text">Use variable in command</div>
+                        </div>
+                        <div class="security-tips">
+                            <div class="tips-title">🎯 Security Automation</div>
+                            <ul class="tip-list">
+                                <li>Store frequently used IP addresses and hostnames</li>
+                                <li>Create reusable scan configurations</li>
+                                <li>Use descriptive variable names: <code>WEBSERVER</code>, <code>DATABASE</code></li>
+                                <li>Enclose values in quotes if they contain spaces</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('set | less')">
+                            set
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">List all shell variables and functions currently defined</div>
+                        <div class="command-example">
+                            <div class="example-line">
+                                <span class="prompt">[admin@security-server ~]$</span>
+                                <span class="command-text" onclick="copyCommand('set | grep PATH')">set | grep PATH</span>
+                            </div>
+                            <div class="output-text">View PATH variable configuration</div>
+                            <div class="example-line">
+                                <span class="prompt">[admin@security-server ~]$</span>
+                                <span class="command-text" onclick="copyCommand('set | grep PS1')">set | grep PS1</span>
+                            </div>
+                            <div class="output-text">View prompt configuration</div>
+                        </div>
+                        <div class="security-tips">
+                            <div class="tips-title">🔍 System Analysis</div>
+                            <ul class="tip-list">
+                                <li>Audit current shell configuration for security</li>
+                                <li>Identify potentially malicious environment modifications</li>
+                                <li>Troubleshoot path and configuration issues</li>
+                                <li>Use <code>set | less</code> to page through output</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="command-section" data-category="environment">
+            <div class="section-header" onclick="toggleSection(this)">
+                <div class="section-title">
+                    <span class="section-icon">🌍</span>
+                    Environment Variables & System Config
+                </div>
+                <span class="toggle-icon">▼</span>
+            </div>
+            <div class="section-content">
+                <div class="command-grid">
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('export VARIABLE=value')">
+                            export
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">Make shell variables available to programs and child processes</div>
+                        <div class="command-example">
+                            <div class="example-line">
+                                <span class="prompt">[admin@security-server ~]$</span>
+                                <span class="command-text" onclick="copyCommand('export EDITOR=vim')">export EDITOR=vim</span>
+                            </div>
+                            <div class="output-text">Set default text editor</div>
+                            <div class="example-line">
+                                <span class="prompt">[admin@security-server ~]$</span>
+                                <span class="command-text" onclick="copyCommand('export PATH=${PATH}:/opt/security/bin')">export PATH=${PATH}:/opt/security/bin</span>
+                            </div>
+                            <div class="output-text">Add security tools to PATH</div>
+                        </div>
+                        <div class="variable-examples">
+                            <div class="var-example">
+                                <div class="var-name">PATH</div>
+                                <div class="var-purpose">Command Search Path</div>
+                                <div class="var-desc">Directories where shell looks for executable commands</div>
+                            </div>
+                            <div class="var-example">
+                                <div class="var-name">EDITOR</div>
+                                <div class="var-purpose">Default Text Editor</div>
+                                <div class="var-desc">Text editor used by system programs and scripts</div>
+                            </div>
+                            <div class="var-example">
+                                <div class="var-name">HOME</div>
+                                <div class="var-purpose">User Home Directory</div>
+                                <div class="var-desc">User's home directory path for file operations</div>
+                            </div>
+                            <div class="var-example">
+                                <div class="var-name">PS1</div>
+                                <div class="var-purpose">Shell Prompt</div>
+                                <div class="var-desc">Customize command prompt appearance and information</div>
+                            </div>
+                        </div>
+                        <div class="security-tips">
+                            <div class="tips-title">🔧 Configuration Best Practices</div>
+                            <ul class="tip-list">
+                                <li>Add security tool directories to PATH for easy access</li>
+                                <li>Set EDITOR to a secure, familiar text editor</li>
+                                <li>Use PS1 to display security context in prompt</li>
+                                <li>Be cautious with environment variables in scripts</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('env')">
+                            env
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">Display all environment variables available to current shell and programs</div>
+                        <div class="command-example">
+                            <div class="example-line">
+                                <span class="prompt">[admin@security-server ~]$</span>
+                                <span class="command-text" onclick="copyCommand('env | grep -E \"(PATH|EDITOR|HOME)\"')">env | grep -E "(PATH|EDITOR|HOME)"</span>
+                            </div>
+                            <div class="output-text">Show key environment variables</div>
+                            <div class="example-line">
+                                <span class="prompt">[admin@security-server ~]$</span>
+                                <span class="command-text" onclick="copyCommand('env | sort')">env | sort</span>
+                            </div>
+                            <div class="output-text">List all environment variables alphabetically</div>
+                        </div>
+                        <div class="security-tips">
+                            <div class="tips-title">🔒 Security Auditing</div>
+                            <ul class="tip-list">
+                                <li>Audit environment for sensitive information exposure</li>
+                                <li>Check for suspicious or modified system variables</li>
+                                <li>Identify potential privilege escalation vectors</li>
+                                <li>Document baseline configurations for comparison</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('alias name=\"command\"')">
+                            alias
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">Create shortcuts for frequently used commands and complex operations</div>
+                        <div class="command-example">
+                            <div class="example-line">
+                                <span class="prompt">[analyst@security-server ~]$</span>
+                                <span class="command-text" onclick="copyCommand('alias ll=\"ls -la\"')">alias ll="ls -la"</span>
+                            </div>
+                            <div class="output-text">Create detailed listing alias</div>
+                            <div class="example-line">
+                                <span class="prompt">[analyst@security-server ~]$</span>
+                                <span class="command-text" onclick="copyCommand('alias portscan=\"nmap -sS -O\"')">alias portscan="nmap -sS -O"</span>
+                            </div>
+                            <div class="output-text">Create scanning alias</div>
+                            <div class="example-line">
+                                <span class="prompt">[analyst@security-server ~]$</span>
+                                <span class="command-text" onclick="copyCommand('alias logs=\"tail -f /var/log/secure\"')">alias logs="tail -f /var/log/secure"</span>
+                            </div>
+                            <div class="output-text">Monitor security logs</div>
+                        </div>
+                        <div class="security-tips">
+                            <div class="tips-title">⚡ Efficiency Tips</div>
+                            <ul class="tip-list">
+                                <li>Create aliases for complex security commands</li>
+                                <li>Add aliases to <code>~/.bashrc</code> for persistence</li>
+                                <li>Use descriptive names: <code>vulnscan</code>, <code>netmon</code></li>
+                                <li>Include safety options in aliases: <code>alias rm=\"rm -i\"</code></li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('~/.bashrc')">
+                            Configuration Files
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">Bash startup files for persistent environment customization</div>
+                        <div class="command-example">
+                            <div class="example-line">
+                                <span class="prompt">[admin@security-server ~]$</span>
+                                <span class="command-text" onclick="copyCommand('vim ~/.bashrc')">vim ~/.bashrc</span>
+                            </div>
+                            <div class="output-text">Edit user-specific shell configuration</div>
+                            <div class="example-line">
+                                <span class="prompt">[admin@security-server ~]$</span>
+                                <span class="command-text" onclick="copyCommand('source ~/.bashrc')">source ~/.bashrc</span>
+                            </div>
+                            <div class="output-text">Reload configuration without logout</div>
+                        </div>
+                        <div class="security-tips">
+                            <div class="tips-title">📁 Configuration Files</div>
+                            <ul class="tip-list">
+                                <li><code>~/.bashrc</code> - Interactive shell settings</li>
+                                <li><code>~/.bash_profile</code> - Login shell initialization</li>
+                                <li><code>/etc/bashrc</code> - System-wide shell configuration</li>
+                                <li><code>/etc/profile.d/</code> - Additional system configurations</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>© 2025 <span class="college-branding">College of DuPage</span> - Computer Information Technology Department</p>
+            <p>CIT 1450 Linux/Unix Systems | AI Cybersecurity Program</p>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // Initialize variables
+        const searchInput = document.getElementById('searchInput');
+        const filterButtons = document.querySelectorAll('.filter-btn');
+        const commandSections = document.querySelectorAll('.command-section');
+        let currentFilter = 'all';
+
+        // Search functionality
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            filterContent(searchTerm, currentFilter);
+        });
+
+        // Filter button functionality
+        filterButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                // Update active button
+                filterButtons.forEach(btn => btn.classList.remove('active'));
+                this.classList.add('active');
+                
+                currentFilter = this.dataset.category;
+                const searchTerm = searchInput.value.toLowerCase();
+                filterContent(searchTerm, currentFilter);
+            });
+        });
+
+        // Filter content based on search and category
+        function filterContent(searchTerm, category) {
+            commandSections.forEach(section => {
+                const sectionCategory = section.dataset.category;
+                const sectionText = section.textContent.toLowerCase();
+                
+                const matchesCategory = category === 'all' || category === sectionCategory;
+                const matchesSearch = !searchTerm || sectionText.includes(searchTerm);
+                
+                if (matchesCategory && matchesSearch) {
+                    section.classList.remove('hidden');
+                } else {
+                    section.classList.add('hidden');
+                }
+            });
+        }
+
+        // Section toggle functionality
+        function toggleSection(header) {
+            const section = header.parentElement;
+            const content = section.querySelector('.section-content');
+            
+            if (content.classList.contains('expanded')) {
+                content.classList.remove('expanded');
+                section.classList.remove('expanded');
+            } else {
+                content.classList.add('expanded');
+                section.classList.add('expanded');
+            }
+        }
+
+        // Copy command to clipboard
+        function copyCommand(command) {
+            navigator.clipboard.writeText(command).then(() => {
+                showToast(`Copied: ${command}`);
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+                showToast('Copy failed - try selecting manually');
+            });
+        }
+
+        // Show toast notification
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2000);
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Expand first section by default
+            const firstSection = document.querySelector('.command-section .section-header');
+            if (firstSection) {
+                toggleSection(firstSection);
+            }
+
+            // Add keyboard shortcuts
+            document.addEventListener('keydown', function(e) {
+                // Ctrl/Cmd + K to focus search
+                if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                    e.preventDefault();
+                    searchInput.focus();
+                    searchInput.select();
+                }
+                
+                // Escape to clear search
+                if (e.key === 'Escape') {
+                    searchInput.value = '';
+                    filterContent('', currentFilter);
+                    searchInput.blur();
+                }
+            });
+
+            // Add click to copy for all command examples
+            document.querySelectorAll('.command-text, .redirect-operator').forEach(cmd => {
+                cmd.addEventListener('click', function() {
+                    copyCommand(this.textContent.trim());
+                });
+            });
+        });
+    </script>
+</body>
+</html>

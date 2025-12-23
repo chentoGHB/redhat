@@ -1,0 +1,1364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Basic Linux Process Management - Chapter 8</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-bg: #0a0e1a;
+            --secondary-bg: #1a1f2e;
+            --accent-bg: #242b3d;
+            --border-color: #2d3748;
+            --primary-color: #e2e8f0;
+            --secondary-color: #a0aec0;
+            --muted-color: #718096;
+            --success-color: #48bb78;
+            --warning-color: #ed8936;
+            --danger-color: #f56565;
+            --info-color: #4299e1;
+            --purple-color: #9f7aea;
+            --cyan-color: #00d4aa;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, var(--primary-bg) 0%, #0f1419 100%);
+            color: var(--primary-color);
+            line-height: 1.7;
+            min-height: 100vh;
+            font-size: 16px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            position: relative;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -30px;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--success-color), var(--info-color), var(--warning-color), transparent);
+            animation: pulse 3s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; transform: scaleX(0.8); }
+            50% { opacity: 1; transform: scaleX(1); }
+        }
+
+        .title {
+            font-size: clamp(2.5rem, 6vw, 3.8rem);
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--success-color), var(--info-color), var(--warning-color));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+        }
+
+        .subtitle {
+            font-size: 1.4rem;
+            color: var(--secondary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .course-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: linear-gradient(135deg, var(--accent-bg), var(--secondary-bg));
+            border: 1px solid var(--border-color);
+            border-radius: 50px;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            color: var(--warning-color);
+            margin-top: 1rem;
+        }
+
+        .intro-text {
+            background: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 3rem;
+            text-align: center;
+        }
+
+        .intro-text h3 {
+            color: var(--success-color);
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+        }
+
+        .intro-text p {
+            color: var(--secondary-color);
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        .process-guide {
+            background: var(--accent-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 3rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        .process-card {
+            background: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .process-card h4 {
+            color: var(--warning-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .process-example {
+            font-family: 'Roboto Mono', monospace;
+            color: var(--cyan-color);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .process-desc {
+            color: var(--secondary-color);
+            font-size: 0.9rem;
+        }
+
+        .search-controls {
+            position: sticky;
+            top: 2rem;
+            z-index: 100;
+            background: rgba(26, 31, 46, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 1rem 1.25rem;
+            background: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            color: var(--primary-color);
+            font-family: inherit;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--info-color);
+            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.15);
+        }
+
+        .search-input::placeholder {
+            color: var(--muted-color);
+        }
+
+        .filter-tags {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .filter-tag {
+            padding: 0.6rem 1.2rem;
+            background: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 25px;
+            color: var(--secondary-color);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        .filter-tag:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .filter-tag.active {
+            background: linear-gradient(135deg, var(--info-color), var(--success-color));
+            color: var(--primary-bg);
+            border-color: var(--info-color);
+            box-shadow: 0 4px 20px rgba(66, 153, 225, 0.3);
+        }
+
+        .scenario-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 2.5rem;
+        }
+
+        .scenario-card {
+            background: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            overflow: hidden;
+            transition: all 0.4s ease;
+            position: relative;
+            opacity: 0;
+            animation: fadeInUp 0.8s ease forwards;
+        }
+
+        .scenario-card:nth-child(odd) { animation-delay: 0.1s; }
+        .scenario-card:nth-child(even) { animation-delay: 0.2s; }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .scenario-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.4);
+            border-color: var(--info-color);
+        }
+
+        .scenario-header {
+            padding: 2rem;
+            background: linear-gradient(135deg, var(--accent-bg), var(--secondary-bg));
+            border-bottom: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        .scenario-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--scenario-color, var(--info-color));
+            border-radius: 16px 16px 0 0;
+        }
+
+        .scenario-title {
+            font-size: 1.6rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .scenario-icon {
+            font-size: 2rem;
+            color: var(--scenario-color, var(--info-color));
+        }
+
+        .scenario-description {
+            color: var(--secondary-color);
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        .scenario-content {
+            padding: 2rem;
+        }
+
+        .command-workflow {
+            margin-bottom: 2rem;
+        }
+
+        .workflow-step {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            align-items: flex-start;
+        }
+
+        .step-number {
+            flex-shrink: 0;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--scenario-color, var(--info-color));
+            color: var(--primary-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        .step-content {
+            flex: 1;
+        }
+
+        .step-title {
+            color: var(--primary-color);
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .step-description {
+            color: var(--secondary-color);
+            margin-bottom: 1rem;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        .command-block {
+            background: var(--primary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            font-family: 'Roboto Mono', monospace;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .command-block::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--scenario-color, var(--info-color));
+        }
+
+        .command-line {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.8rem;
+            flex-wrap: wrap;
+        }
+
+        .command-line:last-child {
+            margin-bottom: 0;
+        }
+
+        .prompt {
+            color: var(--success-color);
+            margin-right: 0.8rem;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .command {
+            color: var(--cyan-color);
+            cursor: pointer;
+            position: relative;
+            flex: 1;
+            font-size: 1rem;
+            min-width: 0;
+            word-break: break-word;
+        }
+
+        .command:hover {
+            background: rgba(0, 212, 170, 0.1);
+            border-radius: 6px;
+            padding: 4px 6px;
+            margin: -4px -6px;
+        }
+
+        .copy-btn {
+            background: none;
+            border: none;
+            color: var(--muted-color);
+            cursor: pointer;
+            padding: 0.4rem;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            opacity: 0;
+            margin-left: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .command-line:hover .copy-btn {
+            opacity: 1;
+        }
+
+        .copy-btn:hover {
+            background: var(--accent-bg);
+            color: var(--cyan-color);
+        }
+
+        .command-explanation {
+            color: var(--warning-color);
+            font-size: 0.95rem;
+            margin-left: 1rem;
+            font-style: italic;
+            margin-top: 0.5rem;
+        }
+
+        .tips-section {
+            background: rgba(72, 187, 120, 0.1);
+            border: 1px solid rgba(72, 187, 120, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .tips-title {
+            color: var(--success-color);
+            font-weight: 600;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .tip-list {
+            list-style: none;
+            color: var(--secondary-color);
+            font-size: 1rem;
+        }
+
+        .tip-list li {
+            margin-bottom: 0.5rem;
+            padding-left: 1.5rem;
+            position: relative;
+            line-height: 1.5;
+        }
+
+        .tip-list li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: var(--success-color);
+            font-weight: bold;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--success-color);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            font-family: 'Roboto Mono', monospace;
+            font-weight: 500;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .footer {
+            margin-top: 4rem;
+            text-align: center;
+            color: var(--muted-color);
+            font-size: 1rem;
+            padding: 2rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .college-brand {
+            color: var(--info-color);
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .container { padding: 1rem; }
+            .scenario-grid { grid-template-columns: 1fr; }
+            .title { font-size: 2.5rem; }
+            .search-controls { position: static; }
+            .filter-tags { justify-content: flex-start; }
+            .scenario-header { padding: 1.5rem; }
+            .scenario-content { padding: 1.5rem; }
+            .workflow-step { gap: 1rem; }
+            .step-number { width: 32px; height: 32px; }
+            .process-guide { grid-template-columns: 1fr; }
+        }
+
+        .hidden { display: none !important; }
+
+        /* Scenario-specific colors */
+        .see-running { --scenario-color: var(--info-color); }
+        .background-tasks { --scenario-color: var(--success-color); }
+        .control-programs { --scenario-color: var(--warning-color); }
+        .stop-programs { --scenario-color: var(--danger-color); }
+        .monitor-performance { --scenario-color: var(--purple-color); }
+        .find-stop-processes { --scenario-color: var(--cyan-color); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1 class="title">Basic Linux Process Management</h1>
+            <p class="subtitle">Monitor & Control Running Programs</p>
+            <div class="course-badge">
+                <span>⚡</span>
+                <span>College of DuPage - AI Cybersecurity Program</span>
+            </div>
+        </header>
+
+        <div class="intro-text">
+            <h3>Master Process Monitoring & Control</h3>
+            <p>Learn to see what programs are running, control background tasks, and stop misbehaving processes. Essential skills for keeping your system running smoothly and securely!</p>
+        </div>
+
+        <div class="process-guide">
+            <div class="process-card">
+                <h4>Process States</h4>
+                <div class="process-example">R=Running, S=Sleeping</div>
+                <div class="process-desc">R: actively using CPU, S: waiting for something</div>
+            </div>
+            <div class="process-card">
+                <h4>Background Jobs</h4>
+                <div class="process-example">command &</div>
+                <div class="process-desc">Run command in background, get prompt back</div>
+            </div>
+            <div class="process-card">
+                <h4>Job Control</h4>
+                <div class="process-example">Ctrl+Z, fg, bg</div>
+                <div class="process-desc">Stop, foreground, background running programs</div>
+            </div>
+            <div class="process-card">
+                <h4>Kill Signals</h4>
+                <div class="process-example">TERM=stop, STOP=pause</div>
+                <div class="process-desc">SIGTERM ends process, SIGSTOP pauses it</div>
+            </div>
+        </div>
+
+        <div class="search-controls">
+            <input type="text" class="search-input" placeholder="🔍 Search for scenarios or commands..." id="searchInput">
+            <div class="filter-tags">
+                <button class="filter-tag active" data-category="all">All Tasks</button>
+                <button class="filter-tag" data-category="see-running">See Running</button>
+                <button class="filter-tag" data-category="background-tasks">Background Tasks</button>
+                <button class="filter-tag" data-category="control-programs">Control Programs</button>
+                <button class="filter-tag" data-category="stop-programs">Stop Programs</button>
+                <button class="filter-tag" data-category="monitor-performance">Monitor Performance</button>
+                <button class="filter-tag" data-category="find-stop-processes">Find & Stop</button>
+            </div>
+        </div>
+
+        <div class="scenario-grid">
+            <!-- See What's Running -->
+            <div class="scenario-card see-running" data-category="see-running">
+                <div class="scenario-header">
+                    <div class="scenario-title">
+                        <span class="scenario-icon">👁️</span>
+                        See What Programs Are Running
+                    </div>
+                    <div class="scenario-description">
+                        Your system feels slow and you want to know what programs are currently running. Learn to list all processes and understand what they're doing.
+                    </div>
+                </div>
+                <div class="scenario-content">
+                    <div class="command-workflow">
+                        <div class="workflow-step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <div class="step-title">List All Running Processes</div>
+                                <div class="step-description">See all programs running on the system with detailed information.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('ps aux')">ps aux</span>
+                                        <button class="copy-btn" onclick="copyCommand('ps aux')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Shows all processes with CPU/memory usage and owner</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <div class="step-title">See Process Relationships</div>
+                                <div class="step-description">Show which programs started other programs (parent-child relationships).</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('ps -ef')">ps -ef</span>
+                                        <button class="copy-btn" onclick="copyCommand('ps -ef')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Shows processes with parent process IDs (PPID)</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('ps --forest')">ps --forest</span>
+                                        <button class="copy-btn" onclick="copyCommand('ps --forest')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Shows process tree structure visually</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <div class="step-title">Find Specific Processes</div>
+                                <div class="step-description">Look for particular programs you're interested in.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('ps aux | grep firefox')">ps aux | grep firefox</span>
+                                        <button class="copy-btn" onclick="copyCommand('ps aux | grep firefox')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Finds all processes related to firefox</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('pgrep -l ssh')">pgrep -l ssh</span>
+                                        <button class="copy-btn" onclick="copyCommand('pgrep -l ssh')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Finds processes with "ssh" in name and shows names</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">4</div>
+                            <div class="step-content">
+                                <div class="step-title">Check Your Own Processes</div>
+                                <div class="step-description">See only the programs you're running.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('ps')">ps</span>
+                                        <button class="copy-btn" onclick="copyCommand('ps')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Shows only your processes in this terminal</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('ps -u $USER')">ps -u $USER</span>
+                                        <button class="copy-btn" onclick="copyCommand('ps -u $USER')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Shows all processes owned by you</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tips-section">
+                        <div class="tips-title">💡 What You Just Did</div>
+                        <ul class="tip-list">
+                            <li>Used "ps aux" to see all processes with resource usage</li>
+                            <li>Used "ps -ef" to see process relationships (PPID = parent process ID)</li>
+                            <li>Used "grep" and "pgrep" to find specific processes</li>
+                            <li>Learned that every process has a unique PID (Process ID)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Background Tasks -->
+            <div class="scenario-card background-tasks" data-category="background-tasks">
+                <div class="scenario-header">
+                    <div class="scenario-title">
+                        <span class="scenario-icon">🔄</span>
+                        Run Tasks in the Background
+                    </div>
+                    <div class="scenario-description">
+                        You have a long-running task like a file backup, but you don't want to wait for it to finish. You want to start it in the background and keep using your terminal.
+                    </div>
+                </div>
+                <div class="scenario-content">
+                    <div class="command-workflow">
+                        <div class="workflow-step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <div class="step-title">Start a Long Task in Background</div>
+                                <div class="step-description">Launch a command that will run in the background while you do other things.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('sleep 300 &')">sleep 300 &</span>
+                                        <button class="copy-btn" onclick="copyCommand('sleep 300 &')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Starts a 5-minute sleep in background (& means background)</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('find /home -name \"*.log\" > log-files.txt &')">find /home -name "*.log" > log-files.txt &</span>
+                                        <button class="copy-btn" onclick="copyCommand('find /home -name \"*.log\" > log-files.txt &')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Searches for log files in background, saves results to file</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <div class="step-title">See Your Background Jobs</div>
+                                <div class="step-description">Check what tasks you have running in the background.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('jobs')">jobs</span>
+                                        <button class="copy-btn" onclick="copyCommand('jobs')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Lists all background jobs for this terminal session</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('jobs -l')">jobs -l</span>
+                                        <button class="copy-btn" onclick="copyCommand('jobs -l')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Shows job numbers AND process IDs</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <div class="step-title">Bring Background Job to Foreground</div>
+                                <div class="step-description">If you need to interact with a background job, bring it to the front.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('fg %1')">fg %1</span>
+                                        <button class="copy-btn" onclick="copyCommand('fg %1')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Brings job #1 to foreground (%1 = job number 1)</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('fg')">fg</span>
+                                        <button class="copy-btn" onclick="copyCommand('fg')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Brings most recent background job to foreground</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">4</div>
+                            <div class="step-content">
+                                <div class="step-title">Send Running Task to Background</div>
+                                <div class="step-description">If a command is running in foreground and taking too long, send it to background.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('sleep 300')">sleep 300</span>
+                                        <button class="copy-btn" onclick="copyCommand('sleep 300')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Start a command in foreground (blocks your terminal)</div>
+                                    <div class="command-line">
+                                        <span class="prompt">Press Ctrl+Z:</span>
+                                        <span class="command" onclick="copyCommand('Ctrl+Z')">^Z</span>
+                                        <button class="copy-btn" onclick="copyCommand('Ctrl+Z')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Suspends the running command</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('bg %1')">bg %1</span>
+                                        <button class="copy-btn" onclick="copyCommand('bg %1')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Moves suspended job to background and resumes it</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tips-section">
+                        <div class="tips-title">💡 What You Just Did</div>
+                        <ul class="tip-list">
+                            <li>Used "&" to start commands in background immediately</li>
+                            <li>Used "jobs" to see background jobs and their status</li>
+                            <li>Used "fg %1" to bring background job #1 to foreground</li>
+                            <li>Used "Ctrl+Z" and "bg" to send running tasks to background</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Control Programs -->
+            <div class="scenario-card control-programs" data-category="control-programs">
+                <div class="scenario-header">
+                    <div class="scenario-title">
+                        <span class="scenario-icon">🎮</span>
+                        Control Running Programs
+                    </div>
+                    <div class="scenario-description">
+                        You have several programs running and need to pause some, resume others, or stop them completely. Learn to control your running programs like a pro.
+                    </div>
+                </div>
+                <div class="scenario-content">
+                    <div class="command-workflow">
+                        <div class="workflow-step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <div class="step-title">Start Multiple Background Jobs</div>
+                                <div class="step-description">Create several background tasks so we have something to control.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('ping google.com > ping.log &')">ping google.com > ping.log &</span>
+                                        <button class="copy-btn" onclick="copyCommand('ping google.com > ping.log &')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Starts continuous ping, saves output to log file</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('tail -f /var/log/messages &')">tail -f /var/log/messages &</span>
+                                        <button class="copy-btn" onclick="copyCommand('tail -f /var/log/messages &')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Monitors system log file in real-time</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <div class="step-title">Pause a Running Job</div>
+                                <div class="step-description">Temporarily stop a job without ending it completely.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('jobs')">jobs</span>
+                                        <button class="copy-btn" onclick="copyCommand('jobs')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">See your running background jobs</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('kill -STOP %1')">kill -STOP %1</span>
+                                        <button class="copy-btn" onclick="copyCommand('kill -STOP %1')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Pauses job #1 (SIGSTOP signal)</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <div class="step-title">Resume a Paused Job</div>
+                                <div class="step-description">Continue a job that was paused.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('jobs')">jobs</span>
+                                        <button class="copy-btn" onclick="copyCommand('jobs')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Check job status (should show "Stopped" for job #1)</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('kill -CONT %1')">kill -CONT %1</span>
+                                        <button class="copy-btn" onclick="copyCommand('kill -CONT %1')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Resumes job #1 (SIGCONT signal)</div>
+                                    <div class="command-line">
+                                        <span class="prompt">Alternative:</span>
+                                        <span class="command" onclick="copyCommand('bg %1')">bg %1</span>
+                                        <button class="copy-btn" onclick="copyCommand('bg %1')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Also resumes job #1 in background</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">4</div>
+                            <div class="step-content">
+                                <div class="step-title">Stop Jobs Completely</div>
+                                <div class="step-description">End jobs when you're done with them.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('kill -TERM %1')">kill -TERM %1</span>
+                                        <button class="copy-btn" onclick="copyCommand('kill -TERM %1')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Terminates job #1 politely (SIGTERM signal)</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('kill %2')">kill %2</span>
+                                        <button class="copy-btn" onclick="copyCommand('kill %2')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Terminates job #2 (SIGTERM is default)</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tips-section">
+                        <div class="tips-title">💡 What You Just Did</div>
+                        <ul class="tip-list">
+                            <li>Used "kill -STOP" to pause jobs without ending them</li>
+                            <li>Used "kill -CONT" or "bg" to resume paused jobs</li>
+                            <li>Used "kill -TERM" to end jobs politely</li>
+                            <li>Job numbers (like %1, %2) refer to jobs in current terminal session</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stop Misbehaving Programs -->
+            <div class="scenario-card stop-programs" data-category="stop-programs">
+                <div class="scenario-header">
+                    <div class="scenario-title">
+                        <span class="scenario-icon">🛑</span>
+                        Stop Misbehaving Programs
+                    </div>
+                    <div class="scenario-description">
+                        A program is using too much CPU or memory, or has frozen and won't respond. You need to forcefully stop it to protect your system.
+                    </div>
+                </div>
+                <div class="scenario-content">
+                    <div class="command-workflow">
+                        <div class="workflow-step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <div class="step-title">Find the Problem Process</div>
+                                <div class="step-description">Identify which process is causing problems.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('ps aux | head -10')">ps aux | head -10</span>
+                                        <button class="copy-btn" onclick="copyCommand('ps aux | head -10')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Shows top 10 processes sorted by CPU usage</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('ps aux | grep firefox')">ps aux | grep firefox</span>
+                                        <button class="copy-btn" onclick="copyCommand('ps aux | grep firefox')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Look for a specific problematic program</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <div class="step-title">Try to Stop It Nicely First</div>
+                                <div class="step-description">Always try the polite way first - let the program clean up and exit gracefully.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('kill 1234')">kill 1234</span>
+                                        <button class="copy-btn" onclick="copyCommand('kill 1234')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Asks process 1234 to terminate nicely (replace with real PID)</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('kill -TERM 1234')">kill -TERM 1234</span>
+                                        <button class="copy-btn" onclick="copyCommand('kill -TERM 1234')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Same as above, but explicit (SIGTERM = terminate)</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <div class="step-title">Force Stop If Necessary</div>
+                                <div class="step-description">If the program won't stop nicely, use force (but be careful!).</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('sleep 5; ps aux | grep 1234')">sleep 5; ps aux | grep 1234</span>
+                                        <button class="copy-btn" onclick="copyCommand('sleep 5; ps aux | grep 1234')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Wait a moment, then check if process is still running</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('kill -KILL 1234')">kill -KILL 1234</span>
+                                        <button class="copy-btn" onclick="copyCommand('kill -KILL 1234')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Force kill immediately (SIGKILL = no mercy!)</div>
+                                    <div class="command-line">
+                                        <span class="prompt">Shorthand:</span>
+                                        <span class="command" onclick="copyCommand('kill -9 1234')">kill -9 1234</span>
+                                        <button class="copy-btn" onclick="copyCommand('kill -9 1234')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Same as SIGKILL (-9 is the number for KILL signal)</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">4</div>
+                            <div class="step-content">
+                                <div class="step-title">Verify Process is Gone</div>
+                                <div class="step-description">Make sure the problem process is actually stopped.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('ps aux | grep 1234')">ps aux | grep 1234</span>
+                                        <button class="copy-btn" onclick="copyCommand('ps aux | grep 1234')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Check if process 1234 is still running</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('echo $?')">echo $?</span>
+                                        <button class="copy-btn" onclick="copyCommand('echo $?')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Check if kill command succeeded (0 = success)</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tips-section">
+                        <div class="tips-title">💡 What You Just Did</div>
+                        <ul class="tip-list">
+                            <li>Always try "kill PID" (SIGTERM) first - gives process chance to clean up</li>
+                            <li>Use "kill -9 PID" (SIGKILL) only when process won't respond</li>
+                            <li>SIGKILL cannot be ignored - it immediately terminates the process</li>
+                            <li>Check process lists to verify the problem process is actually gone</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Monitor Performance -->
+            <div class="scenario-card monitor-performance" data-category="monitor-performance">
+                <div class="scenario-header">
+                    <div class="scenario-title">
+                        <span class="scenario-icon">📊</span>
+                        Monitor System Performance
+                    </div>
+                    <div class="scenario-description">
+                        Your system feels slow and you want to see which programs are using the most CPU and memory. Learn to monitor system performance in real-time.
+                    </div>
+                </div>
+                <div class="scenario-content">
+                    <div class="command-workflow">
+                        <div class="workflow-step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <div class="step-title">Check Overall System Load</div>
+                                <div class="step-description">See how busy your system is overall.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('uptime')">uptime</span>
+                                        <button class="copy-btn" onclick="copyCommand('uptime')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Shows load average (1min, 5min, 15min) and uptime</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('w')">w</span>
+                                        <button class="copy-btn" onclick="copyCommand('w')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Shows who's logged in and system load</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <div class="step-title">Monitor Processes in Real-Time</div>
+                                <div class="step-description">Watch CPU and memory usage as it changes live.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('top')">top</span>
+                                        <button class="copy-btn" onclick="copyCommand('top')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Real-time process monitor (press 'q' to quit)</div>
+                                    <div class="command-line">
+                                        <span class="prompt">Press in top:</span>
+                                        <span class="command" onclick="copyCommand('P')">P</span>
+                                        <button class="copy-btn" onclick="copyCommand('P')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Sort by CPU usage (highest first)</div>
+                                    <div class="command-line">
+                                        <span class="prompt">Press in top:</span>
+                                        <span class="command" onclick="copyCommand('M')">M</span>
+                                        <button class="copy-btn" onclick="copyCommand('M')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Sort by memory usage (highest first)</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <div class="step-title">Check CPU and Memory Details</div>
+                                <div class="step-description">Get more details about your system's resources.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('lscpu')">lscpu</span>
+                                        <button class="copy-btn" onclick="copyCommand('lscpu')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Shows CPU information (cores, speed, etc.)</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('free -h')">free -h</span>
+                                        <button class="copy-btn" onclick="copyCommand('free -h')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Shows memory usage in human-readable format</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">4</div>
+                            <div class="step-content">
+                                <div class="step-title">Understand Load Average</div>
+                                <div class="step-description">Learn what load average numbers mean for your system.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">Example output:</span>
+                                        <span class="command" onclick="copyCommand('load average: 0.25, 0.50, 1.20')">load average: 0.25, 0.50, 1.20</span>
+                                        <button class="copy-btn" onclick="copyCommand('load average: 0.25, 0.50, 1.20')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Last 1 min: light load, 5 min: moderate, 15 min: busy</div>
+                                    <div class="command-line">
+                                        <span class="prompt">Rule of thumb:</span>
+                                        <span class="command" onclick="copyCommand('Load < 1.0 = good, Load > 1.0 = busy/overloaded')">Load < 1.0 = good, Load > 1.0 = busy/overloaded</span>
+                                        <button class="copy-btn" onclick="copyCommand('Load < 1.0 = good, Load > 1.0 = busy/overloaded')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">On multi-core systems, multiply by number of cores</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tips-section">
+                        <div class="tips-title">💡 What You Just Did</div>
+                        <ul class="tip-list">
+                            <li>Used "uptime" and "w" to check system load quickly</li>
+                            <li>Used "top" for real-time process monitoring with sorting options</li>
+                            <li>Used "lscpu" and "free -h" to understand system resources</li>
+                            <li>Learned that load average below 1.0 per CPU core is generally good</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Find and Stop Processes -->
+            <div class="scenario-card find-stop-processes" data-category="find-stop-processes">
+                <div class="scenario-header">
+                    <div class="scenario-title">
+                        <span class="scenario-icon">🎯</span>
+                        Find and Stop Processes by Name
+                    </div>
+                    <div class="scenario-description">
+                        You know a program is causing problems but don't know its process ID. You want to find all instances of a program and stop them quickly.
+                    </div>
+                </div>
+                <div class="scenario-content">
+                    <div class="command-workflow">
+                        <div class="workflow-step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <div class="step-title">Find Processes by Name</div>
+                                <div class="step-description">Look for all processes that match a certain name.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('pgrep firefox')">pgrep firefox</span>
+                                        <button class="copy-btn" onclick="copyCommand('pgrep firefox')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Shows process IDs of all firefox processes</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('pgrep -l firefox')">pgrep -l firefox</span>
+                                        <button class="copy-btn" onclick="copyCommand('pgrep -l firefox')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Shows PIDs AND process names</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <div class="step-title">Get Detailed Info About Found Processes</div>
+                                <div class="step-description">See more details about the processes you found.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('ps aux | grep firefox')">ps aux | grep firefox</span>
+                                        <button class="copy-btn" onclick="copyCommand('ps aux | grep firefox')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Shows detailed info for firefox processes</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('ps -ef | grep firefox')">ps -ef | grep firefox</span>
+                                        <button class="copy-btn" onclick="copyCommand('ps -ef | grep firefox')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Shows process relationships and full command line</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <div class="step-title">Stop All Processes with Same Name</div>
+                                <div class="step-description">Kill all instances of a program at once.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('pkill firefox')">pkill firefox</span>
+                                        <button class="copy-btn" onclick="copyCommand('pkill firefox')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Terminates ALL firefox processes (SIGTERM)</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('pkill -9 firefox')">pkill -9 firefox</span>
+                                        <button class="copy-btn" onclick="copyCommand('pkill -9 firefox')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Force kills ALL firefox processes (SIGKILL)</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">4</div>
+                            <div class="step-content">
+                                <div class="step-title">Advanced Process Finding</div>
+                                <div class="step-description">More precise ways to find and control processes.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('pgrep -u john firefox')">pgrep -u john firefox</span>
+                                        <button class="copy-btn" onclick="copyCommand('pgrep -u john firefox')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Find firefox processes owned by user 'john' only</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('pkill -STOP firefox')">pkill -STOP firefox</span>
+                                        <button class="copy-btn" onclick="copyCommand('pkill -STOP firefox')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Pause all firefox processes (can resume later)</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('pkill -CONT firefox')">pkill -CONT firefox</span>
+                                        <button class="copy-btn" onclick="copyCommand('pkill -CONT firefox')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Resume all paused firefox processes</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tips-section">
+                        <div class="tips-title">💡 What You Just Did</div>
+                        <ul class="tip-list">
+                            <li>Used "pgrep" to find process IDs by name</li>
+                            <li>Used "pkill" to terminate all processes with a given name</li>
+                            <li>Used "-u username" to target processes by specific user</li>
+                            <li>Used different signals with pkill (TERM, KILL, STOP, CONT)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>© 2025 <span class="college-brand">College of DuPage</span> - Computer Information Technology Department</p>
+            <p>CIT 1450 Linux/Unix Systems | AI Cybersecurity Program</p>
+            <p><em>Making Linux process management simple and powerful</em></p>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // Initialize variables
+        const searchInput = document.getElementById('searchInput');
+        const filterTags = document.querySelectorAll('.filter-tag');
+        const scenarioCards = document.querySelectorAll('.scenario-card');
+        let currentFilter = 'all';
+
+        // Search functionality
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            filterScenarios(searchTerm, currentFilter);
+        });
+
+        // Filter tag functionality
+        filterTags.forEach(tag => {
+            tag.addEventListener('click', function() {
+                // Update active tag
+                filterTags.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                
+                currentFilter = this.dataset.category;
+                const searchTerm = searchInput.value.toLowerCase();
+                filterScenarios(searchTerm, currentFilter);
+            });
+        });
+
+        // Filter scenarios based on search and category
+        function filterScenarios(searchTerm, category) {
+            scenarioCards.forEach(card => {
+                const cardCategory = card.dataset.category;
+                const cardText = card.textContent.toLowerCase();
+                
+                const matchesCategory = category === 'all' || category === cardCategory;
+                const matchesSearch = !searchTerm || cardText.includes(searchTerm);
+                
+                if (matchesCategory && matchesSearch) {
+                    card.classList.remove('hidden');
+                } else {
+                    card.classList.add('hidden');
+                }
+            });
+        }
+
+        // Copy command to clipboard
+        function copyCommand(command) {
+            navigator.clipboard.writeText(command).then(() => {
+                showToast(`Copied: ${command}`);
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+                showToast('Copy failed - try selecting manually');
+            });
+        }
+
+        // Show toast notification
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2500);
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl/Cmd + K to focus search
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                searchInput.focus();
+                searchInput.select();
+            }
+            
+            // Escape to clear search
+            if (e.key === 'Escape') {
+                searchInput.value = '';
+                filterScenarios('', currentFilter);
+                searchInput.blur();
+            }
+        });
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add click to copy for all commands
+            document.querySelectorAll('.command').forEach(cmd => {
+                cmd.addEventListener('click', function() {
+                    copyCommand(this.textContent.trim());
+                });
+            });
+
+            // Focus search on page load
+            setTimeout(() => {
+                searchInput.focus();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

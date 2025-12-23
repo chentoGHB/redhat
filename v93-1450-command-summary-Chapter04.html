@@ -1,0 +1,1157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linux Help & Documentation Commands - Chapter 4</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --terminal-bg: #0d1117;
+            --terminal-secondary: #161b22;
+            --terminal-border: #21262d;
+            --terminal-green: #7dc383;
+            --terminal-amber: #ffa657;
+            --terminal-blue: #58a6ff;
+            --terminal-purple: #bc8cff;
+            --terminal-red: #ff6b6b;
+            --text-primary: #f0f6fc;
+            --text-secondary: #8b949e;
+            --text-muted: #6e7681;
+            --accent: var(--terminal-green);
+            --warning: var(--terminal-amber);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            background: var(--terminal-bg);
+            color: var(--text-primary);
+            line-height: 1.6;
+            font-size: 14px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            position: relative;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            0% { opacity: 0.5; }
+            100% { opacity: 1; filter: blur(0.5px); }
+        }
+
+        .title {
+            font-family: 'Space Mono', monospace;
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--accent), var(--terminal-blue));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(125, 195, 131, 0.3);
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+        }
+
+        .course-info {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background: var(--terminal-secondary);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            color: var(--warning);
+            font-size: 0.9rem;
+            margin-top: 1rem;
+        }
+
+        .search-container {
+            position: sticky;
+            top: 2rem;
+            z-index: 100;
+            background: var(--terminal-secondary);
+            border: 1px solid var(--terminal-border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(125, 195, 131, 0.2);
+        }
+
+        .search-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 0.4rem 0.8rem;
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 6px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            font-size: 0.85rem;
+        }
+
+        .filter-btn:hover,
+        .filter-btn.active {
+            background: var(--accent);
+            color: var(--terminal-bg);
+            border-color: var(--accent);
+            transform: translateY(-1px);
+        }
+
+        .command-section {
+            margin-bottom: 2rem;
+            background: var(--terminal-secondary);
+            border: 1px solid var(--terminal-border);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            opacity: 0;
+            animation: fadeInUp 0.6s ease forwards;
+        }
+
+        .command-section:nth-child(even) {
+            animation-delay: 0.1s;
+        }
+
+        .command-section:nth-child(odd) {
+            animation-delay: 0.2s;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .section-header {
+            padding: 1.5rem;
+            background: linear-gradient(135deg, var(--terminal-border), var(--terminal-secondary));
+            border-bottom: 1px solid var(--terminal-border);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.3s ease;
+        }
+
+        .section-header:hover {
+            background: linear-gradient(135deg, var(--terminal-border), rgba(125, 195, 131, 0.1));
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 500;
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .section-icon {
+            font-size: 1rem;
+            color: var(--terminal-blue);
+        }
+
+        .toggle-icon {
+            transition: transform 0.3s ease;
+            color: var(--text-secondary);
+        }
+
+        .section-content {
+            padding: 1.5rem;
+            display: none;
+            animation: slideDown 0.3s ease;
+        }
+
+        .section-content.expanded {
+            display: block;
+        }
+
+        .command-section.expanded .toggle-icon {
+            transform: rotate(180deg);
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                max-height: 0;
+                padding-top: 0;
+                padding-bottom: 0;
+            }
+            to {
+                opacity: 1;
+                max-height: 1000px;
+                padding-top: 1.5rem;
+                padding-bottom: 1.5rem;
+            }
+        }
+
+        .command-grid {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .command-item {
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 1rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .command-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 3px;
+            height: 100%;
+            background: var(--accent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .command-item:hover {
+            border-color: var(--accent);
+            transform: translateX(5px);
+            box-shadow: 0 4px 20px rgba(125, 195, 131, 0.2);
+        }
+
+        .command-item:hover::before {
+            opacity: 1;
+        }
+
+        .command-name {
+            font-family: 'Space Mono', monospace;
+            font-weight: 700;
+            font-size: 1rem;
+            color: var(--terminal-blue);
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .copy-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 0.2rem;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            opacity: 0;
+        }
+
+        .command-item:hover .copy-btn {
+            opacity: 1;
+        }
+
+        .copy-btn:hover {
+            background: var(--terminal-border);
+            color: var(--accent);
+        }
+
+        .command-description {
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .command-example {
+            background: rgba(0, 0, 0, 0.3);
+            border-left: 3px solid var(--terminal-purple);
+            padding: 0.5rem;
+            border-radius: 0 4px 4px 0;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--terminal-purple);
+            margin-top: 0.5rem;
+        }
+
+        .example-line {
+            margin-bottom: 0.3rem;
+        }
+
+        .example-line:last-child {
+            margin-bottom: 0;
+        }
+
+        .prompt {
+            color: var(--accent);
+            margin-right: 0.5rem;
+        }
+
+        .command-text {
+            color: var(--text-primary);
+            cursor: pointer;
+        }
+
+        .command-text:hover {
+            background: rgba(125, 195, 131, 0.1);
+            padding: 2px 4px;
+            margin: -2px -4px;
+            border-radius: 3px;
+        }
+
+        .output-text {
+            color: var(--text-muted);
+            font-style: italic;
+            margin-left: 1rem;
+        }
+
+        .security-tips {
+            background: rgba(255, 166, 87, 0.1);
+            border: 1px solid var(--warning);
+            border-radius: 6px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .tips-title {
+            color: var(--warning);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .tip-list {
+            list-style: none;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        .tip-list li {
+            margin-bottom: 0.25rem;
+            padding-left: 1rem;
+            position: relative;
+        }
+
+        .tip-list li::before {
+            content: '▶';
+            position: absolute;
+            left: 0;
+            color: var(--warning);
+            font-size: 0.7rem;
+        }
+
+        .navigation-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        .nav-item {
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 6px;
+            padding: 0.75rem;
+            transition: all 0.3s ease;
+        }
+
+        .nav-item:hover {
+            border-color: var(--terminal-purple);
+            background: rgba(188, 140, 255, 0.05);
+        }
+
+        .nav-key {
+            font-family: 'Space Mono', monospace;
+            font-weight: 700;
+            color: var(--terminal-purple);
+            margin-bottom: 0.3rem;
+        }
+
+        .nav-desc {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+        }
+
+        .manual-sections {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .section-card {
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .section-card:hover {
+            border-color: var(--terminal-blue);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(88, 166, 255, 0.2);
+        }
+
+        .section-number {
+            font-family: 'Space Mono', monospace;
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: var(--terminal-blue);
+            margin-bottom: 0.3rem;
+        }
+
+        .section-title-card {
+            color: var(--text-primary);
+            font-weight: 500;
+            margin-bottom: 0.3rem;
+        }
+
+        .section-desc {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--accent);
+            color: var(--terminal-bg);
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-family: 'Space Mono', monospace;
+            font-weight: 500;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .footer {
+            margin-top: 3rem;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            padding: 2rem;
+            border-top: 1px solid var(--terminal-border);
+        }
+
+        .college-branding {
+            color: var(--accent);
+            font-weight: 500;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .title {
+                font-size: 2rem;
+            }
+            
+            .search-container {
+                position: static;
+            }
+            
+            .filter-buttons {
+                justify-content: center;
+            }
+            
+            .navigation-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .manual-sections {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1 class="title">Linux Help & Documentation</h1>
+            <p class="subtitle">Chapter 4: Get Help in Red Hat Enterprise Linux</p>
+            <div class="course-info">College of DuPage - CIT 1450 Linux/Unix Systems</div>
+        </header>
+
+        <div class="search-container">
+            <input type="text" class="search-input" placeholder="🔍 Search commands, descriptions, or examples..." id="searchInput">
+            <div class="filter-buttons">
+                <button class="filter-btn active" data-category="all">All Commands</button>
+                <button class="filter-btn" data-category="manual">Manual Pages</button>
+                <button class="filter-btn" data-category="search">Search & Find</button>
+                <button class="filter-btn" data-category="navigation">Navigation</button>
+                <button class="filter-btn" data-category="format">Format & Print</button>
+                <button class="filter-btn" data-category="viewers">File Viewers</button>
+            </div>
+        </div>
+
+        <div class="command-section" data-category="manual">
+            <div class="section-header" onclick="toggleSection(this)">
+                <div class="section-title">
+                    <span class="section-icon">📖</span>
+                    Manual Pages (man)
+                </div>
+                <span class="toggle-icon">▼</span>
+            </div>
+            <div class="section-content">
+                <div class="command-grid">
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('man command')">
+                            man
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">Display manual pages for commands, files, and system functions</div>
+                        <div class="command-example">
+                            <div class="example-line">
+                                <span class="prompt">[student@workstation ~]$</span>
+                                <span class="command-text" onclick="copyCommand('man passwd')">man passwd</span>
+                            </div>
+                            <div class="output-text">Shows passwd(1) manual page</div>
+                            <div class="example-line">
+                                <span class="prompt">[student@workstation ~]$</span>
+                                <span class="command-text" onclick="copyCommand('man 5 passwd')">man 5 passwd</span>
+                            </div>
+                            <div class="output-text">Shows passwd(5) file format page</div>
+                        </div>
+                        <div class="security-tips">
+                            <div class="tips-title">🛡️ Cybersecurity Use</div>
+                            <ul class="tip-list">
+                                <li>Essential for learning security command syntax and options</li>
+                                <li>Research vulnerability assessment tools and their parameters</li>
+                                <li>Understand system configuration file formats</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('man 1 command')">
+                            man section
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">Access specific manual sections for different types of information</div>
+                        <div class="command-example">
+                            <div class="example-line">
+                                <span class="prompt">[student@workstation ~]$</span>
+                                <span class="command-text" onclick="copyCommand('man 1 su')">man 1 su</span>
+                            </div>
+                            <div class="output-text">User commands section</div>
+                            <div class="example-line">
+                                <span class="prompt">[student@workstation ~]$</span>
+                                <span class="command-text" onclick="copyCommand('man 8 iptables')">man 8 iptables</span>
+                            </div>
+                            <div class="output-text">System administration commands</div>
+                        </div>
+                        <div class="manual-sections">
+                            <div class="section-card">
+                                <div class="section-number">1</div>
+                                <div class="section-title-card">User Commands</div>
+                                <div class="section-desc">Executable programs and shell commands</div>
+                            </div>
+                            <div class="section-card">
+                                <div class="section-number">2</div>
+                                <div class="section-title-card">System Calls</div>
+                                <div class="section-desc">Kernel routines invoked from user space</div>
+                            </div>
+                            <div class="section-card">
+                                <div class="section-number">3</div>
+                                <div class="section-title-card">Library Functions</div>
+                                <div class="section-desc">Provided by program libraries</div>
+                            </div>
+                            <div class="section-card">
+                                <div class="section-number">4</div>
+                                <div class="section-title-card">Special Files</div>
+                                <div class="section-desc">Device files and special interfaces</div>
+                            </div>
+                            <div class="section-card">
+                                <div class="section-number">5</div>
+                                <div class="section-title-card">File Formats</div>
+                                <div class="section-desc">Configuration files and structures</div>
+                            </div>
+                            <div class="section-card">
+                                <div class="section-number">8</div>
+                                <div class="section-title-card">System Administration</div>
+                                <div class="section-desc">Privileged commands and maintenance</div>
+                            </div>
+                        </div>
+                        <div class="security-tips">
+                            <div class="tips-title">🔒 Security Sections</div>
+                            <ul class="tip-list">
+                                <li>Section 1: Security tools like nmap, netstat, ps</li>
+                                <li>Section 5: Config files like /etc/passwd, /etc/shadow</li>
+                                <li>Section 8: Admin tools like iptables, tcpdump, wireshark</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="command-section" data-category="search">
+            <div class="section-header" onclick="toggleSection(this)">
+                <div class="section-title">
+                    <span class="section-icon">🔍</span>
+                    Search & Find Commands
+                </div>
+                <span class="toggle-icon">▼</span>
+            </div>
+            <div class="section-content">
+                <div class="command-grid">
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('man -k keyword')">
+                            man -k (apropos)
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">Search manual page names and descriptions by keyword</div>
+                        <div class="command-example">
+                            <div class="example-line">
+                                <span class="prompt">[student@workstation ~]$</span>
+                                <span class="command-text" onclick="copyCommand('man -k passwd')">man -k passwd</span>
+                            </div>
+                            <div class="output-text">passwd (1) - update user's authentication tokens</div>
+                            <div class="output-text">passwd (5) - password file</div>
+                            <div class="example-line">
+                                <span class="prompt">[student@workstation ~]$</span>
+                                <span class="command-text" onclick="copyCommand('man -k network')">man -k network</span>
+                            </div>
+                            <div class="output-text">Lists all network-related commands</div>
+                        </div>
+                        <div class="security-tips">
+                            <div class="tips-title">🔍 Research Tips</div>
+                            <ul class="tip-list">
+                                <li>Use <code>man -k security</code> to find security tools</li>
+                                <li>Search for <code>man -k firewall</code> or <code>man -k encryption</code></li>
+                                <li>Essential for discovering new security commands</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('man -K keyword')">
+                            man -K
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">Full-text search within manual pages (more comprehensive but slower)</div>
+                        <div class="command-example">
+                            <div class="example-line">
+                                <span class="prompt">[student@workstation ~]$</span>
+                                <span class="command-text" onclick="copyCommand('man -K firewall')">man -K firewall</span>
+                            </div>
+                            <div class="output-text">--Man-- next: iptables(8) [ view (return) | skip (Ctrl-D) | quit (Ctrl-C) ]</div>
+                        </div>
+                        <div class="security-tips">
+                            <div class="tips-title">⚡ Search Strategy</div>
+                            <ul class="tip-list">
+                                <li>Use when keyword searches don't find what you need</li>
+                                <li>Press Enter to view, Ctrl-D to skip, Ctrl-C to quit</li>
+                                <li>Excellent for finding security concepts in documentation</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('whereis command')">
+                            whereis
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">Locate binary, source, and manual page files for commands</div>
+                        <div class="command-example">
+                            <div class="example-line">
+                                <span class="prompt">[student@workstation ~]$</span>
+                                <span class="command-text" onclick="copyCommand('whereis passwd')">whereis passwd</span>
+                            </div>
+                            <div class="output-text">passwd: /usr/bin/passwd /etc/passwd /usr/share/man/man1/passwd.1.gz</div>
+                            <div class="example-line">
+                                <span class="prompt">[student@workstation ~]$</span>
+                                <span class="command-text" onclick="copyCommand('whereis nmap')">whereis nmap</span>
+                            </div>
+                            <div class="output-text">Shows location of nmap binary and manual</div>
+                        </div>
+                        <div class="security-tips">
+                            <div class="tips-title">🗂️ System Investigation</div>
+                            <ul class="tip-list">
+                                <li>Verify security tool installations and locations</li>
+                                <li>Find configuration files associated with commands</li>
+                                <li>Useful for forensic investigation of system binaries</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="command-section" data-category="navigation">
+            <div class="section-header" onclick="toggleSection(this)">
+                <div class="section-title">
+                    <span class="section-icon">⌨️</span>
+                    Manual Page Navigation
+                </div>
+                <span class="toggle-icon">▼</span>
+            </div>
+            <div class="section-content">
+                <div class="command-grid">
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('/')">
+                            Navigation Keys
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">Essential keyboard shortcuts for navigating manual pages efficiently</div>
+                        <div class="navigation-grid">
+                            <div class="nav-item">
+                                <div class="nav-key">Spacebar</div>
+                                <div class="nav-desc">Scroll forward one screen</div>
+                            </div>
+                            <div class="nav-item">
+                                <div class="nav-key">PageDown</div>
+                                <div class="nav-desc">Scroll forward one screen</div>
+                            </div>
+                            <div class="nav-item">
+                                <div class="nav-key">PageUp</div>
+                                <div class="nav-desc">Scroll backward one screen</div>
+                            </div>
+                            <div class="nav-item">
+                                <div class="nav-key">↑/↓ Arrow</div>
+                                <div class="nav-desc">Scroll up/down one line</div>
+                            </div>
+                            <div class="nav-item">
+                                <div class="nav-key">d</div>
+                                <div class="nav-desc">Scroll forward half-screen</div>
+                            </div>
+                            <div class="nav-item">
+                                <div class="nav-key">u</div>
+                                <div class="nav-desc">Scroll backward half-screen</div>
+                            </div>
+                            <div class="nav-item">
+                                <div class="nav-key">/string</div>
+                                <div class="nav-desc">Search forward for text</div>
+                            </div>
+                            <div class="nav-item">
+                                <div class="nav-key">n</div>
+                                <div class="nav-desc">Repeat search forward</div>
+                            </div>
+                            <div class="nav-item">
+                                <div class="nav-key">Shift+N</div>
+                                <div class="nav-desc">Repeat search backward</div>
+                            </div>
+                            <div class="nav-item">
+                                <div class="nav-key">g</div>
+                                <div class="nav-desc">Go to start of page</div>
+                            </div>
+                            <div class="nav-item">
+                                <div class="nav-key">Shift+G</div>
+                                <div class="nav-desc">Go to end of page</div>
+                            </div>
+                            <div class="nav-item">
+                                <div class="nav-key">q</div>
+                                <div class="nav-desc">Quit and return to shell</div>
+                            </div>
+                        </div>
+                        <div class="security-tips">
+                            <div class="tips-title">🚀 Efficiency Tips</div>
+                            <ul class="tip-list">
+                                <li>Use <code>/</code> to search for specific options like "port" or "encrypt"</li>
+                                <li>Press <code>n</code> to jump between search results quickly</li>
+                                <li>Use <code>g</code> and <code>Shift+G</code> to jump to examples section</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="command-section" data-category="format">
+            <div class="section-header" onclick="toggleSection(this)">
+                <div class="section-title">
+                    <span class="section-icon">🖨️</span>
+                    Format & Print Commands
+                </div>
+                <span class="toggle-icon">▼</span>
+            </div>
+            <div class="section-content">
+                <div class="command-grid">
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('man -t command > file.ps')">
+                            man -t
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">Format manual pages for printing in PostScript format</div>
+                        <div class="command-example">
+                            <div class="example-line">
+                                <span class="prompt">[student@workstation ~]$</span>
+                                <span class="command-text" onclick="copyCommand('man -t passwd > passwd.ps')">man -t passwd > passwd.ps</span>
+                            </div>
+                            <div class="output-text">Creates PostScript file for printing</div>
+                            <div class="example-line">
+                                <span class="prompt">[student@workstation ~]$</span>
+                                <span class="command-text" onclick="copyCommand('file passwd.ps')">file passwd.ps</span>
+                            </div>
+                            <div class="output-text">passwd.ps: PostScript document text</div>
+                        </div>
+                        <div class="security-tips">
+                            <div class="tips-title">📄 Documentation Tips</div>
+                            <ul class="tip-list">
+                                <li>Create printed references for offline security procedures</li>
+                                <li>Generate documentation for incident response playbooks</li>
+                                <li>Useful for compliance documentation requirements</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('lp -P 2-3 document.ps')">
+                            lp
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">Print files with various options and page ranges</div>
+                        <div class="command-example">
+                            <div class="example-line">
+                                <span class="prompt">[student@workstation ~]$</span>
+                                <span class="command-text" onclick="copyCommand('lp passwd.ps')">lp passwd.ps</span>
+                            </div>
+                            <div class="output-text">Print entire document</div>
+                            <div class="example-line">
+                                <span class="prompt">[student@workstation ~]$</span>
+                                <span class="command-text" onclick="copyCommand('lp -P 2-3 passwd.ps')">lp -P 2-3 passwd.ps</span>
+                            </div>
+                            <div class="output-text">Print only pages 2-3</div>
+                        </div>
+                        <div class="security-tips">
+                            <div class="tips-title">🖨️ Print Security</div>
+                            <ul class="tip-list">
+                                <li>Use <code>-P</code> to print only relevant sections</li>
+                                <li>Print security tool references for offline use</li>
+                                <li>Create hardcopy backups of critical procedures</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="command-section" data-category="viewers">
+            <div class="section-header" onclick="toggleSection(this)">
+                <div class="section-title">
+                    <span class="section-icon">👁️</span>
+                    File Viewers & Browsers
+                </div>
+                <span class="toggle-icon">▼</span>
+            </div>
+            <div class="section-content">
+                <div class="command-grid">
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('evince document.ps')">
+                            evince
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">GNOME document viewer for PostScript and PDF files</div>
+                        <div class="command-example">
+                            <div class="example-line">
+                                <span class="prompt">[student@workstation ~]$</span>
+                                <span class="command-text" onclick="copyCommand('evince passwd.ps')">evince passwd.ps</span>
+                            </div>
+                            <div class="output-text">Opens in normal viewing mode</div>
+                            <div class="example-line">
+                                <span class="prompt">[student@workstation ~]$</span>
+                                <span class="command-text" onclick="copyCommand('evince -w passwd.ps')">evince -w passwd.ps</span>
+                            </div>
+                            <div class="output-text">Opens in preview mode</div>
+                            <div class="example-line">
+                                <span class="prompt">[student@workstation ~]$</span>
+                                <span class="command-text" onclick="copyCommand('evince -i 3 passwd.ps')">evince -i 3 passwd.ps</span>
+                            </div>
+                            <div class="output-text">Opens starting at page 3</div>
+                        </div>
+                        <div class="security-tips">
+                            <div class="tips-title">📖 Document Review</div>
+                            <ul class="tip-list">
+                                <li>Use <code>-w</code> for quick review and printing</li>
+                                <li>Use <code>-i</code> to jump to specific sections</li>
+                                <li>View formatted security documentation and reports</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('less filename')">
+                            less
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">Pager for viewing file contents with search and navigation</div>
+                        <div class="command-example">
+                            <div class="example-line">
+                                <span class="prompt">[student@workstation ~]$</span>
+                                <span class="command-text" onclick="copyCommand('less passwd.ps')">less passwd.ps</span>
+                            </div>
+                            <div class="output-text">View PostScript source code</div>
+                            <div class="example-line">
+                                <span class="prompt">[student@workstation ~]$</span>
+                                <span class="command-text" onclick="copyCommand('less /var/log/secure')">less /var/log/secure</span>
+                            </div>
+                            <div class="output-text">View security logs</div>
+                        </div>
+                        <div class="security-tips">
+                            <div class="tips-title">🔍 Log Analysis</div>
+                            <ul class="tip-list">
+                                <li>Essential for viewing large log files</li>
+                                <li>Use <code>/</code> to search for specific events or IPs</li>
+                                <li>Same navigation keys as man pages</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('firefox /usr/share/doc')">
+                            firefox
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">Web browser for viewing HTML documentation and local files</div>
+                        <div class="command-example">
+                            <div class="example-line">
+                                <span class="prompt">[student@workstation ~]$</span>
+                                <span class="command-text" onclick="copyCommand('firefox /usr/share/doc')">firefox /usr/share/doc</span>
+                            </div>
+                            <div class="output-text">Browse system documentation directory</div>
+                            <div class="example-line">
+                                <span class="prompt">[student@workstation ~]$</span>
+                                <span class="command-text" onclick="copyCommand('firefox file:///etc/services')">firefox file:///etc/services</span>
+                            </div>
+                            <div class="output-text">View system configuration files</div>
+                        </div>
+                        <div class="security-tips">
+                            <div class="tips-title">🌐 Documentation Access</div>
+                            <ul class="tip-list">
+                                <li>Browse package documentation in /usr/share/doc</li>
+                                <li>View HTML manuals and security guides</li>
+                                <li>Access local security tool documentation</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('file filename')">
+                            file
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">Determine file type and format information</div>
+                        <div class="command-example">
+                            <div class="example-line">
+                                <span class="prompt">[student@workstation ~]$</span>
+                                <span class="command-text" onclick="copyCommand('file passwd.ps')">file passwd.ps</span>
+                            </div>
+                            <div class="output-text">passwd.ps: PostScript document text</div>
+                            <div class="example-line">
+                                <span class="prompt">[student@workstation ~]$</span>
+                                <span class="command-text" onclick="copyCommand('file /bin/ls')">file /bin/ls</span>
+                            </div>
+                            <div class="output-text">/bin/ls: ELF 64-bit LSB executable</div>
+                        </div>
+                        <div class="security-tips">
+                            <div class="tips-title">🔍 File Analysis</div>
+                            <ul class="tip-list">
+                                <li>Essential for malware analysis and forensics</li>
+                                <li>Identify file types when extensions are misleading</li>
+                                <li>Verify binary authenticity and architecture</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>© 2025 <span class="college-branding">College of DuPage</span> - Computer Information Technology Department</p>
+            <p>CIT 1450 Linux/Unix Systems | AI Cybersecurity Program</p>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // Initialize variables
+        const searchInput = document.getElementById('searchInput');
+        const filterButtons = document.querySelectorAll('.filter-btn');
+        const commandSections = document.querySelectorAll('.command-section');
+        let currentFilter = 'all';
+
+        // Search functionality
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            filterContent(searchTerm, currentFilter);
+        });
+
+        // Filter button functionality
+        filterButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                // Update active button
+                filterButtons.forEach(btn => btn.classList.remove('active'));
+                this.classList.add('active');
+                
+                currentFilter = this.dataset.category;
+                const searchTerm = searchInput.value.toLowerCase();
+                filterContent(searchTerm, currentFilter);
+            });
+        });
+
+        // Filter content based on search and category
+        function filterContent(searchTerm, category) {
+            commandSections.forEach(section => {
+                const sectionCategory = section.dataset.category;
+                const sectionText = section.textContent.toLowerCase();
+                
+                const matchesCategory = category === 'all' || category === sectionCategory;
+                const matchesSearch = !searchTerm || sectionText.includes(searchTerm);
+                
+                if (matchesCategory && matchesSearch) {
+                    section.classList.remove('hidden');
+                } else {
+                    section.classList.add('hidden');
+                }
+            });
+        }
+
+        // Section toggle functionality
+        function toggleSection(header) {
+            const section = header.parentElement;
+            const content = section.querySelector('.section-content');
+            
+            if (content.classList.contains('expanded')) {
+                content.classList.remove('expanded');
+                section.classList.remove('expanded');
+            } else {
+                content.classList.add('expanded');
+                section.classList.add('expanded');
+            }
+        }
+
+        // Copy command to clipboard
+        function copyCommand(command) {
+            navigator.clipboard.writeText(command).then(() => {
+                showToast(`Copied: ${command}`);
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+                showToast('Copy failed - try selecting manually');
+            });
+        }
+
+        // Show toast notification
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2000);
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Expand first section by default
+            const firstSection = document.querySelector('.command-section .section-header');
+            if (firstSection) {
+                toggleSection(firstSection);
+            }
+
+            // Add keyboard shortcuts
+            document.addEventListener('keydown', function(e) {
+                // Ctrl/Cmd + K to focus search
+                if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                    e.preventDefault();
+                    searchInput.focus();
+                    searchInput.select();
+                }
+                
+                // Escape to clear search
+                if (e.key === 'Escape') {
+                    searchInput.value = '';
+                    filterContent('', currentFilter);
+                    searchInput.blur();
+                }
+            });
+
+            // Add click to copy for all command examples
+            document.querySelectorAll('.command-text').forEach(cmd => {
+                cmd.addEventListener('click', function() {
+                    copyCommand(this.textContent.trim());
+                });
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Basic File System Access - Chapter 13</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-bg: #0a0e1a;
+            --secondary-bg: #1a1f2e;
+            --accent-bg: #242b3d;
+            --border-color: #2d3748;
+            --primary-color: #e2e8f0;
+            --secondary-color: #a0aec0;
+            --muted-color: #718096;
+            --success-color: #48bb78;
+            --warning-color: #ed8936;
+            --danger-color: #f56565;
+            --info-color: #4299e1;
+            --purple-color: #9f7aea;
+            --cyan-color: #00d4aa;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, var(--primary-bg) 0%, #0f1419 100%);
+            color: var(--primary-color);
+            line-height: 1.7;
+            min-height: 100vh;
+            font-size: 16px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            position: relative;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -30px;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--purple-color), var(--info-color), var(--cyan-color), transparent);
+            animation: pulse 3s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; transform: scaleX(0.8); }
+            50% { opacity: 1; transform: scaleX(1); }
+        }
+
+        .title {
+            font-size: clamp(2.5rem, 6vw, 3.8rem);
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--purple-color), var(--info-color), var(--cyan-color));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+        }
+
+        .subtitle {
+            font-size: 1.4rem;
+            color: var(--secondary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .course-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: linear-gradient(135deg, var(--accent-bg), var(--secondary-bg));
+            border: 1px solid var(--border-color);
+            border-radius: 50px;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            color: var(--purple-color);
+            margin-top: 1rem;
+        }
+
+        .intro-text {
+            background: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 3rem;
+            text-align: center;
+        }
+
+        .intro-text h3 {
+            color: var(--purple-color);
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+        }
+
+        .intro-text p {
+            color: var(--secondary-color);
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        .filesystem-guide {
+            background: var(--accent-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 3rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        .filesystem-card {
+            background: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .filesystem-card h4 {
+            color: var(--cyan-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .filesystem-example {
+            font-family: 'Roboto Mono', monospace;
+            color: var(--success-color);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .filesystem-desc {
+            color: var(--secondary-color);
+            font-size: 0.9rem;
+        }
+
+        .search-controls {
+            position: sticky;
+            top: 2rem;
+            z-index: 100;
+            background: rgba(26, 31, 46, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 1rem 1.25rem;
+            background: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            color: var(--primary-color);
+            font-family: inherit;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--purple-color);
+            box-shadow: 0 0 0 3px rgba(159, 122, 234, 0.15);
+        }
+
+        .search-input::placeholder {
+            color: var(--muted-color);
+        }
+
+        .filter-tags {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .filter-tag {
+            padding: 0.6rem 1.2rem;
+            background: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 25px;
+            color: var(--secondary-color);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        .filter-tag:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .filter-tag.active {
+            background: linear-gradient(135deg, var(--purple-color), var(--info-color));
+            color: var(--primary-bg);
+            border-color: var(--purple-color);
+            box-shadow: 0 4px 20px rgba(159, 122, 234, 0.3);
+        }
+
+        .scenario-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 2.5rem;
+        }
+
+        .scenario-card {
+            background: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            overflow: hidden;
+            transition: all 0.4s ease;
+            position: relative;
+            opacity: 0;
+            animation: fadeInUp 0.8s ease forwards;
+        }
+
+        .scenario-card:nth-child(odd) { animation-delay: 0.1s; }
+        .scenario-card:nth-child(even) { animation-delay: 0.2s; }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .scenario-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.4);
+            border-color: var(--scenario-color, var(--purple-color));
+        }
+
+        .scenario-header {
+            padding: 2rem;
+            background: linear-gradient(135deg, var(--accent-bg), var(--secondary-bg));
+            border-bottom: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        .scenario-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--scenario-color, var(--purple-color));
+            border-radius: 16px 16px 0 0;
+        }
+
+        .scenario-title {
+            font-size: 1.6rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .scenario-icon {
+            font-size: 2rem;
+            color: var(--scenario-color, var(--purple-color));
+        }
+
+        .scenario-description {
+            color: var(--secondary-color);
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        .scenario-content {
+            padding: 2rem;
+        }
+
+        .command-workflow {
+            margin-bottom: 2rem;
+        }
+
+        .workflow-step {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            align-items: flex-start;
+        }
+
+        .step-number {
+            flex-shrink: 0;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--scenario-color, var(--purple-color));
+            color: var(--primary-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        .step-content {
+            flex: 1;
+        }
+
+        .step-title {
+            color: var(--primary-color);
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .step-description {
+            color: var(--secondary-color);
+            margin-bottom: 1rem;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        .command-block {
+            background: var(--primary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            font-family: 'Roboto Mono', monospace;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .command-block::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--scenario-color, var(--purple-color));
+        }
+
+        .command-line {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.8rem;
+            flex-wrap: wrap;
+        }
+
+        .command-line:last-child {
+            margin-bottom: 0;
+        }
+
+        .prompt {
+            color: var(--success-color);
+            margin-right: 0.8rem;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .command {
+            color: var(--cyan-color);
+            cursor: pointer;
+            position: relative;
+            flex: 1;
+            font-size: 1rem;
+            min-width: 0;
+            word-break: break-word;
+        }
+
+        .command:hover {
+            background: rgba(0, 212, 170, 0.1);
+            border-radius: 6px;
+            padding: 4px 6px;
+            margin: -4px -6px;
+        }
+
+        .copy-btn {
+            background: none;
+            border: none;
+            color: var(--muted-color);
+            cursor: pointer;
+            padding: 0.4rem;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            opacity: 0;
+            margin-left: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .command-line:hover .copy-btn {
+            opacity: 1;
+        }
+
+        .copy-btn:hover {
+            background: var(--accent-bg);
+            color: var(--cyan-color);
+        }
+
+        .command-explanation {
+            color: var(--warning-color);
+            font-size: 0.95rem;
+            margin-left: 1rem;
+            font-style: italic;
+            margin-top: 0.5rem;
+        }
+
+        .tips-section {
+            background: rgba(159, 122, 234, 0.1);
+            border: 1px solid rgba(159, 122, 234, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .tips-title {
+            color: var(--purple-color);
+            font-weight: 600;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .tip-list {
+            list-style: none;
+            color: var(--secondary-color);
+            font-size: 1rem;
+        }
+
+        .tip-list li {
+            margin-bottom: 0.5rem;
+            padding-left: 1.5rem;
+            position: relative;
+            line-height: 1.5;
+        }
+
+        .tip-list li::before {
+            content: '💡';
+            position: absolute;
+            left: 0;
+            font-size: 0.9rem;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--purple-color);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            font-family: 'Roboto Mono', monospace;
+            font-weight: 500;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .footer {
+            margin-top: 4rem;
+            text-align: center;
+            color: var(--muted-color);
+            font-size: 1rem;
+            padding: 2rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .college-brand {
+            color: var(--purple-color);
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .container { padding: 1rem; }
+            .scenario-grid { grid-template-columns: 1fr; }
+            .title { font-size: 2.5rem; }
+            .search-controls { position: static; }
+            .filter-tags { justify-content: flex-start; }
+            .scenario-header { padding: 1.5rem; }
+            .scenario-content { padding: 1.5rem; }
+            .workflow-step { gap: 1rem; }
+            .step-number { width: 32px; height: 32px; }
+            .filesystem-guide { grid-template-columns: 1fr; }
+        }
+
+        .hidden { display: none !important; }
+
+        /* Scenario-specific colors */
+        .disk-info { --scenario-color: var(--info-color); }
+        .mount-ops { --scenario-color: var(--success-color); }
+        .file-search { --scenario-color: var(--purple-color); }
+        .advanced-find { --scenario-color: var(--warning-color); }
+        .locate-files { --scenario-color: var(--cyan-color); }
+        .troubleshoot-mount { --scenario-color: var(--danger-color); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1 class="title">Basic File System Access</h1>
+            <p class="subtitle">Storage Management & File Search Operations</p>
+            <div class="course-badge">
+                <span>💾</span>
+                <span>College of DuPage - AI Cybersecurity Program</span>
+            </div>
+        </header>
+
+        <div class="intro-text">
+            <h3>Master File System Management</h3>
+            <p>Learn essential storage and file system operations for Linux system administration. From checking disk usage to mounting drives and finding files, these are the core file system skills every cybersecurity professional needs for effective server management!</p>
+        </div>
+
+        <div class="filesystem-guide">
+            <div class="filesystem-card">
+                <h4>Check Storage</h4>
+                <div class="filesystem-example">df -h</div>
+                <div class="filesystem-desc">See disk space usage and mounted file systems</div>
+            </div>
+            <div class="filesystem-card">
+                <h4>Mount Drives</h4>
+                <div class="filesystem-example">mount /dev/sdb1 /mnt</div>
+                <div class="filesystem-desc">Connect storage devices to the file system</div>
+            </div>
+            <div class="filesystem-card">
+                <h4>Find Files</h4>
+                <div class="filesystem-example">find /home -name "*.log"</div>
+                <div class="filesystem-desc">Search for files and security logs</div>
+            </div>
+            <div class="filesystem-card">
+                <h4>Locate Quickly</h4>
+                <div class="filesystem-example">locate passwd</div>
+                <div class="filesystem-desc">Fast file search using database index</div>
+            </div>
+        </div>
+
+        <div class="search-controls">
+            <input type="text" class="search-input" placeholder="🔍 Search for scenarios or file system commands..." id="searchInput">
+            <div class="filter-tags">
+                <button class="filter-tag active" data-category="all">All Tasks</button>
+                <button class="filter-tag" data-category="disk-info">Disk Info</button>
+                <button class="filter-tag" data-category="mount-ops">Mount/Unmount</button>
+                <button class="filter-tag" data-category="file-search">File Search</button>
+                <button class="filter-tag" data-category="advanced-find">Advanced Find</button>
+                <button class="filter-tag" data-category="locate-files">Locate Files</button>
+                <button class="filter-tag" data-category="troubleshoot-mount">Troubleshoot</button>
+            </div>
+        </div>
+
+        <div class="scenario-grid">
+            <!-- Check Disk and File System Information -->
+            <div class="scenario-card disk-info" data-category="disk-info">
+                <div class="scenario-header">
+                    <div class="scenario-title">
+                        <span class="scenario-icon">💽</span>
+                        Check Disk and File System Information
+                    </div>
+                    <div class="scenario-description">
+                        Check disk space usage, identify storage devices, and monitor file system capacity for proper server maintenance and security monitoring.
+                    </div>
+                </div>
+                <div class="scenario-content">
+                    <div class="command-workflow">
+                        <div class="workflow-step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <div class="step-title">Check Disk Space Usage</div>
+                                <div class="step-description">Monitor how much disk space is used and available on all mounted file systems.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('df -h')">df -h</span>
+                                        <button class="copy-btn" onclick="copyCommand('df -h')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Show disk usage in human-readable format</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('df -T')">df -T</span>
+                                        <button class="copy-btn" onclick="copyCommand('df -T')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Show disk usage with file system types</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <div class="step-title">List Block Devices</div>
+                                <div class="step-description">See all available storage devices and their partition structure.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('lsblk')">lsblk</span>
+                                        <button class="copy-btn" onclick="copyCommand('lsblk')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">List all block devices in tree format</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('lsblk -f')">lsblk -f</span>
+                                        <button class="copy-btn" onclick="copyCommand('lsblk -f')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Show file system types and mount points</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <div class="step-title">Check Detailed Partition Info</div>
+                                <div class="step-description">Get detailed information about devices including UUIDs and file system details.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('lsblk -fp')">lsblk -fp</span>
+                                        <button class="copy-btn" onclick="copyCommand('lsblk -fp')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Show full paths, UUIDs, and file system info</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('blkid')">blkid</span>
+                                        <button class="copy-btn" onclick="copyCommand('blkid')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Show UUIDs and labels for all block devices</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">4</div>
+                            <div class="step-content">
+                                <div class="step-title">Monitor Disk Usage by Directory</div>
+                                <div class="step-description">Check which directories are using the most disk space.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('du -sh /var/log')">du -sh /var/log</span>
+                                        <button class="copy-btn" onclick="copyCommand('du -sh /var/log')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Check size of log directory (important for security)</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('du -h --max-depth=1 /var | sort -hr')">du -h --max-depth=1 /var | sort -hr</span>
+                                        <button class="copy-btn" onclick="copyCommand('du -h --max-depth=1 /var | sort -hr')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Find largest directories in /var</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tips-section">
+                        <div class="tips-title">💡 What You Just Did</div>
+                        <ul class="tip-list">
+                            <li>Used "df -h" to check disk space usage in readable format</li>
+                            <li>Used "lsblk" to see all storage devices and partitions</li>
+                            <li>Used "blkid" to get UUIDs for reliable device identification</li>
+                            <li>Used "du" to find directories using too much disk space</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mount and Unmount Operations -->
+            <div class="scenario-card mount-ops" data-category="mount-ops">
+                <div class="scenario-header">
+                    <div class="scenario-title">
+                        <span class="scenario-icon">🔗</span>
+                        Mount and Unmount Operations
+                    </div>
+                    <div class="scenario-description">
+                        Connect external drives, USB devices, and additional storage to your server. Essential for accessing backup drives and security evidence storage.
+                    </div>
+                </div>
+                <div class="scenario-content">
+                    <div class="command-workflow">
+                        <div class="workflow-step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <div class="step-title">Create Mount Points</div>
+                                <div class="step-description">Prepare directories where you'll attach storage devices.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('sudo mkdir /mnt/backup')">sudo mkdir /mnt/backup</span>
+                                        <button class="copy-btn" onclick="copyCommand('sudo mkdir /mnt/backup')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Create mount point for backup drive</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('sudo mkdir /mnt/evidence')">sudo mkdir /mnt/evidence</span>
+                                        <button class="copy-btn" onclick="copyCommand('sudo mkdir /mnt/evidence')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Create mount point for forensic evidence</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <div class="step-title">Mount by Device Name</div>
+                                <div class="step-description">Connect storage devices using their device names.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('sudo mount /dev/sdb1 /mnt/backup')">sudo mount /dev/sdb1 /mnt/backup</span>
+                                        <button class="copy-btn" onclick="copyCommand('sudo mount /dev/sdb1 /mnt/backup')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Mount external drive to backup directory</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('sudo mount /dev/sdc1 /mnt/evidence')">sudo mount /dev/sdc1 /mnt/evidence</span>
+                                        <button class="copy-btn" onclick="copyCommand('sudo mount /dev/sdc1 /mnt/evidence')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Mount forensic evidence drive</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <div class="step-title">Mount by UUID (Recommended)</div>
+                                <div class="step-description">Use UUIDs for reliable mounting that won't change if devices are added.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('sudo mount UUID=\"a04c511a-b805-4ec2-981f-42d190fc9a65\" /mnt/backup')">sudo mount UUID="a04c511a-b805-4ec2-981f-42d190fc9a65" /mnt/backup</span>
+                                        <button class="copy-btn" onclick="copyCommand('sudo mount UUID=\"a04c511a-b805-4ec2-981f-42d190fc9a65\" /mnt/backup')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Mount using UUID (get UUID with lsblk -f)</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('mount | grep backup')">mount | grep backup</span>
+                                        <button class="copy-btn" onclick="copyCommand('mount | grep backup')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Verify the backup drive is mounted</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">4</div>
+                            <div class="step-content">
+                                <div class="step-title">Safely Unmount Drives</div>
+                                <div class="step-description">Properly disconnect storage devices to prevent data corruption.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('sudo umount /mnt/backup')">sudo umount /mnt/backup</span>
+                                        <button class="copy-btn" onclick="copyCommand('sudo umount /mnt/backup')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Safely unmount backup drive</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('sudo umount /dev/sdc1')">sudo umount /dev/sdc1</span>
+                                        <button class="copy-btn" onclick="copyCommand('sudo umount /dev/sdc1')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Unmount evidence drive by device name</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tips-section">
+                        <div class="tips-title">💡 What You Just Did</div>
+                        <ul class="tip-list">
+                            <li>Created mount points with "mkdir" in /mnt directory</li>
+                            <li>Mounted drives using both device names and UUIDs</li>
+                            <li>Used UUIDs for reliable device identification</li>
+                            <li>Safely unmounted drives with "umount" to prevent corruption</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Find Files by Name and Location -->
+            <div class="scenario-card file-search" data-category="file-search">
+                <div class="scenario-header">
+                    <div class="scenario-title">
+                        <span class="scenario-icon">🔍</span>
+                        Find Files by Name and Location
+                    </div>
+                    <div class="scenario-description">
+                        Search for configuration files, security logs, and system files. Essential for security analysis, troubleshooting, and system administration.
+                    </div>
+                </div>
+                <div class="scenario-content">
+                    <div class="command-workflow">
+                        <div class="workflow-step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <div class="step-title">Find Files by Exact Name</div>
+                                <div class="step-description">Search for files with specific names across the entire system.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('find /etc -name sshd_config')">find /etc -name sshd_config</span>
+                                        <button class="copy-btn" onclick="copyCommand('find /etc -name sshd_config')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Find SSH server configuration file</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('find /var/log -name \"*.log\"')">find /var/log -name "*.log"</span>
+                                        <button class="copy-btn" onclick="copyCommand('find /var/log -name \"*.log\"')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Find all log files in /var/log directory</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <div class="step-title">Find Files with Wildcards</div>
+                                <div class="step-description">Use wildcards to find files with partial name matches.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('find /etc -name \"*pass*\"')">find /etc -name "*pass*"</span>
+                                        <button class="copy-btn" onclick="copyCommand('find /etc -name \"*pass*\"')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Find files containing "pass" in their name</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('find /home -name \"*.txt\"')">find /home -name "*.txt"</span>
+                                        <button class="copy-btn" onclick="copyCommand('find /home -name \"*.txt\"')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Find all text files in home directories</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <div class="step-title">Case-Insensitive Search</div>
+                                <div class="step-description">Search for files without worrying about uppercase/lowercase.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('find / -iname \"*error*\"')">find / -iname "*error*"</span>
+                                        <button class="copy-btn" onclick="copyCommand('find / -iname \"*error*\"')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Find files with "error" in any case (Error, ERROR, etc.)</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('find /var/log -iname \"*security*\"')">find /var/log -iname "*security*"</span>
+                                        <button class="copy-btn" onclick="copyCommand('find /var/log -iname \"*security*\"')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Find security-related logs regardless of case</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">4</div>
+                            <div class="step-content">
+                                <div class="step-title">Find in Current Directory</div>
+                                <div class="step-description">Search in the current directory and its subdirectories.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('find . -name \"*.conf\"')">find . -name "*.conf"</span>
+                                        <button class="copy-btn" onclick="copyCommand('find . -name \"*.conf\"')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Find configuration files in current directory</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('find . -name \"backup*\"')">find . -name "backup*"</span>
+                                        <button class="copy-btn" onclick="copyCommand('find . -name \"backup*\"')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Find files starting with "backup"</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tips-section">
+                        <div class="tips-title">💡 What You Just Did</div>
+                        <ul class="tip-list">
+                            <li>Used "find" with "-name" for exact filename searches</li>
+                            <li>Used wildcards (*) to match partial filenames</li>
+                            <li>Used "-iname" for case-insensitive searches</li>
+                            <li>Used "." to search in the current directory tree</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Advanced Find Options -->
+            <div class="scenario-card advanced-find" data-category="advanced-find">
+                <div class="scenario-header">
+                    <div class="scenario-title">
+                        <span class="scenario-icon">🔬</span>
+                        Advanced Find Operations
+                    </div>
+                    <div class="scenario-description">
+                        Search files by permissions, ownership, size, and modification time. Critical for security auditing and system troubleshooting.
+                    </div>
+                </div>
+                <div class="scenario-content">
+                    <div class="command-workflow">
+                        <div class="workflow-step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <div class="step-title">Find by Permissions</div>
+                                <div class="step-description">Locate files with specific permissions - important for security auditing.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('find /home -perm 777')">find /home -perm 777</span>
+                                        <button class="copy-btn" onclick="copyCommand('find /home -perm 777')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Find files with dangerous 777 permissions</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('find /etc -perm -o=w')">find /etc -perm -o=w</span>
+                                        <button class="copy-btn" onclick="copyCommand('find /etc -perm -o=w')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Find files writable by others (security risk)</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <div class="step-title">Find by Ownership</div>
+                                <div class="step-description">Search for files owned by specific users or groups.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('find /home -user apache')">find /home -user apache</span>
+                                        <button class="copy-btn" onclick="copyCommand('find /home -user apache')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Find files owned by apache user</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('find /var -group wheel')">find /var -group wheel</span>
+                                        <button class="copy-btn" onclick="copyCommand('find /var -group wheel')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Find files owned by wheel group</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <div class="step-title">Find by Size</div>
+                                <div class="step-description">Locate large files that might be consuming disk space or security logs.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('find /var/log -size +100M')">find /var/log -size +100M</span>
+                                        <button class="copy-btn" onclick="copyCommand('find /var/log -size +100M')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Find log files larger than 100MB</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('find /home -size -1k')">find /home -size -1k</span>
+                                        <button class="copy-btn" onclick="copyCommand('find /home -size -1k')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Find very small files (less than 1KB)</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">4</div>
+                            <div class="step-content">
+                                <div class="step-title">Find by Modification Time</div>
+                                <div class="step-description">Search for recently modified files - useful for security incident analysis.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('find /etc -mmin -60')">find /etc -mmin -60</span>
+                                        <button class="copy-btn" onclick="copyCommand('find /etc -mmin -60')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Find files modified in last 60 minutes</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('find /var/log -mmin +1440')">find /var/log -mmin +1440</span>
+                                        <button class="copy-btn" onclick="copyCommand('find /var/log -mmin +1440')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Find files older than 24 hours (1440 minutes)</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tips-section">
+                        <div class="tips-title">💡 What You Just Did</div>
+                        <ul class="tip-list">
+                            <li>Used "-perm" to find files with specific permissions</li>
+                            <li>Used "-user" and "-group" to find files by ownership</li>
+                            <li>Used "-size" with +/- to find large or small files</li>
+                            <li>Used "-mmin" to find recently modified or old files</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Locate Files Quickly -->
+            <div class="scenario-card locate-files" data-category="locate-files">
+                <div class="scenario-header">
+                    <div class="scenario-title">
+                        <span class="scenario-icon">⚡</span>
+                        Locate Files Quickly
+                    </div>
+                    <div class="scenario-description">
+                        Use the locate database for lightning-fast file searches. Perfect for quickly finding configuration files and system files by name.
+                    </div>
+                </div>
+                <div class="scenario-content">
+                    <div class="command-workflow">
+                        <div class="workflow-step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <div class="step-title">Update Locate Database</div>
+                                <div class="step-description">Update the file database to include recently created files.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('sudo updatedb')">sudo updatedb</span>
+                                        <button class="copy-btn" onclick="copyCommand('sudo updatedb')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Update the locate database manually</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('ls -la /var/lib/mlocate/mlocate.db')">ls -la /var/lib/mlocate/mlocate.db</span>
+                                        <button class="copy-btn" onclick="copyCommand('ls -la /var/lib/mlocate/mlocate.db')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Check when database was last updated</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <div class="step-title">Basic Locate Searches</div>
+                                <div class="step-description">Quickly find files by name using the database index.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('locate passwd')">locate passwd</span>
+                                        <button class="copy-btn" onclick="copyCommand('locate passwd')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Find all files containing "passwd" in name or path</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('locate sshd')">locate sshd</span>
+                                        <button class="copy-btn" onclick="copyCommand('locate sshd')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Find SSH daemon related files quickly</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <div class="step-title">Limited and Case-Insensitive Searches</div>
+                                <div class="step-description">Control search results with options for better output.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('locate -n 5 config')">locate -n 5 config</span>
+                                        <button class="copy-btn" onclick="copyCommand('locate -n 5 config')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Show only first 5 results for "config"</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('locate -i LOG')">locate -i LOG</span>
+                                        <button class="copy-btn" onclick="copyCommand('locate -i LOG')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Case-insensitive search for "log" files</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">4</div>
+                            <div class="step-content">
+                                <div class="step-title">Locate vs Find Comparison</div>
+                                <div class="step-description">Understand when to use locate vs find for different situations.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('time locate httpd.conf')">time locate httpd.conf</span>
+                                        <button class="copy-btn" onclick="copyCommand('time locate httpd.conf')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Fast search using database (very quick)</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('time find / -name httpd.conf 2>/dev/null')">time find / -name httpd.conf 2>/dev/null</span>
+                                        <button class="copy-btn" onclick="copyCommand('time find / -name httpd.conf 2>/dev/null')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Real-time search (slower but more current)</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tips-section">
+                        <div class="tips-title">💡 What You Just Did</div>
+                        <ul class="tip-list">
+                            <li>Used "updatedb" to refresh the locate database</li>
+                            <li>Used "locate" for lightning-fast file searches</li>
+                            <li>Limited results with "-n" and used "-i" for case-insensitive searches</li>
+                            <li>Compared locate (fast/database) vs find (slow/real-time) speeds</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Troubleshoot Mount Issues -->
+            <div class="scenario-card troubleshoot-mount" data-category="troubleshoot-mount">
+                <div class="scenario-header">
+                    <div class="scenario-title">
+                        <span class="scenario-icon">🛠️</span>
+                        Troubleshoot Mount Issues
+                    </div>
+                    <div class="scenario-description">
+                        Fix common mounting problems like "device busy" errors, permission issues, and file system problems. Essential for maintaining storage access.
+                    </div>
+                </div>
+                <div class="scenario-content">
+                    <div class="command-workflow">
+                        <div class="workflow-step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <div class="step-title">Check What's Using Mount Point</div>
+                                <div class="step-description">Find processes that are preventing unmounting with "device busy" errors.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('lsof /mnt/backup')">lsof /mnt/backup</span>
+                                        <button class="copy-btn" onclick="copyCommand('lsof /mnt/backup')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Show processes using the mount point</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('fuser -v /mnt/backup')">fuser -v /mnt/backup</span>
+                                        <button class="copy-btn" onclick="copyCommand('fuser -v /mnt/backup')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Alternative way to check what's using the mount</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <div class="step-title">Force Kill Processes Using Mount</div>
+                                <div class="step-description">Safely terminate processes blocking the unmount operation.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('fuser -k /mnt/backup')">fuser -k /mnt/backup</span>
+                                        <button class="copy-btn" onclick="copyCommand('fuser -k /mnt/backup')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Kill all processes using the mount point</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('sudo umount /mnt/backup')">sudo umount /mnt/backup</span>
+                                        <button class="copy-btn" onclick="copyCommand('sudo umount /mnt/backup')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Try unmounting again after killing processes</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <div class="step-title">Force Unmount (Last Resort)</div>
+                                <div class="step-description">Force unmounting when normal methods fail - use with caution.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('sudo umount -f /mnt/backup')">sudo umount -f /mnt/backup</span>
+                                        <button class="copy-btn" onclick="copyCommand('sudo umount -f /mnt/backup')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Force unmount (may cause data loss!)</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('sudo umount -l /mnt/backup')">sudo umount -l /mnt/backup</span>
+                                        <button class="copy-btn" onclick="copyCommand('sudo umount -l /mnt/backup')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Lazy unmount (detach when no longer busy)</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">4</div>
+                            <div class="step-content">
+                                <div class="step-title">Check File System Errors</div>
+                                <div class="step-description">Verify file system integrity if mounting problems persist.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('sudo fsck /dev/sdb1')">sudo fsck /dev/sdb1</span>
+                                        <button class="copy-btn" onclick="copyCommand('sudo fsck /dev/sdb1')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Check and repair file system (device must be unmounted)</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('dmesg | grep -i error | tail -10')">dmesg | grep -i error | tail -10</span>
+                                        <button class="copy-btn" onclick="copyCommand('dmesg | grep -i error | tail -10')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Check system messages for storage errors</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tips-section">
+                        <div class="tips-title">💡 What You Just Did</div>
+                        <ul class="tip-list">
+                            <li>Used "lsof" and "fuser" to identify blocking processes</li>
+                            <li>Used "fuser -k" to kill processes preventing unmount</li>
+                            <li>Used force unmount options as emergency measures</li>
+                            <li>Used "fsck" to check file system integrity</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>© 2025 <span class="college-brand">College of DuPage</span> - Computer Information Technology Department</p>
+            <p>CIT 1450 Linux/Unix Systems | AI Cybersecurity Program</p>
+            <p><em>Making file system operations simple and practical for system administrators</em></p>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // Initialize variables
+        const searchInput = document.getElementById('searchInput');
+        const filterTags = document.querySelectorAll('.filter-tag');
+        const scenarioCards = document.querySelectorAll('.scenario-card');
+        let currentFilter = 'all';
+
+        // Search functionality
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            filterScenarios(searchTerm, currentFilter);
+        });
+
+        // Filter tag functionality
+        filterTags.forEach(tag => {
+            tag.addEventListener('click', function() {
+                // Update active tag
+                filterTags.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                
+                currentFilter = this.dataset.category;
+                const searchTerm = searchInput.value.toLowerCase();
+                filterScenarios(searchTerm, currentFilter);
+            });
+        });
+
+        // Filter scenarios based on search and category
+        function filterScenarios(searchTerm, category) {
+            scenarioCards.forEach(card => {
+                const cardCategory = card.dataset.category;
+                const cardText = card.textContent.toLowerCase();
+                
+                const matchesCategory = category === 'all' || category === cardCategory;
+                const matchesSearch = !searchTerm || cardText.includes(searchTerm);
+                
+                if (matchesCategory && matchesSearch) {
+                    card.classList.remove('hidden');
+                } else {
+                    card.classList.add('hidden');
+                }
+            });
+        }
+
+        // Copy command to clipboard
+        function copyCommand(command) {
+            navigator.clipboard.writeText(command).then(() => {
+                showToast(`Copied: ${command}`);
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+                showToast('Copy failed - try selecting manually');
+            });
+        }
+
+        // Show toast notification
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2500);
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl/Cmd + K to focus search
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                searchInput.focus();
+                searchInput.select();
+            }
+            
+            // Escape to clear search
+            if (e.key === 'Escape') {
+                searchInput.value = '';
+                filterScenarios('', currentFilter);
+                searchInput.blur();
+            }
+        });
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add click to copy for all commands
+            document.querySelectorAll('.command').forEach(cmd => {
+                cmd.addEventListener('click', function() {
+                    copyCommand(this.textContent.trim());
+                });
+            });
+
+            // Focus search on page load
+            setTimeout(() => {
+                searchInput.focus();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

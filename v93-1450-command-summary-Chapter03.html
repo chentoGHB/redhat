@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linux File Management Commands - Chapter 3</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --terminal-bg: #0d1117;
+            --terminal-secondary: #161b22;
+            --terminal-border: #21262d;
+            --terminal-green: #7dc383;
+            --terminal-amber: #ffa657;
+            --terminal-blue: #58a6ff;
+            --terminal-purple: #bc8cff;
+            --terminal-red: #ff6b6b;
+            --text-primary: #f0f6fc;
+            --text-secondary: #8b949e;
+            --text-muted: #6e7681;
+            --accent: var(--terminal-green);
+            --warning: var(--terminal-amber);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            background: var(--terminal-bg);
+            color: var(--text-primary);
+            line-height: 1.6;
+            font-size: 14px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            position: relative;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            0% { opacity: 0.5; }
+            100% { opacity: 1; filter: blur(0.5px); }
+        }
+
+        .title {
+            font-family: 'Space Mono', monospace;
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--accent), var(--terminal-blue));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(125, 195, 131, 0.3);
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+        }
+
+        .course-info {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background: var(--terminal-secondary);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            color: var(--warning);
+            font-size: 0.9rem;
+            margin-top: 1rem;
+        }
+
+        .search-container {
+            position: sticky;
+            top: 2rem;
+            z-index: 100;
+            background: var(--terminal-secondary);
+            border: 1px solid var(--terminal-border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(125, 195, 131, 0.2);
+        }
+
+        .search-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 0.4rem 0.8rem;
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 6px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            font-size: 0.85rem;
+        }
+
+        .filter-btn:hover,
+        .filter-btn.active {
+            background: var(--accent);
+            color: var(--terminal-bg);
+            border-color: var(--accent);
+            transform: translateY(-1px);
+        }
+
+        .command-section {
+            margin-bottom: 2rem;
+            background: var(--terminal-secondary);
+            border: 1px solid var(--terminal-border);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            opacity: 0;
+            animation: fadeInUp 0.6s ease forwards;
+        }
+
+        .command-section:nth-child(even) {
+            animation-delay: 0.1s;
+        }
+
+        .command-section:nth-child(odd) {
+            animation-delay: 0.2s;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .section-header {
+            padding: 1.5rem;
+            background: linear-gradient(135deg, var(--terminal-border), var(--terminal-secondary));
+            border-bottom: 1px solid var(--terminal-border);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.3s ease;
+        }
+
+        .section-header:hover {
+            background: linear-gradient(135deg, var(--terminal-border), rgba(125, 195, 131, 0.1));
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 500;
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .section-icon {
+            font-size: 1rem;
+            color: var(--terminal-blue);
+        }
+
+        .toggle-icon {
+            transition: transform 0.3s ease;
+            color: var(--text-secondary);
+        }
+
+        .section-content {
+            padding: 1.5rem;
+            display: none;
+            animation: slideDown 0.3s ease;
+        }
+
+        .section-content.expanded {
+            display: block;
+        }
+
+        .command-section.expanded .toggle-icon {
+            transform: rotate(180deg);
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                max-height: 0;
+                padding-top: 0;
+                padding-bottom: 0;
+            }
+            to {
+                opacity: 1;
+                max-height: 1000px;
+                padding-top: 1.5rem;
+                padding-bottom: 1.5rem;
+            }
+        }
+
+        .command-grid {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .command-item {
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 1rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .command-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 3px;
+            height: 100%;
+            background: var(--accent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .command-item:hover {
+            border-color: var(--accent);
+            transform: translateX(5px);
+            box-shadow: 0 4px 20px rgba(125, 195, 131, 0.2);
+        }
+
+        .command-item:hover::before {
+            opacity: 1;
+        }
+
+        .command-name {
+            font-family: 'Space Mono', monospace;
+            font-weight: 700;
+            font-size: 1rem;
+            color: var(--terminal-blue);
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .copy-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 0.2rem;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            opacity: 0;
+        }
+
+        .command-item:hover .copy-btn {
+            opacity: 1;
+        }
+
+        .copy-btn:hover {
+            background: var(--terminal-border);
+            color: var(--accent);
+        }
+
+        .command-description {
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .command-example {
+            background: rgba(0, 0, 0, 0.3);
+            border-left: 3px solid var(--terminal-purple);
+            padding: 0.5rem;
+            border-radius: 0 4px 4px 0;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--terminal-purple);
+            margin-top: 0.5rem;
+        }
+
+        .example-line {
+            margin-bottom: 0.3rem;
+        }
+
+        .example-line:last-child {
+            margin-bottom: 0;
+        }
+
+        .prompt {
+            color: var(--accent);
+            margin-right: 0.5rem;
+        }
+
+        .command-text {
+            color: var(--text-primary);
+            cursor: pointer;
+        }
+
+        .command-text:hover {
+            background: rgba(125, 195, 131, 0.1);
+            padding: 2px 4px;
+            margin: -2px -4px;
+            border-radius: 3px;
+        }
+
+        .output-text {
+            color: var(--text-muted);
+            font-style: italic;
+            margin-left: 1rem;
+        }
+
+        .security-tips {
+            background: rgba(255, 166, 87, 0.1);
+            border: 1px solid var(--warning);
+            border-radius: 6px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .tips-title {
+            color: var(--warning);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .tip-list {
+            list-style: none;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        .tip-list li {
+            margin-bottom: 0.25rem;
+            padding-left: 1rem;
+            position: relative;
+        }
+
+        .tip-list li::before {
+            content: '▶';
+            position: absolute;
+            left: 0;
+            color: var(--warning);
+            font-size: 0.7rem;
+        }
+
+        .filesystem-diagram {
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-blue);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.85rem;
+        }
+
+        .fs-title {
+            color: var(--terminal-blue);
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            text-align: center;
+        }
+
+        .fs-tree {
+            color: var(--text-secondary);
+            line-height: 1.4;
+            white-space: pre;
+        }
+
+        .fs-path {
+            color: var(--terminal-blue);
+            font-weight: 500;
+        }
+
+        .fs-desc {
+            color: var(--text-muted);
+        }
+
+        .wildcard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        .wildcard-item {
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 6px;
+            padding: 0.75rem;
+            transition: all 0.3s ease;
+        }
+
+        .wildcard-item:hover {
+            border-color: var(--terminal-purple);
+            background: rgba(188, 140, 255, 0.05);
+        }
+
+        .wildcard-pattern {
+            font-family: 'Space Mono', monospace;
+            font-weight: 700;
+            color: var(--terminal-purple);
+            margin-bottom: 0.3rem;
+        }
+
+        .wildcard-desc {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--accent);
+            color: var(--terminal-bg);
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-family: 'Space Mono', monospace;
+            font-weight: 500;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .footer {
+            margin-top: 3rem;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            padding: 2rem;
+            border-top: 1px solid var(--terminal-border);
+        }
+
+        .college-branding {
+            color: var(--accent);
+            font-weight: 500;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .title {
+                font-size: 2rem;
+            }
+            
+            .search-container {
+                position: static;
+            }
+            
+            .filter-buttons {
+                justify-content: center;
+            }
+            
+            .wildcard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1 class="title">Linux File Management</h1>
+            <p class="subtitle">Chapter 3: Manage Files from the Command Line</p>
+            <div class="course-info">College of DuPage - CIT 1450 Linux/Unix Systems</div>
+        </header>
+
+        <div class="search-container">
+            <input type="text" class="search-input" placeholder="🔍 Search commands, descriptions, or examples..." id="searchInput">
+            <div class="filter-buttons">
+                <button class="filter-btn active" data-category="all">All Commands</button>
+                <button class="filter-btn" data-category="navigation">Navigation</button>
+                <button class="filter-btn" data-category="directories">Directories</button>
+                <button class="filter-btn" data-category="files">Files</button>
+                <button class="filter-btn" data-category="links">Links</button>
+                <button class="filter-btn" data-category="patterns">Patterns</button>
+                <button class="filter-btn" data-category="filesystem">File System</button>
+            </div>
+        </div>
+
+        <div class="command-section" data-category="navigation">
+            <div class="section-header" onclick="toggleSection(this)">
+                <div class="section-title">
+                    <span class="section-icon">🗂️</span>
+                    File System Navigation
+                </div>
+                <span class="toggle-icon">▼</span>
+            </div>
+            <div class="section-content">
+                <div class="command-grid">
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('pwd')">
+                            pwd
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">Print working directory - displays your current location in the file system hierarchy</div>
+                        <div class="command-example">
+                            <div class="example-line">
+                                <span class="prompt">[student@workstation ~]$</span>
+                                <span class="command-text" onclick="copyCommand('pwd')">pwd</span>
+                            </div>
+                            <div class="output-text">/home/student</div>
+                        </div>
+                        <div class="security-tips">
+                            <div class="tips-title">🔍 Cybersecurity Use</div>
+                            <ul class="tip-list">
+                                <li>Essential for maintaining situational awareness during forensic investigations</li>
+                                <li>Verify your location before running sensitive commands</li>
+                                <li>Include in incident response documentation</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('cd /var/log')">
+                            cd
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">Change directory - navigate through the file system hierarchy</div>
+                        <div class="command-example">
+                            <div class="example-line">
+                                <span class="prompt">[student@workstation ~]$</span>
+                                <span class="command-text" onclick="copyCommand('cd /var/log')">cd /var/log</span>
+                            </div>
+                            <div class="example-line">
+                                <span class="prompt">[student@workstation log]$</span>
+                                <span class="command-text" onclick="copyCommand('cd ..')">cd ..</span>
+                            </div>
+                            <div class="example-line">
+                                <span class="prompt">[student@workstation var]$</span>
+                                <span class="command-text" onclick="copyCommand('cd ~')">cd ~</span>
+                            </div>
+                        </div>
+                        <div class="security-tips">
+                            <div class="tips-title">🛡️ Investigation Shortcuts</div>
+                            <ul class="tip-list">
+                                <li><code>cd /var/log</code> - Jump to system logs for security analysis</li>
+                                <li><code>cd /etc</code> - Access configuration files</li>
+                                <li><code>cd /tmp</code> - Check temporary files for malware</li>
+                                <li><code>cd ..</code> - Move up one directory level</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('ls -la')">
+                            ls
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">List directory contents with various options for detailed information</div>
+                        <div class="command-example">
+                            <div class="example-line">
+                                <span class="prompt">[student@workstation ~]$</span>
+                                <span class="command-text" onclick="copyCommand('ls -la')">ls -la</span>
+                            </div>
+                            <div class="output-text">drwxr-xr-x. 2 student student 4096 Dec 20 14:30 Documents</div>
+                            <div class="example-line">
+                                <span class="prompt">[student@workstation ~]$</span>
+                                <span class="command-text" onclick="copyCommand('ls -lt')">ls -lt</span>
+                            </div>
+                            <div class="output-text">Sort by modification time (newest first)</div>
+                        </div>
+                        <div class="security-tips">
+                            <div class="tips-title">🔒 Security Analysis</div>
+                            <ul class="tip-list">
+                                <li><code>ls -la</code> shows hidden files and permissions</li>
+                                <li><code>ls -lt</code> reveals recently modified files</li>
+                                <li><code>ls -lh</code> displays human-readable file sizes</li>
+                                <li>Check file permissions for security vulnerabilities</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="command-section" data-category="directories">
+            <div class="section-header" onclick="toggleSection(this)">
+                <div class="section-title">
+                    <span class="section-icon">📁</span>
+                    Directory Operations
+                </div>
+                <span class="toggle-icon">▼</span>
+            </div>
+            <div class="section-content">
+                <div class="command-grid">
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('mkdir evidence')">
+                            mkdir
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">Create directories - essential for organizing investigation data and evidence</div>
+                        <div class="command-example">
+                            <div class="example-line">
+                                <span class="prompt">[student@workstation ~]$</span>
+                                <span class="command-text" onclick="copyCommand('mkdir evidence')">mkdir evidence</span>
+                            </div>
+                            <div class="example-line">
+                                <span class="prompt">[student@workstation ~]$</span>
+                                <span class="command-text" onclick="copyCommand('mkdir -p case001/logs/network')">mkdir -p case001/logs/network</span>
+                            </div>
+                            <div class="output-text">Creates nested directory structure</div>
+                        </div>
+                        <div class="security-tips">
+                            <div class="tips-title">🗂️ Best Practices</div>
+                            <ul class="tip-list">
+                                <li>Use <code>-p</code> flag to create parent directories automatically</li>
+                                <li>Organize incident response data systematically</li>
+                                <li>Create separate directories for different evidence types</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('rmdir empty_dir')">
+                            rmdir
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">Remove empty directories - safe deletion that prevents accidental data loss</div>
+                        <div class="command-example">
+                            <div class="example-line">
+                                <span class="prompt">[student@workstation ~]$</span>
+                                <span class="command-text" onclick="copyCommand('rmdir temp_analysis')">rmdir temp_analysis</span>
+                            </div>
+                            <div class="example-line">
+                                <span class="prompt">[student@workstation ~]$</span>
+                                <span class="command-text" onclick="copyCommand('rmdir -p old/case/data')">rmdir -p old/case/data</span>
+                            </div>
+                        </div>
+                        <div class="security-tips">
+                            <div class="tips-title">⚠️ Safety Features</div>
+                            <ul class="tip-list">
+                                <li>Only removes empty directories - prevents accidental data deletion</li>
+                                <li>Use for cleaning up temporary analysis directories</li>
+                                <li>Safer alternative to <code>rm -rf</code> for directory removal</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="command-section" data-category="files">
+            <div class="section-header" onclick="toggleSection(this)">
+                <div class="section-title">
+                    <span class="section-icon">📄</span>
+                    File Operations
+                </div>
+                <span class="toggle-icon">▼</span>
+            </div>
+            <div class="section-content">
+                <div class="command-grid">
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('touch incident_report.txt')">
+                            touch
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">Create empty files or update timestamps</div>
+                        <div class="command-example">
+                            <div class="example-line">
+                                <span class="prompt">[student@workstation ~]$</span>
+                                <span class="command-text" onclick="copyCommand('touch incident_report.txt')">touch incident_report.txt</span>
+                            </div>
+                            <div class="example-line">
+                                <span class="prompt">[student@workstation ~]$</span>
+                                <span class="command-text" onclick="copyCommand('touch analysis_{1..5}.log')">touch analysis_{1..5}.log</span>
+                            </div>
+                        </div>
+                        <div class="security-tips">
+                            <div class="tips-title">📝 Forensics Use</div>
+                            <ul class="tip-list">
+                                <li>Create placeholder files for evidence documentation</li>
+                                <li>Initialize log files before starting analysis</li>
+                                <li>Update file timestamps without modifying content</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('cp -p suspicious.log evidence/')">
+                            cp
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">Copy files and directories - critical for evidence preservation</div>
+                        <div class="command-example">
+                            <div class="example-line">
+                                <span class="prompt">[student@workstation ~]$</span>
+                                <span class="command-text" onclick="copyCommand('cp suspicious.log evidence/')">cp suspicious.log evidence/</span>
+                            </div>
+                            <div class="example-line">
+                                <span class="prompt">[student@workstation ~]$</span>
+                                <span class="command-text" onclick="copyCommand('cp -r /var/log /backup/')">cp -r /var/log /backup/</span>
+                            </div>
+                            <div class="example-line">
+                                <span class="prompt">[student@workstation ~]$</span>
+                                <span class="command-text" onclick="copyCommand('cp -p config.txt config_backup.txt')">cp -p config.txt config_backup.txt</span>
+                            </div>
+                        </div>
+                        <div class="security-tips">
+                            <div class="tips-title">🔐 Evidence Handling</div>
+                            <ul class="tip-list">
+                                <li>Always use <code>-p</code> to preserve timestamps for forensics</li>
+                                <li><code>-r</code> for recursive copying of directories</li>
+                                <li>Create working copies to preserve original evidence</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('mv suspicious.exe quarantine/')">
+                            mv
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">Move/rename files and directories</div>
+                        <div class="command-example">
+                            <div class="example-line">
+                                <span class="prompt">[student@workstation ~]$</span>
+                                <span class="command-text" onclick="copyCommand('mv malware.exe quarantine/')">mv malware.exe quarantine/</span>
+                            </div>
+                            <div class="example-line">
+                                <span class="prompt">[student@workstation ~]$</span>
+                                <span class="command-text" onclick="copyCommand('mv report.txt final_report.txt')">mv report.txt final_report.txt</span>
+                            </div>
+                        </div>
+                        <div class="security-tips">
+                            <div class="tips-title">🚨 Security Operations</div>
+                            <ul class="tip-list">
+                                <li>Quarantine suspicious files immediately</li>
+                                <li>Rename evidence files with case numbers</li>
+                                <li>Move sensitive data to secure locations</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('rm -i temp_file.log')">
+                            rm
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">Remove files and directories - use with extreme caution</div>
+                        <div class="command-example">
+                            <div class="example-line">
+                                <span class="prompt">[student@workstation ~]$</span>
+                                <span class="command-text" onclick="copyCommand('rm temp_file.log')">rm temp_file.log</span>
+                            </div>
+                            <div class="example-line">
+                                <span class="prompt">[student@workstation ~]$</span>
+                                <span class="command-text" onclick="copyCommand('rm -i important_file.txt')">rm -i important_file.txt</span>
+                            </div>
+                            <div class="output-text">rm: remove regular file 'important_file.txt'? y</div>
+                        </div>
+                        <div class="security-tips">
+                            <div class="tips-title">⚠️ Critical Safety</div>
+                            <ul class="tip-list">
+                                <li>ALWAYS backup evidence before deletion</li>
+                                <li>Use <code>-i</code> for interactive confirmation</li>
+                                <li>Never use <code>rm -rf /</code> - system destroyer</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="command-section" data-category="links">
+            <div class="section-header" onclick="toggleSection(this)">
+                <div class="section-title">
+                    <span class="section-icon">🔗</span>
+                    File Linking
+                </div>
+                <span class="toggle-icon">▼</span>
+            </div>
+            <div class="section-content">
+                <div class="command-grid">
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('ln evidence.log evidence_backup')">
+                            ln
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">Create hard and symbolic links - essential for evidence preservation</div>
+                        <div class="command-example">
+                            <div class="example-line">
+                                <span class="prompt">[student@workstation ~]$</span>
+                                <span class="command-text" onclick="copyCommand('ln evidence.log evidence_backup')">ln evidence.log evidence_backup</span>
+                            </div>
+                            <div class="output-text">Creates hard link (same file, two names)</div>
+                            <div class="example-line">
+                                <span class="prompt">[student@workstation ~]$</span>
+                                <span class="command-text" onclick="copyCommand('ln -s /var/log/secure ~/security_logs')">ln -s /var/log/secure ~/security_logs</span>
+                            </div>
+                            <div class="output-text">Creates symbolic link (shortcut)</div>
+                        </div>
+                        <div class="security-tips">
+                            <div class="tips-title">🔐 Forensics Applications</div>
+                            <ul class="tip-list">
+                                <li>Hard links protect against accidental deletion</li>
+                                <li>Symbolic links provide convenient access paths</li>
+                                <li>Use hard links for critical evidence backup</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="command-section" data-category="patterns">
+            <div class="section-header" onclick="toggleSection(this)">
+                <div class="section-title">
+                    <span class="section-icon">🎯</span>
+                    Pattern Matching & Wildcards
+                </div>
+                <span class="toggle-icon">▼</span>
+            </div>
+            <div class="section-content">
+                <div class="command-grid">
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('ls *.log')">
+                            Wildcards
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">Shell pattern matching for efficient file operations and analysis</div>
+                        <div class="command-example">
+                            <div class="example-line">
+                                <span class="prompt">[student@workstation ~]$</span>
+                                <span class="command-text" onclick="copyCommand('ls *.log')">ls *.log</span>
+                            </div>
+                            <div class="output-text">access.log error.log security.log</div>
+                            <div class="example-line">
+                                <span class="prompt">[student@workstation ~]$</span>
+                                <span class="command-text" onclick="copyCommand('cp malware* /quarantine/')">cp malware* /quarantine/</span>
+                            </div>
+                        </div>
+                        <div class="wildcard-grid">
+                            <div class="wildcard-item">
+                                <div class="wildcard-pattern">*</div>
+                                <div class="wildcard-desc">Matches any number of characters</div>
+                            </div>
+                            <div class="wildcard-item">
+                                <div class="wildcard-pattern">?</div>
+                                <div class="wildcard-desc">Matches exactly one character</div>
+                            </div>
+                            <div class="wildcard-item">
+                                <div class="wildcard-pattern">[abc]</div>
+                                <div class="wildcard-desc">Matches any one of a, b, or c</div>
+                            </div>
+                            <div class="wildcard-item">
+                                <div class="wildcard-pattern">[0-9]</div>
+                                <div class="wildcard-desc">Matches any single digit</div>
+                            </div>
+                            <div class="wildcard-item">
+                                <div class="wildcard-pattern">{log,txt}</div>
+                                <div class="wildcard-desc">Matches either 'log' or 'txt'</div>
+                            </div>
+                            <div class="wildcard-item">
+                                <div class="wildcard-pattern">~</div>
+                                <div class="wildcard-desc">Represents home directory</div>
+                            </div>
+                        </div>
+                        <div class="security-tips">
+                            <div class="tips-title">🎯 Efficient Analysis</div>
+                            <ul class="tip-list">
+                                <li>Use wildcards to process multiple log files at once</li>
+                                <li>Pattern matching speeds up evidence collection</li>
+                                <li>Combine with commands: <code>grep "ERROR" *.log</code></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="command-section" data-category="filesystem">
+            <div class="section-header" onclick="toggleSection(this)">
+                <div class="section-title">
+                    <span class="section-icon">🏗️</span>
+                    Linux File System Hierarchy
+                </div>
+                <span class="toggle-icon">▼</span>
+            </div>
+            <div class="section-content">
+                <div class="filesystem-diagram">
+                    <div class="fs-title">Critical Directories for Cybersecurity</div>
+                    <div class="fs-tree"><span class="fs-path">/</span>                    <span class="fs-desc">Root directory (top of filesystem)</span>
+├── <span class="fs-path">boot/</span>           <span class="fs-desc">Boot files and kernel images</span>
+├── <span class="fs-path">dev/</span>            <span class="fs-desc">Device files (hardware access)</span>
+├── <span class="fs-path">etc/</span>            <span class="fs-desc">System configuration files</span>
+│   ├── passwd          <span class="fs-desc">User account information</span>
+│   ├── shadow          <span class="fs-desc">Encrypted passwords</span>
+│   └── ssh/            <span class="fs-desc">SSH configuration</span>
+├── <span class="fs-path">home/</span>           <span class="fs-desc">User home directories</span>
+├── <span class="fs-path">root/</span>           <span class="fs-desc">Superuser home directory</span>
+├── <span class="fs-path">tmp/</span>            <span class="fs-desc">Temporary files (check for malware)</span>
+├── <span class="fs-path">usr/</span>            <span class="fs-desc">User programs and shared libraries</span>
+│   ├── bin/            <span class="fs-desc">User command binaries</span>
+│   └── sbin/           <span class="fs-desc">System administration binaries</span>
+└── <span class="fs-path">var/</span>            <span class="fs-desc">Variable data files</span>
+    ├── log/            <span class="fs-desc">System log files (CRITICAL)</span>
+    └── tmp/            <span class="fs-desc">More temporary files</span></div>
+                </div>
+                <div class="security-tips">
+                    <div class="tips-title">🛡️ Security-Critical Directories</div>
+                    <ul class="tip-list">
+                        <li><code>/var/log/</code> - System logs, security events, audit trails</li>
+                        <li><code>/etc/</code> - Configuration files, user accounts, system settings</li>
+                        <li><code>/tmp/</code> - Often used by malware for temporary files</li>
+                        <li><code>/home/</code> - User data, personal files, browser caches</li>
+                        <li><code>/usr/bin/</code> - System binaries that could be modified</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>© 2025 <span class="college-branding">College of DuPage</span> - Computer Information Technology Department</p>
+            <p>CIT 1450 Linux/Unix Systems | AI Cybersecurity Program</p>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // Initialize variables
+        const searchInput = document.getElementById('searchInput');
+        const filterButtons = document.querySelectorAll('.filter-btn');
+        const commandSections = document.querySelectorAll('.command-section');
+        let currentFilter = 'all';
+
+        // Search functionality
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            filterContent(searchTerm, currentFilter);
+        });
+
+        // Filter button functionality
+        filterButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                // Update active button
+                filterButtons.forEach(btn => btn.classList.remove('active'));
+                this.classList.add('active');
+                
+                currentFilter = this.dataset.category;
+                const searchTerm = searchInput.value.toLowerCase();
+                filterContent(searchTerm, currentFilter);
+            });
+        });
+
+        // Filter content based on search and category
+        function filterContent(searchTerm, category) {
+            commandSections.forEach(section => {
+                const sectionCategory = section.dataset.category;
+                const sectionText = section.textContent.toLowerCase();
+                
+                const matchesCategory = category === 'all' || category === sectionCategory;
+                const matchesSearch = !searchTerm || sectionText.includes(searchTerm);
+                
+                if (matchesCategory && matchesSearch) {
+                    section.classList.remove('hidden');
+                } else {
+                    section.classList.add('hidden');
+                }
+            });
+        }
+
+        // Section toggle functionality
+        function toggleSection(header) {
+            const section = header.parentElement;
+            const content = section.querySelector('.section-content');
+            
+            if (content.classList.contains('expanded')) {
+                content.classList.remove('expanded');
+                section.classList.remove('expanded');
+            } else {
+                content.classList.add('expanded');
+                section.classList.add('expanded');
+            }
+        }
+
+        // Copy command to clipboard
+        function copyCommand(command) {
+            navigator.clipboard.writeText(command).then(() => {
+                showToast(`Copied: ${command}`);
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+                showToast('Copy failed - try selecting manually');
+            });
+        }
+
+        // Show toast notification
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2000);
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Expand first section by default
+            const firstSection = document.querySelector('.command-section .section-header');
+            if (firstSection) {
+                toggleSection(firstSection);
+            }
+
+            // Add keyboard shortcuts
+            document.addEventListener('keydown', function(e) {
+                // Ctrl/Cmd + K to focus search
+                if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                    e.preventDefault();
+                    searchInput.focus();
+                    searchInput.select();
+                }
+                
+                // Escape to clear search
+                if (e.key === 'Escape') {
+                    searchInput.value = '';
+                    filterContent('', currentFilter);
+                    searchInput.blur();
+                }
+            });
+
+            // Add click to copy for all command examples
+            document.querySelectorAll('.command-text').forEach(cmd => {
+                cmd.addEventListener('click', function() {
+                    copyCommand(this.textContent.trim());
+                });
+            });
+        });
+    </script>
+</body>
+</html>

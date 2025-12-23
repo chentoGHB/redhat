@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linux Command Line Reference - Chapter 2</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --terminal-bg: #0d1117;
+            --terminal-secondary: #161b22;
+            --terminal-border: #21262d;
+            --terminal-green: #7dc383;
+            --terminal-amber: #ffa657;
+            --terminal-blue: #58a6ff;
+            --terminal-purple: #bc8cff;
+            --terminal-red: #ff6b6b;
+            --text-primary: #f0f6fc;
+            --text-secondary: #8b949e;
+            --text-muted: #6e7681;
+            --accent: var(--terminal-green);
+            --warning: var(--terminal-amber);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            background: var(--terminal-bg);
+            color: var(--text-primary);
+            line-height: 1.6;
+            font-size: 14px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            position: relative;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            0% { opacity: 0.5; }
+            100% { opacity: 1; filter: blur(0.5px); }
+        }
+
+        .title {
+            font-family: 'Space Mono', monospace;
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--accent), var(--terminal-blue));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(125, 195, 131, 0.3);
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+        }
+
+        .course-info {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background: var(--terminal-secondary);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            color: var(--warning);
+            font-size: 0.9rem;
+            margin-top: 1rem;
+        }
+
+        .search-container {
+            position: sticky;
+            top: 2rem;
+            z-index: 100;
+            background: var(--terminal-secondary);
+            border: 1px solid var(--terminal-border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(125, 195, 131, 0.2);
+        }
+
+        .search-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 0.4rem 0.8rem;
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 6px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            font-size: 0.85rem;
+        }
+
+        .filter-btn:hover,
+        .filter-btn.active {
+            background: var(--accent);
+            color: var(--terminal-bg);
+            border-color: var(--accent);
+            transform: translateY(-1px);
+        }
+
+        .command-section {
+            margin-bottom: 2rem;
+            background: var(--terminal-secondary);
+            border: 1px solid var(--terminal-border);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            opacity: 0;
+            animation: fadeInUp 0.6s ease forwards;
+        }
+
+        .command-section:nth-child(even) {
+            animation-delay: 0.1s;
+        }
+
+        .command-section:nth-child(odd) {
+            animation-delay: 0.2s;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .section-header {
+            padding: 1.5rem;
+            background: linear-gradient(135deg, var(--terminal-border), var(--terminal-secondary));
+            border-bottom: 1px solid var(--terminal-border);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.3s ease;
+        }
+
+        .section-header:hover {
+            background: linear-gradient(135deg, var(--terminal-border), rgba(125, 195, 131, 0.1));
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 500;
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .section-icon {
+            font-size: 1rem;
+            color: var(--terminal-blue);
+        }
+
+        .toggle-icon {
+            transition: transform 0.3s ease;
+            color: var(--text-secondary);
+        }
+
+        .section-content {
+            padding: 1.5rem;
+            display: none;
+            animation: slideDown 0.3s ease;
+        }
+
+        .section-content.expanded {
+            display: block;
+        }
+
+        .command-section.expanded .toggle-icon {
+            transform: rotate(180deg);
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                max-height: 0;
+                padding-top: 0;
+                padding-bottom: 0;
+            }
+            to {
+                opacity: 1;
+                max-height: 1000px;
+                padding-top: 1.5rem;
+                padding-bottom: 1.5rem;
+            }
+        }
+
+        .command-grid {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .command-item {
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 1rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .command-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 3px;
+            height: 100%;
+            background: var(--accent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .command-item:hover {
+            border-color: var(--accent);
+            transform: translateX(5px);
+            box-shadow: 0 4px 20px rgba(125, 195, 131, 0.2);
+        }
+
+        .command-item:hover::before {
+            opacity: 1;
+        }
+
+        .command-name {
+            font-family: 'Space Mono', monospace;
+            font-weight: 700;
+            font-size: 1rem;
+            color: var(--terminal-blue);
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .copy-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 0.2rem;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            opacity: 0;
+        }
+
+        .command-item:hover .copy-btn {
+            opacity: 1;
+        }
+
+        .copy-btn:hover {
+            background: var(--terminal-border);
+            color: var(--accent);
+        }
+
+        .command-description {
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .command-example {
+            background: rgba(0, 0, 0, 0.3);
+            border-left: 3px solid var(--terminal-purple);
+            padding: 0.5rem;
+            border-radius: 0 4px 4px 0;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--terminal-purple);
+            margin-top: 0.5rem;
+        }
+
+        .shortcut-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        .shortcut-item {
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 0.75rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .shortcut-item:hover {
+            border-color: var(--warning);
+            background: rgba(255, 166, 87, 0.05);
+        }
+
+        .shortcut-key {
+            font-family: 'Space Mono', monospace;
+            font-weight: 700;
+            color: var(--warning);
+            background: rgba(255, 166, 87, 0.1);
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+
+        .shortcut-desc {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--accent);
+            color: var(--terminal-bg);
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-family: 'Space Mono', monospace;
+            font-weight: 500;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .footer {
+            margin-top: 3rem;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            padding: 2rem;
+            border-top: 1px solid var(--terminal-border);
+        }
+
+        .college-branding {
+            color: var(--accent);
+            font-weight: 500;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .title {
+                font-size: 2rem;
+            }
+            
+            .search-container {
+                position: static;
+            }
+            
+            .filter-buttons {
+                justify-content: center;
+            }
+            
+            .shortcut-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1 class="title">Linux Command Reference</h1>
+            <p class="subtitle">Chapter 2: Access the Command Line</p>
+            <div class="course-info">College of DuPage - CIT 1450 Linux/Unix Systems</div>
+        </header>
+
+        <div class="search-container">
+            <input type="text" class="search-input" placeholder="🔍 Search commands, descriptions, or examples..." id="searchInput">
+            <div class="filter-buttons">
+                <button class="filter-btn active" data-category="all">All Commands</button>
+                <button class="filter-btn" data-category="navigation">Navigation</button>
+                <button class="filter-btn" data-category="file-ops">File Operations</button>
+                <button class="filter-btn" data-category="system">System Info</button>
+                <button class="filter-btn" data-category="shortcuts">Shortcuts</button>
+                <button class="filter-btn" data-category="network">Network</button>
+            </div>
+        </div>
+
+        <div class="command-section" data-category="navigation">
+            <div class="section-header" onclick="toggleSection(this)">
+                <div class="section-title">
+                    <span class="section-icon">📁</span>
+                    File and Directory Navigation
+                </div>
+                <span class="toggle-icon">▼</span>
+            </div>
+            <div class="section-content">
+                <div class="command-grid">
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('pwd')">
+                            pwd
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">Print working directory - shows your current location in the file system</div>
+                        <div class="command-example">[student@workstation ~]$ pwd<br>/home/student</div>
+                    </div>
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('ls')">
+                            ls
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">List directory contents</div>
+                        <div class="command-example">[student@workstation ~]$ ls<br>Desktop Documents Downloads</div>
+                    </div>
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('ls -la')">
+                            ls -la
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">List all files with detailed information including hidden files</div>
+                        <div class="command-example">[student@workstation ~]$ ls -la<br>drwxr-xr-x. 3 student student 4096 Nov 15 10:30 .</div>
+                    </div>
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('cd')">
+                            cd
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">Change directory</div>
+                        <div class="command-example">[student@workstation ~]$ cd /etc<br>[student@workstation etc]$</div>
+                    </div>
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('cd ~')">
+                            cd ~
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">Change to home directory</div>
+                        <div class="command-example">[student@workstation etc]$ cd ~<br>[student@workstation ~]$</div>
+                    </div>
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('cd ..')">
+                            cd ..
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">Go up one directory level</div>
+                        <div class="command-example">[student@workstation Documents]$ cd ..<br>[student@workstation ~]$</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="command-section" data-category="file-ops">
+            <div class="section-header" onclick="toggleSection(this)">
+                <div class="section-title">
+                    <span class="section-icon">📄</span>
+                    File Content and Information
+                </div>
+                <span class="toggle-icon">▼</span>
+            </div>
+            <div class="section-content">
+                <div class="command-grid">
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('file filename')">
+                            file filename
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">Determine file type and characteristics</div>
+                        <div class="command-example">[student@workstation ~]$ file zcat<br>zcat: POSIX shell script, ASCII text executable</div>
+                    </div>
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('wc filename')">
+                            wc filename
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">Word count - display lines, words, and characters</div>
+                        <div class="command-example">[student@workstation ~]$ wc zcat<br>91 385 2796 zcat</div>
+                    </div>
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('head filename')">
+                            head filename
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">Display first 10 lines of a file</div>
+                        <div class="command-example">[student@workstation ~]$ head zcat<br>#!/bin/sh<br># zcat -- gzip decompression</div>
+                    </div>
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('tail filename')">
+                            tail filename
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">Display last 10 lines of a file</div>
+                        <div class="command-example">[student@workstation ~]$ tail zcat<br>exec gzip -cd "$@"</div>
+                    </div>
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('head -n 20 filename')">
+                            head -n 20 filename
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">Display first 20 lines of a file</div>
+                        <div class="command-example">[student@workstation ~]$ head -n 20 zcat</div>
+                    </div>
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('tail -n 20 filename')">
+                            tail -n 20 filename
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">Display last 20 lines of a file</div>
+                        <div class="command-example">[student@workstation ~]$ tail -n 20 zcat</div>
+                    </div>
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('cat filename')">
+                            cat filename
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">Display entire file contents</div>
+                        <div class="command-example">[student@workstation ~]$ cat /etc/hostname<br>workstation.example.com</div>
+                    </div>
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('less filename')">
+                            less filename
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">View file contents page by page (interactive)</div>
+                        <div class="command-example">[student@workstation ~]$ less /var/log/messages</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="command-section" data-category="system">
+            <div class="section-header" onclick="toggleSection(this)">
+                <div class="section-title">
+                    <span class="section-icon">💻</span>
+                    System Information & Time
+                </div>
+                <span class="toggle-icon">▼</span>
+            </div>
+            <div class="section-content">
+                <div class="command-grid">
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('date')">
+                            date
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">Display current date and time</div>
+                        <div class="command-example">[student@workstation ~]$ date<br>Mon Dec 20 14:02:35 EST 2025</div>
+                    </div>
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('date +%R')">
+                            date +%R
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">Display time in HH:MM format</div>
+                        <div class="command-example">[student@workstation ~]$ date +%R<br>14:02</div>
+                    </div>
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('whoami')">
+                            whoami
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">Display current username</div>
+                        <div class="command-example">[student@workstation ~]$ whoami<br>student</div>
+                    </div>
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('hostname')">
+                            hostname
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">Display system hostname</div>
+                        <div class="command-example">[student@workstation ~]$ hostname<br>workstation.example.com</div>
+                    </div>
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('uname -a')">
+                            uname -a
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">Display detailed system information</div>
+                        <div class="command-example">[student@workstation ~]$ uname -a<br>Linux workstation 5.14.0 #1 SMP x86_64 GNU/Linux</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="command-section" data-category="network">
+            <div class="section-header" onclick="toggleSection(this)">
+                <div class="section-title">
+                    <span class="section-icon">🌐</span>
+                    Network & Remote Access
+                </div>
+                <span class="toggle-icon">▼</span>
+            </div>
+            <div class="section-content">
+                <div class="command-grid">
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('ssh user@hostname')">
+                            ssh user@hostname
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">Connect to remote system via Secure Shell</div>
+                        <div class="command-example">[user@host ~]$ ssh student@remotehost<br>student@remotehost's password:</div>
+                    </div>
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('ssh-keygen')">
+                            ssh-keygen
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">Generate SSH key pairs for authentication</div>
+                        <div class="command-example">[student@workstation ~]$ ssh-keygen<br>Generating public/private rsa key pair.</div>
+                    </div>
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('ssh-copy-id user@host')">
+                            ssh-copy-id user@host
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">Copy SSH public key to remote server</div>
+                        <div class="command-example">[student@workstation ~]$ ssh-copy-id student@remotehost</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="command-section" data-category="shortcuts">
+            <div class="section-header" onclick="toggleSection(this)">
+                <div class="section-title">
+                    <span class="section-icon">⌨️</span>
+                    Command History & Shortcuts
+                </div>
+                <span class="toggle-icon">▼</span>
+            </div>
+            <div class="section-content">
+                <div class="command-grid">
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('history')">
+                            history
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">Display command history list</div>
+                        <div class="command-example">[student@workstation ~]$ history<br>1 date<br>2 date +%R<br>3 file zcat</div>
+                    </div>
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('!!')">
+                            !!
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">Repeat the last command</div>
+                        <div class="command-example">[student@workstation ~]$ !!<br>tail zcat</div>
+                    </div>
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('!2')">
+                            !number
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">Execute command by history number</div>
+                        <div class="command-example">[student@workstation ~]$ !2<br>date +%R<br>14:02</div>
+                    </div>
+                </div>
+                
+                <h4 style="color: var(--warning); margin: 2rem 0 1rem 0; font-size: 1.1rem;">Keyboard Shortcuts</h4>
+                <div class="shortcut-grid">
+                    <div class="shortcut-item">
+                        <span class="shortcut-key">Ctrl+A</span>
+                        <span class="shortcut-desc">Move cursor to beginning of line</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <span class="shortcut-key">Ctrl+E</span>
+                        <span class="shortcut-desc">Move cursor to end of line</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <span class="shortcut-key">Ctrl+U</span>
+                        <span class="shortcut-desc">Clear line before cursor</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <span class="shortcut-key">Ctrl+K</span>
+                        <span class="shortcut-desc">Clear line after cursor</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <span class="shortcut-key">Ctrl+L</span>
+                        <span class="shortcut-desc">Clear screen</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <span class="shortcut-key">Ctrl+C</span>
+                        <span class="shortcut-desc">Cancel current command</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <span class="shortcut-key">↑ Arrow</span>
+                        <span class="shortcut-desc">Previous command in history</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <span class="shortcut-key">Tab</span>
+                        <span class="shortcut-desc">Auto-complete command/filename</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <span class="shortcut-key">Ctrl+R</span>
+                        <span class="shortcut-desc">Search command history</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <span class="shortcut-key">Ctrl+Alt+F1-F6</span>
+                        <span class="shortcut-desc">Switch virtual consoles</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>© 2025 <span class="college-branding">College of DuPage</span> - Computer Information Technology Department</p>
+            <p>CIT 1450 Linux/Unix Systems | AI Cybersecurity Program</p>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // Search functionality
+        const searchInput = document.getElementById('searchInput');
+        const filterButtons = document.querySelectorAll('.filter-btn');
+        const commandSections = document.querySelectorAll('.command-section');
+        const commandItems = document.querySelectorAll('.command-item');
+
+        let currentFilter = 'all';
+
+        // Search input handler
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            filterContent(searchTerm, currentFilter);
+        });
+
+        // Filter button handlers
+        filterButtons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                // Update active button
+                filterButtons.forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                
+                currentFilter = this.dataset.category;
+                const searchTerm = searchInput.value.toLowerCase();
+                filterContent(searchTerm, currentFilter);
+            });
+        });
+
+        // Filter content based on search and category
+        function filterContent(searchTerm, category) {
+            commandSections.forEach(section => {
+                const sectionCategory = section.dataset.category;
+                const shouldShowSection = category === 'all' || category === sectionCategory;
+                
+                if (!shouldShowSection) {
+                    section.classList.add('hidden');
+                    return;
+                }
+
+                // Check if any commands in this section match search
+                const items = section.querySelectorAll('.command-item');
+                let hasVisibleItems = false;
+
+                items.forEach(item => {
+                    const commandName = item.querySelector('.command-name').textContent.toLowerCase();
+                    const description = item.querySelector('.command-description').textContent.toLowerCase();
+                    const example = item.querySelector('.command-example')?.textContent.toLowerCase() || '';
+                    
+                    const matchesSearch = !searchTerm || 
+                        commandName.includes(searchTerm) || 
+                        description.includes(searchTerm) || 
+                        example.includes(searchTerm);
+
+                    if (matchesSearch) {
+                        item.classList.remove('hidden');
+                        hasVisibleItems = true;
+                    } else {
+                        item.classList.add('hidden');
+                    }
+                });
+
+                // Show/hide section based on visible items
+                if (hasVisibleItems) {
+                    section.classList.remove('hidden');
+                } else {
+                    section.classList.add('hidden');
+                }
+            });
+        }
+
+        // Section toggle functionality
+        function toggleSection(header) {
+            const section = header.parentElement;
+            const content = section.querySelector('.section-content');
+            
+            if (content.classList.contains('expanded')) {
+                content.classList.remove('expanded');
+                section.classList.remove('expanded');
+            } else {
+                content.classList.add('expanded');
+                section.classList.add('expanded');
+            }
+        }
+
+        // Copy command to clipboard
+        function copyCommand(command) {
+            navigator.clipboard.writeText(command).then(() => {
+                showToast(`Copied: ${command}`);
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+                showToast('Copy failed - try selecting manually');
+            });
+        }
+
+        // Show toast notification
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2000);
+        }
+
+        // Initialize - expand first section
+        document.addEventListener('DOMContentLoaded', function() {
+            const firstSection = document.querySelector('.command-section');
+            if (firstSection) {
+                const header = firstSection.querySelector('.section-header');
+                toggleSection(header);
+            }
+
+            // Add keyboard shortcut for search
+            document.addEventListener('keydown', function(e) {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                    e.preventDefault();
+                    searchInput.focus();
+                }
+            });
+        });
+
+        // Add subtle parallax effect on scroll
+        window.addEventListener('scroll', function() {
+            const scrolled = window.pageYOffset;
+            const header = document.querySelector('.header');
+            if (header) {
+                header.style.transform = `translateY(${scrolled * 0.1}px)`;
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linux User & Group Management - Chapter 6</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --terminal-bg: #0d1117;
+            --terminal-secondary: #161b22;
+            --terminal-border: #21262d;
+            --terminal-green: #7dc383;
+            --terminal-amber: #ffa657;
+            --terminal-blue: #58a6ff;
+            --terminal-purple: #bc8cff;
+            --terminal-red: #ff6b6b;
+            --terminal-cyan: #39d9c4;
+            --text-primary: #f0f6fc;
+            --text-secondary: #8b949e;
+            --text-muted: #6e7681;
+            --accent: var(--terminal-green);
+            --warning: var(--terminal-amber);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            background: var(--terminal-bg);
+            color: var(--text-primary);
+            line-height: 1.6;
+            font-size: 14px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            position: relative;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            0% { opacity: 0.5; }
+            100% { opacity: 1; filter: blur(0.5px); }
+        }
+
+        .title {
+            font-family: 'Space Mono', monospace;
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--accent), var(--terminal-blue));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(125, 195, 131, 0.3);
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+        }
+
+        .course-info {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background: var(--terminal-secondary);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            color: var(--warning);
+            font-size: 0.9rem;
+            margin-top: 1rem;
+        }
+
+        .search-container {
+            position: sticky;
+            top: 2rem;
+            z-index: 100;
+            background: var(--terminal-secondary);
+            border: 1px solid var(--terminal-border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(125, 195, 131, 0.2);
+        }
+
+        .search-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 0.4rem 0.8rem;
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 6px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            font-size: 0.85rem;
+        }
+
+        .filter-btn:hover,
+        .filter-btn.active {
+            background: var(--accent);
+            color: var(--terminal-bg);
+            border-color: var(--accent);
+            transform: translateY(-1px);
+        }
+
+        .command-section {
+            margin-bottom: 2rem;
+            background: var(--terminal-secondary);
+            border: 1px solid var(--terminal-border);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            opacity: 0;
+            animation: fadeInUp 0.6s ease forwards;
+        }
+
+        .command-section:nth-child(even) {
+            animation-delay: 0.1s;
+        }
+
+        .command-section:nth-child(odd) {
+            animation-delay: 0.2s;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .section-header {
+            padding: 1.5rem;
+            background: linear-gradient(135deg, var(--terminal-border), var(--terminal-secondary));
+            border-bottom: 1px solid var(--terminal-border);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.3s ease;
+        }
+
+        .section-header:hover {
+            background: linear-gradient(135deg, var(--terminal-border), rgba(125, 195, 131, 0.1));
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 500;
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .section-icon {
+            font-size: 1rem;
+            color: var(--terminal-blue);
+        }
+
+        .toggle-icon {
+            transition: transform 0.3s ease;
+            color: var(--text-secondary);
+        }
+
+        .section-content {
+            padding: 1.5rem;
+            display: none;
+            animation: slideDown 0.3s ease;
+        }
+
+        .section-content.expanded {
+            display: block;
+        }
+
+        .command-section.expanded .toggle-icon {
+            transform: rotate(180deg);
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                max-height: 0;
+                padding-top: 0;
+                padding-bottom: 0;
+            }
+            to {
+                opacity: 1;
+                max-height: 1000px;
+                padding-top: 1.5rem;
+                padding-bottom: 1.5rem;
+            }
+        }
+
+        .command-grid {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .command-item {
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 1rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .command-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 3px;
+            height: 100%;
+            background: var(--accent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .command-item:hover {
+            border-color: var(--accent);
+            transform: translateX(5px);
+            box-shadow: 0 4px 20px rgba(125, 195, 131, 0.2);
+        }
+
+        .command-item:hover::before {
+            opacity: 1;
+        }
+
+        .command-name {
+            font-family: 'Space Mono', monospace;
+            font-weight: 700;
+            font-size: 1rem;
+            color: var(--terminal-blue);
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .copy-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 0.2rem;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            opacity: 0;
+        }
+
+        .command-item:hover .copy-btn {
+            opacity: 1;
+        }
+
+        .copy-btn:hover {
+            background: var(--terminal-border);
+            color: var(--accent);
+        }
+
+        .command-description {
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .command-example {
+            background: rgba(0, 0, 0, 0.3);
+            border-left: 3px solid var(--terminal-purple);
+            padding: 0.5rem;
+            border-radius: 0 4px 4px 0;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--terminal-purple);
+            margin-top: 0.5rem;
+        }
+
+        .example-line {
+            margin-bottom: 0.3rem;
+        }
+
+        .example-line:last-child {
+            margin-bottom: 0;
+        }
+
+        .prompt {
+            color: var(--accent);
+            margin-right: 0.5rem;
+        }
+
+        .command-text {
+            color: var(--text-primary);
+            cursor: pointer;
+        }
+
+        .command-text:hover {
+            background: rgba(125, 195, 131, 0.1);
+            padding: 2px 4px;
+            margin: -2px -4px;
+            border-radius: 3px;
+        }
+
+        .output-text {
+            color: var(--text-muted);
+            font-style: italic;
+            margin-left: 1rem;
+        }
+
+        .security-tips {
+            background: rgba(255, 166, 87, 0.1);
+            border: 1px solid var(--warning);
+            border-radius: 6px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .tips-title {
+            color: var(--warning);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .tip-list {
+            list-style: none;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        .tip-list li {
+            margin-bottom: 0.25rem;
+            padding-left: 1rem;
+            position: relative;
+        }
+
+        .tip-list li::before {
+            content: '▶';
+            position: absolute;
+            left: 0;
+            color: var(--warning);
+            font-size: 0.7rem;
+        }
+
+        .user-types {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        .user-type {
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 6px;
+            padding: 0.75rem;
+            transition: all 0.3s ease;
+        }
+
+        .user-type:hover {
+            border-color: var(--terminal-purple);
+            background: rgba(188, 140, 255, 0.05);
+        }
+
+        .type-name {
+            font-family: 'Space Mono', monospace;
+            font-weight: 700;
+            color: var(--terminal-purple);
+            margin-bottom: 0.3rem;
+        }
+
+        .type-desc {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+        }
+
+        .uid-ranges {
+            display: grid;
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        .uid-range {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 1rem;
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 6px;
+            padding: 0.75rem;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .uid-range:hover {
+            border-color: var(--terminal-cyan);
+            background: rgba(57, 217, 196, 0.05);
+        }
+
+        .uid-value {
+            font-family: 'Space Mono', monospace;
+            font-weight: 700;
+            color: var(--terminal-cyan);
+            padding: 0.25rem 0.5rem;
+            background: rgba(57, 217, 196, 0.1);
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .uid-desc {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        .sudo-config {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .sudo-example {
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .sudo-example:hover {
+            border-color: var(--terminal-amber);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(255, 166, 87, 0.2);
+        }
+
+        .sudo-rule {
+            font-family: 'Space Mono', monospace;
+            font-weight: 700;
+            font-size: 1rem;
+            color: var(--terminal-amber);
+            margin-bottom: 0.3rem;
+        }
+
+        .sudo-purpose {
+            color: var(--text-primary);
+            font-weight: 500;
+            margin-bottom: 0.3rem;
+            font-size: 0.9rem;
+        }
+
+        .sudo-desc {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--accent);
+            color: var(--terminal-bg);
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-family: 'Space Mono', monospace;
+            font-weight: 500;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .footer {
+            margin-top: 3rem;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            padding: 2rem;
+            border-top: 1px solid var(--terminal-border);
+        }
+
+        .college-branding {
+            color: var(--accent);
+            font-weight: 500;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .title {
+                font-size: 2rem;
+            }
+            
+            .search-container {
+                position: static;
+            }
+            
+            .filter-buttons {
+                justify-content: center;
+            }
+            
+            .user-types,
+            .sudo-config {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1 class="title">User & Group Management</h1>
+            <p class="subtitle">Chapter 6: Manage Local Users and Groups</p>
+            <div class="course-info">College of DuPage - CIT 1450 Linux/Unix Systems</div>
+        </header>
+
+        <div class="search-container">
+            <input type="text" class="search-input" placeholder="🔍 Search commands, descriptions, or examples..." id="searchInput">
+            <div class="filter-buttons">
+                <button class="filter-btn active" data-category="all">All Commands</button>
+                <button class="filter-btn" data-category="identity">User Identity</button>
+                <button class="filter-btn" data-category="privilege">Privilege Escalation</button>
+                <button class="filter-btn" data-category="user-mgmt">User Management</button>
+                <button class="filter-btn" data-category="group-mgmt">Group Management</button>
+                <button class="filter-btn" data-category="password">Password Management</button>
+            </div>
+        </div>
+
+        <div class="command-section" data-category="identity">
+            <div class="section-header" onclick="toggleSection(this)">
+                <div class="section-title">
+                    <span class="section-icon">👤</span>
+                    User & Group Identity Commands
+                </div>
+                <span class="toggle-icon">▼</span>
+            </div>
+            <div class="section-content">
+                <div class="command-grid">
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('id')">
+                            id
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">Display user and group information for the current or specified user</div>
+                        <div class="command-example">
+                            <div class="example-line">
+                                <span class="prompt">[security@audit-server ~]$</span>
+                                <span class="command-text" onclick="copyCommand('id')">id</span>
+                            </div>
+                            <div class="output-text">uid=1001(security) gid=1003(security) groups=1003(security),10(wheel),1005(security-ops)</div>
+                            <div class="example-line">
+                                <span class="prompt">[security@audit-server ~]$</span>
+                                <span class="command-text" onclick="copyCommand('id apache')">id apache</span>
+                            </div>
+                            <div class="output-text">uid=48(apache) gid=48(apache) groups=48(apache)</div>
+                        </div>
+                        <div class="security-tips">
+                            <div class="tips-title">🔒 Security Analysis</div>
+                            <ul class="tip-list">
+                                <li>Verify user privileges before granting system access</li>
+                                <li>Check group memberships for privilege escalation vectors</li>
+                                <li>Audit service account configurations and permissions</li>
+                                <li>Use for forensic analysis during incident response</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('cat /etc/passwd')">
+                            /etc/passwd
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">System user account database containing user account information</div>
+                        <div class="command-example">
+                            <div class="example-line">
+                                <span class="prompt">[admin@security-server ~]$</span>
+                                <span class="command-text" onclick="copyCommand('cat /etc/passwd | grep security')">cat /etc/passwd | grep security</span>
+                            </div>
+                            <div class="output-text">security:x:1001:1003:Security Analyst:/home/security:/bin/bash</div>
+                            <div class="example-line">
+                                <span class="prompt">[admin@security-server ~]$</span>
+                                <span class="command-text" onclick="copyCommand('tail -5 /etc/passwd')">tail -5 /etc/passwd</span>
+                            </div>
+                            <div class="output-text">Show last 5 user accounts</div>
+                        </div>
+                        <div class="user-types">
+                            <div class="user-type">
+                                <div class="type-name">Root (UID 0)</div>
+                                <div class="type-desc">Superuser with full system access</div>
+                            </div>
+                            <div class="user-type">
+                                <div class="type-name">System (UID 1-999)</div>
+                                <div class="type-desc">Service accounts for daemons and processes</div>
+                            </div>
+                            <div class="user-type">
+                                <div class="type-name">Regular (UID 1000+)</div>
+                                <div class="type-desc">Human users with limited access</div>
+                            </div>
+                        </div>
+                        <div class="security-tips">
+                            <div class="tips-title">👁️ Account Auditing</div>
+                            <ul class="tip-list">
+                                <li>Regular review for unauthorized accounts</li>
+                                <li>Monitor accounts with UID 0 (should only be root)</li>
+                                <li>Check for accounts with suspicious shell assignments</li>
+                                <li>Verify service accounts have appropriate restrictions</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('cat /etc/group')">
+                            /etc/group
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">System group database containing group information and memberships</div>
+                        <div class="command-example">
+                            <div class="example-line">
+                                <span class="prompt">[admin@security-server ~]$</span>
+                                <span class="command-text" onclick="copyCommand('cat /etc/group | grep wheel')">cat /etc/group | grep wheel</span>
+                            </div>
+                            <div class="output-text">wheel:x:10:admin,security,operator</div>
+                            <div class="example-line">
+                                <span class="prompt">[admin@security-server ~]$</span>
+                                <span class="command-text" onclick="copyCommand('grep \"^security\" /etc/group')">grep "^security" /etc/group</span>
+                            </div>
+                            <div class="output-text">security-ops:x:1005:security,analyst1,analyst2</div>
+                        </div>
+                        <div class="security-tips">
+                            <div class="tips-title">👥 Group Security</div>
+                            <ul class="tip-list">
+                                <li>Monitor wheel group membership for sudo access</li>
+                                <li>Review security-sensitive group memberships regularly</li>
+                                <li>Audit supplementary groups for privilege creep</li>
+                                <li>Document group purposes for compliance</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="command-section" data-category="privilege">
+            <div class="section-header" onclick="toggleSection(this)">
+                <div class="section-title">
+                    <span class="section-icon">🔐</span>
+                    Privilege Escalation & Sudo
+                </div>
+                <span class="toggle-icon">▼</span>
+            </div>
+            <div class="section-content">
+                <div class="command-grid">
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('su')">
+                            su / su -
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">Switch to another user account, with or without login environment</div>
+                        <div class="command-example">
+                            <div class="example-line">
+                                <span class="prompt">[security@server ~]$</span>
+                                <span class="command-text" onclick="copyCommand('su -')">su -</span>
+                            </div>
+                            <div class="output-text">Password: [enter root password]</div>
+                            <div class="example-line">
+                                <span class="prompt">[security@server ~]$</span>
+                                <span class="command-text" onclick="copyCommand('su - operator')">su - operator</span>
+                            </div>
+                            <div class="output-text">Switch to operator user with login shell</div>
+                            <div class="example-line">
+                                <span class="prompt">[security@server ~]$</span>
+                                <span class="command-text" onclick="copyCommand('su operator')">su operator</span>
+                            </div>
+                            <div class="output-text">Switch without changing environment</div>
+                        </div>
+                        <div class="security-tips">
+                            <div class="tips-title">⚠️ Direct Root Access</div>
+                            <ul class="tip-list">
+                                <li>Prefer sudo over direct su for auditing</li>
+                                <li>su - provides clean login environment</li>
+                                <li>Monitor su usage in /var/log/secure</li>
+                                <li>Disable direct root login for security</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('sudo')">
+                            sudo
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">Execute commands as another user with detailed logging and controlled access</div>
+                        <div class="command-example">
+                            <div class="example-line">
+                                <span class="prompt">[security@server ~]$</span>
+                                <span class="command-text" onclick="copyCommand('sudo systemctl status ssh')">sudo systemctl status ssh</span>
+                            </div>
+                            <div class="output-text">Check SSH service status as root</div>
+                            <div class="example-line">
+                                <span class="prompt">[security@server ~]$</span>
+                                <span class="command-text" onclick="copyCommand('sudo -i')">sudo -i</span>
+                            </div>
+                            <div class="output-text">Get interactive root shell with login environment</div>
+                            <div class="example-line">
+                                <span class="prompt">[security@server ~]$</span>
+                                <span class="command-text" onclick="copyCommand('sudo -u postgres psql')">sudo -u postgres psql</span>
+                            </div>
+                            <div class="output-text">Run command as postgres user</div>
+                        </div>
+                        <div class="security-tips">
+                            <div class="tips-title">🛡️ Sudo Best Practices</div>
+                            <ul class="tip-list">
+                                <li>All sudo activity logged to /var/log/secure</li>
+                                <li>Use principle of least privilege</li>
+                                <li>Configure timeout for security (default 5 minutes)</li>
+                                <li>Prefer sudo over direct root access</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('visudo')">
+                            visudo & /etc/sudoers
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">Configure sudo access with syntax validation and concurrent edit protection</div>
+                        <div class="command-example">
+                            <div class="example-line">
+                                <span class="prompt">[root@server ~]#</span>
+                                <span class="command-text" onclick="copyCommand('visudo')">visudo</span>
+                            </div>
+                            <div class="output-text">Edit /etc/sudoers with syntax checking</div>
+                            <div class="example-line">
+                                <span class="prompt">[root@server ~]#</span>
+                                <span class="command-text" onclick="copyCommand('echo \"security ALL=(ALL) NOPASSWD: /usr/bin/systemctl\" > /etc/sudoers.d/security')">echo "security ALL=(ALL) NOPASSWD: /usr/bin/systemctl" > /etc/sudoers.d/security</span>
+                            </div>
+                            <div class="output-text">Grant specific command access</div>
+                        </div>
+                        <div class="sudo-config">
+                            <div class="sudo-example">
+                                <div class="sudo-rule">%wheel ALL=(ALL) ALL</div>
+                                <div class="sudo-purpose">Full Access</div>
+                                <div class="sudo-desc">Wheel group members can run any command as any user</div>
+                            </div>
+                            <div class="sudo-example">
+                                <div class="sudo-rule">security ALL=(root) /usr/bin/nmap</div>
+                                <div class="sudo-purpose">Limited Command</div>
+                                <div class="sudo-desc">Security user can only run nmap as root</div>
+                            </div>
+                            <div class="sudo-example">
+                                <div class="sudo-rule">%operators ALL=(ALL) NOPASSWD: ALL</div>
+                                <div class="sudo-purpose">Passwordless</div>
+                                <div class="sudo-desc">Operators group doesn't need password</div>
+                            </div>
+                        </div>
+                        <div class="security-tips">
+                            <div class="tips-title">📝 Sudo Configuration</div>
+                            <ul class="tip-list">
+                                <li>Always use visudo to prevent syntax errors</li>
+                                <li>Store custom rules in /etc/sudoers.d/</li>
+                                <li>Test sudo configurations in non-production first</li>
+                                <li>Document all sudo grants for compliance</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="command-section" data-category="user-mgmt">
+            <div class="section-header" onclick="toggleSection(this)">
+                <div class="section-title">
+                    <span class="section-icon">👥</span>
+                    User Account Management
+                </div>
+                <span class="toggle-icon">▼</span>
+            </div>
+            <div class="section-content">
+                <div class="command-grid">
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('useradd')">
+                            useradd
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">Create new user accounts with specified attributes and default settings</div>
+                        <div class="command-example">
+                            <div class="example-line">
+                                <span class="prompt">[root@security-server ~]#</span>
+                                <span class="command-text" onclick="copyCommand('useradd analyst1')">useradd analyst1</span>
+                            </div>
+                            <div class="output-text">Create user with default settings</div>
+                            <div class="example-line">
+                                <span class="prompt">[root@security-server ~]#</span>
+                                <span class="command-text" onclick="copyCommand('useradd -c \"Security Analyst\" -G security-ops -s /bin/bash analyst2')">useradd -c "Security Analyst" -G security-ops -s /bin/bash analyst2</span>
+                            </div>
+                            <div class="output-text">Create with comment, group, and shell</div>
+                            <div class="example-line">
+                                <span class="prompt">[root@security-server ~]#</span>
+                                <span class="command-text" onclick="copyCommand('useradd -r -s /sbin/nologin monitoring')">useradd -r -s /sbin/nologin monitoring</span>
+                            </div>
+                            <div class="output-text">Create system account for service</div>
+                        </div>
+                        <div class="uid-ranges">
+                            <div class="uid-range">
+                                <div class="uid-value">UID 0</div>
+                                <div class="uid-desc">Root superuser account</div>
+                            </div>
+                            <div class="uid-range">
+                                <div class="uid-value">UID 1-200</div>
+                                <div class="uid-desc">Static system accounts</div>
+                            </div>
+                            <div class="uid-range">
+                                <div class="uid-value">UID 201-999</div>
+                                <div class="uid-desc">Dynamic system accounts</div>
+                            </div>
+                            <div class="uid-range">
+                                <div class="uid-value">UID 1000+</div>
+                                <div class="uid-desc">Regular user accounts</div>
+                            </div>
+                        </div>
+                        <div class="security-tips">
+                            <div class="tips-title">🔐 Account Creation Security</div>
+                            <ul class="tip-list">
+                                <li>Use -r flag for system/service accounts</li>
+                                <li>Set appropriate shell (/sbin/nologin for services)</li>
+                                <li>Add users to security groups during creation</li>
+                                <li>Document account purpose in comment field</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('usermod')">
+                            usermod
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">Modify existing user accounts including groups, shell, home directory</div>
+                        <div class="command-example">
+                            <div class="example-line">
+                                <span class="prompt">[root@security-server ~]#</span>
+                                <span class="command-text" onclick="copyCommand('usermod -aG wheel analyst1')">usermod -aG wheel analyst1</span>
+                            </div>
+                            <div class="output-text">Add user to wheel group (append mode)</div>
+                            <div class="example-line">
+                                <span class="prompt">[root@security-server ~]#</span>
+                                <span class="command-text" onclick="copyCommand('usermod -L analyst2')">usermod -L analyst2</span>
+                            </div>
+                            <div class="output-text">Lock user account</div>
+                            <div class="example-line">
+                                <span class="prompt">[root@security-server ~]#</span>
+                                <span class="command-text" onclick="copyCommand('usermod -U analyst2')">usermod -U analyst2</span>
+                            </div>
+                            <div class="output-text">Unlock user account</div>
+                            <div class="example-line">
+                                <span class="prompt">[root@security-server ~]#</span>
+                                <span class="command-text" onclick="copyCommand('usermod -c \"Senior Security Analyst\" analyst1')">usermod -c "Senior Security Analyst" analyst1</span>
+                            </div>
+                            <div class="output-text">Update user comment/description</div>
+                        </div>
+                        <div class="security-tips">
+                            <div class="tips-title">⚡ Account Modification</div>
+                            <ul class="tip-list">
+                                <li>Use -a flag with -G to append, not replace groups</li>
+                                <li>Lock compromised accounts immediately with -L</li>
+                                <li>Update comments for role changes and tracking</li>
+                                <li>Change shells to restrict access: /sbin/nologin</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('userdel')">
+                            userdel
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">Remove user accounts from the system with optional home directory removal</div>
+                        <div class="command-example">
+                            <div class="example-line">
+                                <span class="prompt">[root@security-server ~]#</span>
+                                <span class="command-text" onclick="copyCommand('userdel analyst3')">userdel analyst3</span>
+                            </div>
+                            <div class="output-text">Remove user account (keep home directory)</div>
+                            <div class="example-line">
+                                <span class="prompt">[root@security-server ~]#</span>
+                                <span class="command-text" onclick="copyCommand('userdel -r analyst3')">userdel -r analyst3</span>
+                            </div>
+                            <div class="output-text">Remove user and home directory</div>
+                            <div class="example-line">
+                                <span class="prompt">[root@security-server ~]#</span>
+                                <span class="command-text" onclick="copyCommand('find / -user analyst3 2>/dev/null')">find / -user analyst3 2>/dev/null</span>
+                            </div>
+                            <div class="output-text">Find remaining files owned by deleted user</div>
+                        </div>
+                        <div class="security-tips">
+                            <div class="tips-title">🗑️ Safe Account Removal</div>
+                            <ul class="tip-list">
+                                <li>Backup important data before deletion</li>
+                                <li>Use find to locate all user-owned files</li>
+                                <li>Consider locking instead of deleting for audits</li>
+                                <li>Document reason for account removal</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="command-section" data-category="group-mgmt">
+            <div class="section-header" onclick="toggleSection(this)">
+                <div class="section-title">
+                    <span class="section-icon">👨‍👩‍👧‍👦</span>
+                    Group Management
+                </div>
+                <span class="toggle-icon">▼</span>
+            </div>
+            <div class="section-content">
+                <div class="command-grid">
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('groupadd')">
+                            groupadd
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">Create new groups for organizing users and managing permissions</div>
+                        <div class="command-example">
+                            <div class="example-line">
+                                <span class="prompt">[root@security-server ~]#</span>
+                                <span class="command-text" onclick="copyCommand('groupadd security-ops')">groupadd security-ops</span>
+                            </div>
+                            <div class="output-text">Create group with next available GID</div>
+                            <div class="example-line">
+                                <span class="prompt">[root@security-server ~]#</span>
+                                <span class="command-text" onclick="copyCommand('groupadd -g 2000 incident-response')">groupadd -g 2000 incident-response</span>
+                            </div>
+                            <div class="output-text">Create group with specific GID</div>
+                            <div class="example-line">
+                                <span class="prompt">[root@security-server ~]#</span>
+                                <span class="command-text" onclick="copyCommand('groupadd -r monitoring-svc')">groupadd -r monitoring-svc</span>
+                            </div>
+                            <div class="output-text">Create system group</div>
+                        </div>
+                        <div class="security-tips">
+                            <div class="tips-title">👥 Group Organization</div>
+                            <ul class="tip-list">
+                                <li>Use descriptive names: security-ops, incident-response</li>
+                                <li>Create groups before adding users for better organization</li>
+                                <li>Use system groups (-r) for service accounts</li>
+                                <li>Document group purposes for role clarity</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('groupmod')">
+                            groupmod
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">Modify existing group properties including name and GID</div>
+                        <div class="command-example">
+                            <div class="example-line">
+                                <span class="prompt">[root@security-server ~]#</span>
+                                <span class="command-text" onclick="copyCommand('groupmod -n security-team security-ops')">groupmod -n security-team security-ops</span>
+                            </div>
+                            <div class="output-text">Rename group from security-ops to security-team</div>
+                            <div class="example-line">
+                                <span class="prompt">[root@security-server ~]#</span>
+                                <span class="command-text" onclick="copyCommand('groupmod -g 3000 security-team')">groupmod -g 3000 security-team</span>
+                            </div>
+                            <div class="output-text">Change group GID to 3000</div>
+                        </div>
+                        <div class="security-tips">
+                            <div class="tips-title">🔄 Group Modifications</div>
+                            <ul class="tip-list">
+                                <li>Changing GID may affect file ownership</li>
+                                <li>Use descriptive names for better administration</li>
+                                <li>Test changes in non-production environments</li>
+                                <li>Update documentation after modifications</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('groupdel')">
+                            groupdel
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">Remove groups from the system when no longer needed</div>
+                        <div class="command-example">
+                            <div class="example-line">
+                                <span class="prompt">[root@security-server ~]#</span>
+                                <span class="command-text" onclick="copyCommand('groupdel old-project')">groupdel old-project</span>
+                            </div>
+                            <div class="output-text">Remove unused group</div>
+                            <div class="example-line">
+                                <span class="prompt">[root@security-server ~]#</span>
+                                <span class="command-text" onclick="copyCommand('find / -group old-project 2>/dev/null')">find / -group old-project 2>/dev/null</span>
+                            </div>
+                            <div class="output-text">Check for files still owned by deleted group</div>
+                        </div>
+                        <div class="security-tips">
+                            <div class="tips-title">❌ Group Removal Safety</div>
+                            <ul class="tip-list">
+                                <li>Cannot delete if it's a user's primary group</li>
+                                <li>Find and reassign files before deletion</li>
+                                <li>Remove users from group first if needed</li>
+                                <li>Document group removal reasoning</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('newgrp')">
+                            newgrp
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">Temporarily change primary group for file creation in current session</div>
+                        <div class="command-example">
+                            <div class="example-line">
+                                <span class="prompt">[analyst@security-server ~]$</span>
+                                <span class="command-text" onclick="copyCommand('id')">id</span>
+                            </div>
+                            <div class="output-text">uid=1001(analyst) gid=1001(analyst) groups=1001(analyst),2000(incident-response)</div>
+                            <div class="example-line">
+                                <span class="prompt">[analyst@security-server ~]$</span>
+                                <span class="command-text" onclick="copyCommand('newgrp incident-response')">newgrp incident-response</span>
+                            </div>
+                            <div class="output-text">Switch primary group for this session</div>
+                            <div class="example-line">
+                                <span class="prompt">[analyst@security-server ~]$</span>
+                                <span class="command-text" onclick="copyCommand('touch incident-report.txt')">touch incident-report.txt</span>
+                            </div>
+                            <div class="output-text">File will be owned by incident-response group</div>
+                        </div>
+                        <div class="security-tips">
+                            <div class="tips-title">🔄 Temporary Group Switch</div>
+                            <ul class="tip-list">
+                                <li>Useful for creating files with specific group ownership</li>
+                                <li>Changes only affect current shell session</li>
+                                <li>Must be member of target group to switch</li>
+                                <li>Primary group reverts after logout</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="command-section" data-category="password">
+            <div class="section-header" onclick="toggleSection(this)">
+                <div class="section-title">
+                    <span class="section-icon">🔑</span>
+                    Password & Account Management
+                </div>
+                <span class="toggle-icon">▼</span>
+            </div>
+            <div class="section-content">
+                <div class="command-grid">
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('passwd')">
+                            passwd
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">Set and change user passwords with security policy enforcement</div>
+                        <div class="command-example">
+                            <div class="example-line">
+                                <span class="prompt">[root@security-server ~]#</span>
+                                <span class="command-text" onclick="copyCommand('passwd analyst1')">passwd analyst1</span>
+                            </div>
+                            <div class="output-text">Set password for analyst1 user</div>
+                            <div class="example-line">
+                                <span class="prompt">[analyst@security-server ~]$</span>
+                                <span class="command-text" onclick="copyCommand('passwd')">passwd</span>
+                            </div>
+                            <div class="output-text">Change own password</div>
+                            <div class="example-line">
+                                <span class="prompt">[root@security-server ~]#</span>
+                                <span class="command-text" onclick="copyCommand('echo \"TempPass123!\" | passwd --stdin analyst1')">echo "TempPass123!" | passwd --stdin analyst1</span>
+                            </div>
+                            <div class="output-text">Set password non-interactively</div>
+                        </div>
+                        <div class="security-tips">
+                            <div class="tips-title">🔐 Password Security</div>
+                            <ul class="tip-list">
+                                <li>Enforce strong password policies</li>
+                                <li>Use temporary passwords for new accounts</li>
+                                <li>Force password change on first login</li>
+                                <li>Consider password complexity requirements</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('chage')">
+                            chage
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">Configure password and account expiration policies for security compliance</div>
+                        <div class="command-example">
+                            <div class="example-line">
+                                <span class="prompt">[root@security-server ~]#</span>
+                                <span class="command-text" onclick="copyCommand('chage -l analyst1')">chage -l analyst1</span>
+                            </div>
+                            <div class="output-text">List account aging information</div>
+                            <div class="example-line">
+                                <span class="prompt">[root@security-server ~]#</span>
+                                <span class="command-text" onclick="copyCommand('chage -M 90 analyst1')">chage -M 90 analyst1</span>
+                            </div>
+                            <div class="output-text">Set password to expire in 90 days</div>
+                            <div class="example-line">
+                                <span class="prompt">[root@security-server ~]#</span>
+                                <span class="command-text" onclick="copyCommand('chage -d 0 analyst1')">chage -d 0 analyst1</span>
+                            </div>
+                            <div class="output-text">Force password change on next login</div>
+                            <div class="example-line">
+                                <span class="prompt">[root@security-server ~]#</span>
+                                <span class="command-text" onclick="copyCommand('chage -E 2025-12-31 analyst1')">chage -E 2025-12-31 analyst1</span>
+                            </div>
+                            <div class="output-text">Set account to expire on specific date</div>
+                        </div>
+                        <div class="security-tips">
+                            <div class="tips-title">⏰ Account Expiration</div>
+                            <ul class="tip-list">
+                                <li>Set maximum password age for security compliance</li>
+                                <li>Use account expiration for temporary access</li>
+                                <li>Force password changes for compromised accounts</li>
+                                <li>Configure warning periods before expiration</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="command-item">
+                        <div class="command-name" onclick="copyCommand('/etc/login.defs')">
+                            /etc/login.defs
+                            <button class="copy-btn" title="Copy command">📋</button>
+                        </div>
+                        <div class="command-description">System-wide default settings for user account and password policies</div>
+                        <div class="command-example">
+                            <div class="example-line">
+                                <span class="prompt">[root@security-server ~]#</span>
+                                <span class="command-text" onclick="copyCommand('grep PASS /etc/login.defs')">grep PASS /etc/login.defs</span>
+                            </div>
+                            <div class="output-text">PASS_MAX_DAYS   90</div>
+                            <div class="output-text">PASS_MIN_DAYS   1</div>
+                            <div class="output-text">PASS_WARN_AGE   7</div>
+                            <div class="example-line">
+                                <span class="prompt">[root@security-server ~]#</span>
+                                <span class="command-text" onclick="copyCommand('vim /etc/login.defs')">vim /etc/login.defs</span>
+                            </div>
+                            <div class="output-text">Edit default password policies</div>
+                        </div>
+                        <div class="security-tips">
+                            <div class="tips-title">📋 Default Policies</div>
+                            <ul class="tip-list">
+                                <li>Settings apply to new accounts only</li>
+                                <li>Configure UID/GID ranges for different user types</li>
+                                <li>Set organization-wide password policies</li>
+                                <li>Review and update policies regularly</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>© 2025 <span class="college-branding">College of DuPage</span> - Computer Information Technology Department</p>
+            <p>CIT 1450 Linux/Unix Systems | AI Cybersecurity Program</p>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // Initialize variables
+        const searchInput = document.getElementById('searchInput');
+        const filterButtons = document.querySelectorAll('.filter-btn');
+        const commandSections = document.querySelectorAll('.command-section');
+        let currentFilter = 'all';
+
+        // Search functionality
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            filterContent(searchTerm, currentFilter);
+        });
+
+        // Filter button functionality
+        filterButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                // Update active button
+                filterButtons.forEach(btn => btn.classList.remove('active'));
+                this.classList.add('active');
+                
+                currentFilter = this.dataset.category;
+                const searchTerm = searchInput.value.toLowerCase();
+                filterContent(searchTerm, currentFilter);
+            });
+        });
+
+        // Filter content based on search and category
+        function filterContent(searchTerm, category) {
+            commandSections.forEach(section => {
+                const sectionCategory = section.dataset.category;
+                const sectionText = section.textContent.toLowerCase();
+                
+                const matchesCategory = category === 'all' || category === sectionCategory;
+                const matchesSearch = !searchTerm || sectionText.includes(searchTerm);
+                
+                if (matchesCategory && matchesSearch) {
+                    section.classList.remove('hidden');
+                } else {
+                    section.classList.add('hidden');
+                }
+            });
+        }
+
+        // Section toggle functionality
+        function toggleSection(header) {
+            const section = header.parentElement;
+            const content = section.querySelector('.section-content');
+            
+            if (content.classList.contains('expanded')) {
+                content.classList.remove('expanded');
+                section.classList.remove('expanded');
+            } else {
+                content.classList.add('expanded');
+                section.classList.add('expanded');
+            }
+        }
+
+        // Copy command to clipboard
+        function copyCommand(command) {
+            navigator.clipboard.writeText(command).then(() => {
+                showToast(`Copied: ${command}`);
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+                showToast('Copy failed - try selecting manually');
+            });
+        }
+
+        // Show toast notification
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2000);
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Expand first section by default
+            const firstSection = document.querySelector('.command-section .section-header');
+            if (firstSection) {
+                toggleSection(firstSection);
+            }
+
+            // Add keyboard shortcuts
+            document.addEventListener('keydown', function(e) {
+                // Ctrl/Cmd + K to focus search
+                if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                    e.preventDefault();
+                    searchInput.focus();
+                    searchInput.select();
+                }
+                
+                // Escape to clear search
+                if (e.key === 'Escape') {
+                    searchInput.value = '';
+                    filterContent('', currentFilter);
+                    searchInput.blur();
+                }
+            });
+
+            // Add click to copy for all command examples
+            document.querySelectorAll('.command-text, .uid-value').forEach(cmd => {
+                cmd.addEventListener('click', function() {
+                    copyCommand(this.textContent.trim());
+                });
+            });
+        });
+    </script>
+</body>
+</html>

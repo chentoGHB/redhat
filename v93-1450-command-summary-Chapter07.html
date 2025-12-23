@@ -1,0 +1,1274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Basic Linux File Permissions - Chapter 7</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-bg: #0a0e1a;
+            --secondary-bg: #1a1f2e;
+            --accent-bg: #242b3d;
+            --border-color: #2d3748;
+            --primary-color: #e2e8f0;
+            --secondary-color: #a0aec0;
+            --muted-color: #718096;
+            --success-color: #48bb78;
+            --warning-color: #ed8936;
+            --danger-color: #f56565;
+            --info-color: #4299e1;
+            --purple-color: #9f7aea;
+            --cyan-color: #00d4aa;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, var(--primary-bg) 0%, #0f1419 100%);
+            color: var(--primary-color);
+            line-height: 1.7;
+            min-height: 100vh;
+            font-size: 16px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            position: relative;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -30px;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--success-color), var(--info-color), var(--warning-color), transparent);
+            animation: pulse 3s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; transform: scaleX(0.8); }
+            50% { opacity: 1; transform: scaleX(1); }
+        }
+
+        .title {
+            font-size: clamp(2.5rem, 6vw, 3.8rem);
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--success-color), var(--info-color), var(--warning-color));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+        }
+
+        .subtitle {
+            font-size: 1.4rem;
+            color: var(--secondary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .course-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: linear-gradient(135deg, var(--accent-bg), var(--secondary-bg));
+            border: 1px solid var(--border-color);
+            border-radius: 50px;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            color: var(--warning-color);
+            margin-top: 1rem;
+        }
+
+        .intro-text {
+            background: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 3rem;
+            text-align: center;
+        }
+
+        .intro-text h3 {
+            color: var(--success-color);
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+        }
+
+        .intro-text p {
+            color: var(--secondary-color);
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        .permission-guide {
+            background: var(--accent-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 3rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        .permission-card {
+            background: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .permission-card h4 {
+            color: var(--warning-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .permission-example {
+            font-family: 'Roboto Mono', monospace;
+            color: var(--cyan-color);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .permission-desc {
+            color: var(--secondary-color);
+            font-size: 0.9rem;
+        }
+
+        .search-controls {
+            position: sticky;
+            top: 2rem;
+            z-index: 100;
+            background: rgba(26, 31, 46, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 1rem 1.25rem;
+            background: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            color: var(--primary-color);
+            font-family: inherit;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--info-color);
+            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.15);
+        }
+
+        .search-input::placeholder {
+            color: var(--muted-color);
+        }
+
+        .filter-tags {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .filter-tag {
+            padding: 0.6rem 1.2rem;
+            background: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 25px;
+            color: var(--secondary-color);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        .filter-tag:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .filter-tag.active {
+            background: linear-gradient(135deg, var(--info-color), var(--success-color));
+            color: var(--primary-bg);
+            border-color: var(--info-color);
+            box-shadow: 0 4px 20px rgba(66, 153, 225, 0.3);
+        }
+
+        .scenario-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 2.5rem;
+        }
+
+        .scenario-card {
+            background: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            overflow: hidden;
+            transition: all 0.4s ease;
+            position: relative;
+            opacity: 0;
+            animation: fadeInUp 0.8s ease forwards;
+        }
+
+        .scenario-card:nth-child(odd) { animation-delay: 0.1s; }
+        .scenario-card:nth-child(even) { animation-delay: 0.2s; }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .scenario-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.4);
+            border-color: var(--info-color);
+        }
+
+        .scenario-header {
+            padding: 2rem;
+            background: linear-gradient(135deg, var(--accent-bg), var(--secondary-bg));
+            border-bottom: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        .scenario-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--scenario-color, var(--info-color));
+            border-radius: 16px 16px 0 0;
+        }
+
+        .scenario-title {
+            font-size: 1.6rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .scenario-icon {
+            font-size: 2rem;
+            color: var(--scenario-color, var(--info-color));
+        }
+
+        .scenario-description {
+            color: var(--secondary-color);
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        .scenario-content {
+            padding: 2rem;
+        }
+
+        .command-workflow {
+            margin-bottom: 2rem;
+        }
+
+        .workflow-step {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            align-items: flex-start;
+        }
+
+        .step-number {
+            flex-shrink: 0;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--scenario-color, var(--info-color));
+            color: var(--primary-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        .step-content {
+            flex: 1;
+        }
+
+        .step-title {
+            color: var(--primary-color);
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .step-description {
+            color: var(--secondary-color);
+            margin-bottom: 1rem;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        .command-block {
+            background: var(--primary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            font-family: 'Roboto Mono', monospace;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .command-block::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--scenario-color, var(--info-color));
+        }
+
+        .command-line {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.8rem;
+            flex-wrap: wrap;
+        }
+
+        .command-line:last-child {
+            margin-bottom: 0;
+        }
+
+        .prompt {
+            color: var(--success-color);
+            margin-right: 0.8rem;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .command {
+            color: var(--cyan-color);
+            cursor: pointer;
+            position: relative;
+            flex: 1;
+            font-size: 1rem;
+            min-width: 0;
+            word-break: break-word;
+        }
+
+        .command:hover {
+            background: rgba(0, 212, 170, 0.1);
+            border-radius: 6px;
+            padding: 4px 6px;
+            margin: -4px -6px;
+        }
+
+        .copy-btn {
+            background: none;
+            border: none;
+            color: var(--muted-color);
+            cursor: pointer;
+            padding: 0.4rem;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            opacity: 0;
+            margin-left: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .command-line:hover .copy-btn {
+            opacity: 1;
+        }
+
+        .copy-btn:hover {
+            background: var(--accent-bg);
+            color: var(--cyan-color);
+        }
+
+        .command-explanation {
+            color: var(--warning-color);
+            font-size: 0.95rem;
+            margin-left: 1rem;
+            font-style: italic;
+            margin-top: 0.5rem;
+        }
+
+        .tips-section {
+            background: rgba(72, 187, 120, 0.1);
+            border: 1px solid rgba(72, 187, 120, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .tips-title {
+            color: var(--success-color);
+            font-weight: 600;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .tip-list {
+            list-style: none;
+            color: var(--secondary-color);
+            font-size: 1rem;
+        }
+
+        .tip-list li {
+            margin-bottom: 0.5rem;
+            padding-left: 1.5rem;
+            position: relative;
+            line-height: 1.5;
+        }
+
+        .tip-list li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: var(--success-color);
+            font-weight: bold;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--success-color);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            font-family: 'Roboto Mono', monospace;
+            font-weight: 500;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .footer {
+            margin-top: 4rem;
+            text-align: center;
+            color: var(--muted-color);
+            font-size: 1rem;
+            padding: 2rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .college-brand {
+            color: var(--info-color);
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .container { padding: 1rem; }
+            .scenario-grid { grid-template-columns: 1fr; }
+            .title { font-size: 2.5rem; }
+            .search-controls { position: static; }
+            .filter-tags { justify-content: flex-start; }
+            .scenario-header { padding: 1.5rem; }
+            .scenario-content { padding: 1.5rem; }
+            .workflow-step { gap: 1rem; }
+            .step-number { width: 32px; height: 32px; }
+            .permission-guide { grid-template-columns: 1fr; }
+        }
+
+        .hidden { display: none !important; }
+
+        /* Scenario-specific colors */
+        .check-permissions { --scenario-color: var(--info-color); }
+        .protect-files { --scenario-color: var(--danger-color); }
+        .make-executable { --scenario-color: var(--success-color); }
+        .share-team { --scenario-color: var(--warning-color); }
+        .default-security { --scenario-color: var(--purple-color); }
+        .special-permissions { --scenario-color: var(--cyan-color); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1 class="title">Basic Linux File Permissions</h1>
+            <p class="subtitle">Simple Security & Access Control</p>
+            <div class="course-badge">
+                <span>🔒</span>
+                <span>College of DuPage - AI Cybersecurity Program</span>
+            </div>
+        </header>
+
+        <div class="intro-text">
+            <h3>Master File Permissions & Security</h3>
+            <p>Learn Linux file permissions through practical scenarios. Understand who can read, write, and execute files, and how to keep your system secure with proper access controls!</p>
+        </div>
+
+        <div class="permission-guide">
+            <div class="permission-card">
+                <h4>Read (r)</h4>
+                <div class="permission-example">r-- = 4</div>
+                <div class="permission-desc">View file contents or list directory</div>
+            </div>
+            <div class="permission-card">
+                <h4>Write (w)</h4>
+                <div class="permission-example">-w- = 2</div>
+                <div class="permission-desc">Modify file or add/remove files in directory</div>
+            </div>
+            <div class="permission-card">
+                <h4>Execute (x)</h4>
+                <div class="permission-example">--x = 1</div>
+                <div class="permission-desc">Run file as program or enter directory</div>
+            </div>
+            <div class="permission-card">
+                <h4>Common Combos</h4>
+                <div class="permission-example">rwx = 7, r-x = 5, r-- = 4</div>
+                <div class="permission-desc">Add numbers: read(4) + write(2) + execute(1)</div>
+            </div>
+        </div>
+
+        <div class="search-controls">
+            <input type="text" class="search-input" placeholder="🔍 Search for scenarios or commands..." id="searchInput">
+            <div class="filter-tags">
+                <button class="filter-tag active" data-category="all">All Tasks</button>
+                <button class="filter-tag" data-category="check-permissions">Check Permissions</button>
+                <button class="filter-tag" data-category="protect-files">Protect Files</button>
+                <button class="filter-tag" data-category="make-executable">Make Executable</button>
+                <button class="filter-tag" data-category="share-team">Share with Team</button>
+                <button class="filter-tag" data-category="default-security">Default Security</button>
+                <button class="filter-tag" data-category="special-permissions">Special Permissions</button>
+            </div>
+        </div>
+
+        <div class="scenario-grid">
+            <!-- Check File Permissions -->
+            <div class="scenario-card check-permissions" data-category="check-permissions">
+                <div class="scenario-header">
+                    <div class="scenario-title">
+                        <span class="scenario-icon">👀</span>
+                        Check What Permissions You Have
+                    </div>
+                    <div class="scenario-description">
+                        You found some files on the system and want to know who can access them. Let's learn to read the permission codes and understand what they mean for security.
+                    </div>
+                </div>
+                <div class="scenario-content">
+                    <div class="command-workflow">
+                        <div class="workflow-step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <div class="step-title">See All File Details</div>
+                                <div class="step-description">Use the long listing format to see file permissions, ownership, and other details.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('ls -la')">ls -la</span>
+                                        <button class="copy-btn" onclick="copyCommand('ls -la')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Shows all files with permissions, owner, group, and dates</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <div class="step-title">Check a Specific File</div>
+                                <div class="step-description">Look at the permissions on a particular file you're interested in.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('ls -l important-file.txt')">ls -l important-file.txt</span>
+                                        <button class="copy-btn" onclick="copyCommand('ls -l important-file.txt')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Shows detailed info about just one specific file</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <div class="step-title">Check Folder Permissions</div>
+                                <div class="step-description">See the permissions on a directory itself, not the files inside it.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('ls -ld project-folder')">ls -ld project-folder</span>
+                                        <button class="copy-btn" onclick="copyCommand('ls -ld project-folder')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Shows directory permissions (d = directory)</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">4</div>
+                            <div class="step-content">
+                                <div class="step-title">Understand the Permission Code</div>
+                                <div class="step-description">Learn to read the permission string like "-rw-r--r--" to understand access levels.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">Example:</span>
+                                        <span class="command" onclick="copyCommand('-rw-r--r-- 1 admin staff 1024 Dec 20 10:30 file.txt')">-rw-r--r-- 1 admin staff 1024 Dec 20 10:30 file.txt</span>
+                                        <button class="copy-btn" onclick="copyCommand('-rw-r--r-- 1 admin staff 1024 Dec 20 10:30 file.txt')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Owner: rw- (read+write), Group: r-- (read only), Others: r-- (read only)</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tips-section">
+                        <div class="tips-title">💡 What You Just Did</div>
+                        <ul class="tip-list">
+                            <li>Used "ls -l" to see detailed file information including permissions</li>
+                            <li>Used "ls -ld" to check directory permissions specifically</li>
+                            <li>Learned to read permission strings: first 3 for owner, next 3 for group, last 3 for others</li>
+                            <li>Identified file types: "-" for files, "d" for directories</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Protect Sensitive Files -->
+            <div class="scenario-card protect-files" data-category="protect-files">
+                <div class="scenario-header">
+                    <div class="scenario-title">
+                        <span class="scenario-icon">🛡️</span>
+                        Protect Sensitive Files
+                    </div>
+                    <div class="scenario-description">
+                        You have files with passwords and secret information that only you should be able to read. Let's make these files completely private so no one else can access them.
+                    </div>
+                </div>
+                <div class="scenario-content">
+                    <div class="command-workflow">
+                        <div class="workflow-step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <div class="step-title">Create a Secret File</div>
+                                <div class="step-description">Make a file with sensitive information that needs protection.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('echo \"Admin password: secret123\" > passwords.txt')">echo "Admin password: secret123" > passwords.txt</span>
+                                        <button class="copy-btn" onclick="copyCommand('echo \"Admin password: secret123\" > passwords.txt')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Creates a file containing sensitive password information</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <div class="step-title">Check Current Permissions</div>
+                                <div class="step-description">See what permissions the file currently has - it's probably readable by everyone!</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('ls -l passwords.txt')">ls -l passwords.txt</span>
+                                        <button class="copy-btn" onclick="copyCommand('ls -l passwords.txt')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Shows current permissions - probably -rw-r--r-- (others can read!)</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <div class="step-title">Make File Completely Private</div>
+                                <div class="step-description">Remove all permissions for group and others, leaving only owner access.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('chmod 600 passwords.txt')">chmod 600 passwords.txt</span>
+                                        <button class="copy-btn" onclick="copyCommand('chmod 600 passwords.txt')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Sets permissions to rw------- (only owner can read/write)</div>
+                                    <div class="command-line">
+                                        <span class="prompt">Or use symbolic:</span>
+                                        <span class="command" onclick="copyCommand('chmod go-rwx passwords.txt')">chmod go-rwx passwords.txt</span>
+                                        <button class="copy-btn" onclick="copyCommand('chmod go-rwx passwords.txt')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Removes all permissions for group (g) and others (o)</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">4</div>
+                            <div class="step-content">
+                                <div class="step-title">Verify Security</div>
+                                <div class="step-description">Check that your file is now properly protected.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('ls -l passwords.txt')">ls -l passwords.txt</span>
+                                        <button class="copy-btn" onclick="copyCommand('ls -l passwords.txt')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Should now show -rw------- (only you can access)</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tips-section">
+                        <div class="tips-title">💡 What You Just Did</div>
+                        <ul class="tip-list">
+                            <li>Used "chmod 600" to make files private (read/write for owner only)</li>
+                            <li>Used "chmod go-rwx" as an alternative (remove all access for group and others)</li>
+                            <li>Protected sensitive files from being read by other users</li>
+                            <li>600 means: owner=6(4+2=read+write), group=0(none), others=0(none)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Make Scripts Executable -->
+            <div class="scenario-card make-executable" data-category="make-executable">
+                <div class="scenario-header">
+                    <div class="scenario-title">
+                        <span class="scenario-icon">⚡</span>
+                        Make Scripts Executable
+                    </div>
+                    <div class="scenario-description">
+                        You wrote a script to automate some security tasks, but when you try to run it, you get "Permission denied". You need to give the script execute permission so it can run.
+                    </div>
+                </div>
+                <div class="scenario-content">
+                    <div class="command-workflow">
+                        <div class="workflow-step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <div class="step-title">Create a Simple Script</div>
+                                <div class="step-description">Make a script file that will help with daily security checks.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('echo \"#!/bin/bash\\necho Checking system security...\\nwho\\ndate\" > security-check.sh')">echo "#!/bin/bash\necho Checking system security...\nwho\ndate" > security-check.sh</span>
+                                        <button class="copy-btn" onclick="copyCommand('echo \"#!/bin/bash\\necho Checking system security...\\nwho\\ndate\" > security-check.sh')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Creates a script that checks who's logged in and the current time</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <div class="step-title">Try to Run the Script</div>
+                                <div class="step-description">Attempt to run the script and see what happens (it will fail!).</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('./security-check.sh')">./security-check.sh</span>
+                                        <button class="copy-btn" onclick="copyCommand('./security-check.sh')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Will show "Permission denied" because script isn't executable</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('ls -l security-check.sh')">ls -l security-check.sh</span>
+                                        <button class="copy-btn" onclick="copyCommand('ls -l security-check.sh')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Shows permissions like -rw-r--r-- (no execute permission)</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <div class="step-title">Add Execute Permission</div>
+                                <div class="step-description">Give the script execute permission so it can run.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('chmod +x security-check.sh')">chmod +x security-check.sh</span>
+                                        <button class="copy-btn" onclick="copyCommand('chmod +x security-check.sh')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Adds execute permission for everyone (owner, group, others)</div>
+                                    <div class="command-line">
+                                        <span class="prompt">Or be specific:</span>
+                                        <span class="command" onclick="copyCommand('chmod u+x security-check.sh')">chmod u+x security-check.sh</span>
+                                        <button class="copy-btn" onclick="copyCommand('chmod u+x security-check.sh')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Adds execute permission for user (owner) only</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">4</div>
+                            <div class="step-content">
+                                <div class="step-title">Run Your Script Successfully</div>
+                                <div class="step-description">Now your script should work!</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('./security-check.sh')">./security-check.sh</span>
+                                        <button class="copy-btn" onclick="copyCommand('./security-check.sh')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Script runs successfully and shows security info</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('ls -l security-check.sh')">ls -l security-check.sh</span>
+                                        <button class="copy-btn" onclick="copyCommand('ls -l security-check.sh')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Now shows -rwxr-xr-x (script is executable)</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tips-section">
+                        <div class="tips-title">💡 What You Just Did</div>
+                        <ul class="tip-list">
+                            <li>Used "chmod +x" to make files executable</li>
+                            <li>Used "chmod u+x" to give execute permission to owner only</li>
+                            <li>Learned that scripts need execute permission to run</li>
+                            <li>Scripts should start with "#!/bin/bash" to tell the system how to run them</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Share Files with Team -->
+            <div class="scenario-card share-team" data-category="share-team">
+                <div class="scenario-header">
+                    <div class="scenario-title">
+                        <span class="scenario-icon">👥</span>
+                        Share Files with Your Team
+                    </div>
+                    <div class="scenario-description">
+                        Your security team needs to share files and work together on projects. You need to set up proper group ownership and permissions so team members can collaborate safely.
+                    </div>
+                </div>
+                <div class="scenario-content">
+                    <div class="command-workflow">
+                        <div class="workflow-step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <div class="step-title">Create a Team Project File</div>
+                                <div class="step-description">Make a file that your team will work on together.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('echo \"Security Team Project Plan\" > team-project.txt')">echo "Security Team Project Plan" > team-project.txt</span>
+                                        <button class="copy-btn" onclick="copyCommand('echo \"Security Team Project Plan\" > team-project.txt')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Creates a project file for team collaboration</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <div class="step-title">Change Group Ownership</div>
+                                <div class="step-description">Assign the file to your security team group so all members can access it.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('chgrp security-team team-project.txt')">chgrp security-team team-project.txt</span>
+                                        <button class="copy-btn" onclick="copyCommand('chgrp security-team team-project.txt')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Changes group ownership to security-team</div>
+                                    <div class="command-line">
+                                        <span class="prompt">Or with chown:</span>
+                                        <span class="command" onclick="copyCommand('chown :security-team team-project.txt')">chown :security-team team-project.txt</span>
+                                        <button class="copy-btn" onclick="copyCommand('chown :security-team team-project.txt')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Alternative way to change group (: means group only)</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <div class="step-title">Give Team Write Permission</div>
+                                <div class="step-description">Allow your team members to edit the file, not just read it.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('chmod g+w team-project.txt')">chmod g+w team-project.txt</span>
+                                        <button class="copy-btn" onclick="copyCommand('chmod g+w team-project.txt')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Adds write permission for the group</div>
+                                    <div class="command-line">
+                                        <span class="prompt">Or with numbers:</span>
+                                        <span class="command" onclick="copyCommand('chmod 664 team-project.txt')">chmod 664 team-project.txt</span>
+                                        <button class="copy-btn" onclick="copyCommand('chmod 664 team-project.txt')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Owner: rw(6), Group: rw(6), Others: r(4)</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">4</div>
+                            <div class="step-content">
+                                <div class="step-title">Verify Team Access</div>
+                                <div class="step-description">Check that the file is properly set up for team collaboration.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('ls -l team-project.txt')">ls -l team-project.txt</span>
+                                        <button class="copy-btn" onclick="copyCommand('ls -l team-project.txt')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Should show -rw-rw-r-- with security-team as group</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('groups')">groups</span>
+                                        <button class="copy-btn" onclick="copyCommand('groups')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Shows which groups you belong to</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tips-section">
+                        <div class="tips-title">💡 What You Just Did</div>
+                        <ul class="tip-list">
+                            <li>Used "chgrp" to change group ownership of files</li>
+                            <li>Used "chmod g+w" to give write permission to the group</li>
+                            <li>Used "chmod 664" for team collaboration (owner+group write, others read)</li>
+                            <li>Used "groups" to see what groups you belong to</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Default Security -->
+            <div class="scenario-card default-security" data-category="default-security">
+                <div class="scenario-header">
+                    <div class="scenario-title">
+                        <span class="scenario-icon">🔧</span>
+                        Set Default Security
+                    </div>
+                    <div class="scenario-description">
+                        Every time you create new files, they get default permissions that might not be secure. Learn to check and change your umask to control what permissions new files get automatically.
+                    </div>
+                </div>
+                <div class="scenario-content">
+                    <div class="command-workflow">
+                        <div class="workflow-step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <div class="step-title">Check Current Default Settings</div>
+                                <div class="step-description">See what umask (default permissions) you currently have.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('umask')">umask</span>
+                                        <button class="copy-btn" onclick="copyCommand('umask')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Shows current umask (probably 0022 or 0002)</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <div class="step-title">Test Current Defaults</div>
+                                <div class="step-description">Create a test file and see what permissions it gets automatically.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('touch test-file.txt')">touch test-file.txt</span>
+                                        <button class="copy-btn" onclick="copyCommand('touch test-file.txt')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Creates a new file with default permissions</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('ls -l test-file.txt')">ls -l test-file.txt</span>
+                                        <button class="copy-btn" onclick="copyCommand('ls -l test-file.txt')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Shows what permissions new files get (probably -rw-r--r--)</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <div class="step-title">Set More Secure Defaults</div>
+                                <div class="step-description">Change umask to make new files more private by default.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('umask 027')">umask 027</span>
+                                        <button class="copy-btn" onclick="copyCommand('umask 027')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Sets umask to 027 (removes write for group, all access for others)</div>
+                                    <div class="command-line">
+                                        <span class="prompt">For very private:</span>
+                                        <span class="command" onclick="copyCommand('umask 077')">umask 077</span>
+                                        <button class="copy-btn" onclick="copyCommand('umask 077')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Very secure: only owner can access new files</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">4</div>
+                            <div class="step-content">
+                                <div class="step-title">Test New Default Security</div>
+                                <div class="step-description">Create another file and see the improved security.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('touch secure-file.txt')">touch secure-file.txt</span>
+                                        <button class="copy-btn" onclick="copyCommand('touch secure-file.txt')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Creates a file with the new secure defaults</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('ls -l secure-file.txt')">ls -l secure-file.txt</span>
+                                        <button class="copy-btn" onclick="copyCommand('ls -l secure-file.txt')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">With umask 027: -rw-r----- (more secure!)</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tips-section">
+                        <div class="tips-title">💡 What You Just Did</div>
+                        <ul class="tip-list">
+                            <li>Used "umask" to check and set default file permissions</li>
+                            <li>umask 022 = others can read, umask 027 = others can't access</li>
+                            <li>umask 077 = only owner can access (most secure)</li>
+                            <li>umask settings only last until you log out (make permanent in .bashrc)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Special Permissions -->
+            <div class="scenario-card special-permissions" data-category="special-permissions">
+                <div class="scenario-header">
+                    <div class="scenario-title">
+                        <span class="scenario-icon">✨</span>
+                        Special Shared Folder Permissions
+                    </div>
+                    <div class="scenario-description">
+                        Your team needs a shared folder where everyone's files automatically belong to the team group. You'll use special "setgid" permission so all new files get the right group ownership.
+                    </div>
+                </div>
+                <div class="scenario-content">
+                    <div class="command-workflow">
+                        <div class="workflow-step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <div class="step-title">Create a Shared Team Directory</div>
+                                <div class="step-description">Make a folder where your team will collaborate.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('mkdir shared-projects')">mkdir shared-projects</span>
+                                        <button class="copy-btn" onclick="copyCommand('mkdir shared-projects')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Creates a directory for team collaboration</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <div class="step-title">Set Group Ownership</div>
+                                <div class="step-description">Make the folder belong to your security team group.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('chgrp security-team shared-projects')">chgrp security-team shared-projects</span>
+                                        <button class="copy-btn" onclick="copyCommand('chgrp security-team shared-projects')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Changes group ownership to security-team</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <div class="step-title">Set Special Group Permissions</div>
+                                <div class="step-description">Apply setgid so new files automatically get the correct group.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('chmod 2775 shared-projects')">chmod 2775 shared-projects</span>
+                                        <button class="copy-btn" onclick="copyCommand('chmod 2775 shared-projects')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">2 = setgid, 775 = rwx for owner/group, r-x for others</div>
+                                    <div class="command-line">
+                                        <span class="prompt">Alternative way:</span>
+                                        <span class="command" onclick="copyCommand('chmod g+s shared-projects')">chmod g+s shared-projects</span>
+                                        <button class="copy-btn" onclick="copyCommand('chmod g+s shared-projects')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Sets the setgid bit using symbolic notation</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">4</div>
+                            <div class="step-content">
+                                <div class="step-title">Test the Special Permission</div>
+                                <div class="step-description">Create a file inside the folder and see if it gets the right group automatically.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('ls -ld shared-projects')">ls -ld shared-projects</span>
+                                        <button class="copy-btn" onclick="copyCommand('ls -ld shared-projects')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Should show drwxrwsr-x (notice the 's' in group execute position)</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('touch shared-projects/team-file.txt')">touch shared-projects/team-file.txt</span>
+                                        <button class="copy-btn" onclick="copyCommand('touch shared-projects/team-file.txt')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Creates a file inside the special directory</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@computer ~]$</span>
+                                        <span class="command" onclick="copyCommand('ls -l shared-projects/team-file.txt')">ls -l shared-projects/team-file.txt</span>
+                                        <button class="copy-btn" onclick="copyCommand('ls -l shared-projects/team-file.txt')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">File should automatically have security-team as its group!</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tips-section">
+                        <div class="tips-title">💡 What You Just Did</div>
+                        <ul class="tip-list">
+                            <li>Used "chmod 2775" to set setgid permission (2 = setgid)</li>
+                            <li>Used "chmod g+s" as alternative way to set setgid</li>
+                            <li>setgid on directories makes new files inherit the directory's group</li>
+                            <li>Look for 's' in the group execute position to identify setgid</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>© 2025 <span class="college-brand">College of DuPage</span> - Computer Information Technology Department</p>
+            <p>CIT 1450 Linux/Unix Systems | AI Cybersecurity Program</p>
+            <p><em>Making Linux file permissions simple and secure</em></p>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // Initialize variables
+        const searchInput = document.getElementById('searchInput');
+        const filterTags = document.querySelectorAll('.filter-tag');
+        const scenarioCards = document.querySelectorAll('.scenario-card');
+        let currentFilter = 'all';
+
+        // Search functionality
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            filterScenarios(searchTerm, currentFilter);
+        });
+
+        // Filter tag functionality
+        filterTags.forEach(tag => {
+            tag.addEventListener('click', function() {
+                // Update active tag
+                filterTags.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                
+                currentFilter = this.dataset.category;
+                const searchTerm = searchInput.value.toLowerCase();
+                filterScenarios(searchTerm, currentFilter);
+            });
+        });
+
+        // Filter scenarios based on search and category
+        function filterScenarios(searchTerm, category) {
+            scenarioCards.forEach(card => {
+                const cardCategory = card.dataset.category;
+                const cardText = card.textContent.toLowerCase();
+                
+                const matchesCategory = category === 'all' || category === cardCategory;
+                const matchesSearch = !searchTerm || cardText.includes(searchTerm);
+                
+                if (matchesCategory && matchesSearch) {
+                    card.classList.remove('hidden');
+                } else {
+                    card.classList.add('hidden');
+                }
+            });
+        }
+
+        // Copy command to clipboard
+        function copyCommand(command) {
+            navigator.clipboard.writeText(command).then(() => {
+                showToast(`Copied: ${command}`);
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+                showToast('Copy failed - try selecting manually');
+            });
+        }
+
+        // Show toast notification
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2500);
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl/Cmd + K to focus search
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                searchInput.focus();
+                searchInput.select();
+            }
+            
+            // Escape to clear search
+            if (e.key === 'Escape') {
+                searchInput.value = '';
+                filterScenarios('', currentFilter);
+                searchInput.blur();
+            }
+        });
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add click to copy for all commands
+            document.querySelectorAll('.command').forEach(cmd => {
+                cmd.addEventListener('click', function() {
+                    copyCommand(this.textContent.trim());
+                });
+            });
+
+            // Focus search on page load
+            setTimeout(() => {
+                searchInput.focus();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

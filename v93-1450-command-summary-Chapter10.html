@@ -1,0 +1,1346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Basic SSH Configuration & Security - Chapter 10</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-bg: #0a0e1a;
+            --secondary-bg: #1a1f2e;
+            --accent-bg: #242b3d;
+            --border-color: #2d3748;
+            --primary-color: #e2e8f0;
+            --secondary-color: #a0aec0;
+            --muted-color: #718096;
+            --success-color: #48bb78;
+            --warning-color: #ed8936;
+            --danger-color: #f56565;
+            --info-color: #4299e1;
+            --purple-color: #9f7aea;
+            --cyan-color: #00d4aa;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, var(--primary-bg) 0%, #0f1419 100%);
+            color: var(--primary-color);
+            line-height: 1.7;
+            min-height: 100vh;
+            font-size: 16px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            position: relative;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -30px;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--success-color), var(--info-color), var(--warning-color), transparent);
+            animation: pulse 3s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; transform: scaleX(0.8); }
+            50% { opacity: 1; transform: scaleX(1); }
+        }
+
+        .title {
+            font-size: clamp(2.5rem, 6vw, 3.8rem);
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--success-color), var(--info-color), var(--warning-color));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+        }
+
+        .subtitle {
+            font-size: 1.4rem;
+            color: var(--secondary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .course-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: linear-gradient(135deg, var(--accent-bg), var(--secondary-bg));
+            border: 1px solid var(--border-color);
+            border-radius: 50px;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            color: var(--warning-color);
+            margin-top: 1rem;
+        }
+
+        .intro-text {
+            background: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 3rem;
+            text-align: center;
+        }
+
+        .intro-text h3 {
+            color: var(--success-color);
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+        }
+
+        .intro-text p {
+            color: var(--secondary-color);
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        .ssh-guide {
+            background: var(--accent-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 3rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        .ssh-card {
+            background: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .ssh-card h4 {
+            color: var(--warning-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .ssh-example {
+            font-family: 'Roboto Mono', monospace;
+            color: var(--cyan-color);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .ssh-desc {
+            color: var(--secondary-color);
+            font-size: 0.9rem;
+        }
+
+        .search-controls {
+            position: sticky;
+            top: 2rem;
+            z-index: 100;
+            background: rgba(26, 31, 46, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 1rem 1.25rem;
+            background: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            color: var(--primary-color);
+            font-family: inherit;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--info-color);
+            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.15);
+        }
+
+        .search-input::placeholder {
+            color: var(--muted-color);
+        }
+
+        .filter-tags {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .filter-tag {
+            padding: 0.6rem 1.2rem;
+            background: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 25px;
+            color: var(--secondary-color);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        .filter-tag:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .filter-tag.active {
+            background: linear-gradient(135deg, var(--info-color), var(--success-color));
+            color: var(--primary-bg);
+            border-color: var(--info-color);
+            box-shadow: 0 4px 20px rgba(66, 153, 225, 0.3);
+        }
+
+        .scenario-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 2.5rem;
+        }
+
+        .scenario-card {
+            background: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            overflow: hidden;
+            transition: all 0.4s ease;
+            position: relative;
+            opacity: 0;
+            animation: fadeInUp 0.8s ease forwards;
+        }
+
+        .scenario-card:nth-child(odd) { animation-delay: 0.1s; }
+        .scenario-card:nth-child(even) { animation-delay: 0.2s; }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .scenario-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.4);
+            border-color: var(--info-color);
+        }
+
+        .scenario-header {
+            padding: 2rem;
+            background: linear-gradient(135deg, var(--accent-bg), var(--secondary-bg));
+            border-bottom: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        .scenario-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--scenario-color, var(--info-color));
+            border-radius: 16px 16px 0 0;
+        }
+
+        .scenario-title {
+            font-size: 1.6rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .scenario-icon {
+            font-size: 2rem;
+            color: var(--scenario-color, var(--info-color));
+        }
+
+        .scenario-description {
+            color: var(--secondary-color);
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        .scenario-content {
+            padding: 2rem;
+        }
+
+        .command-workflow {
+            margin-bottom: 2rem;
+        }
+
+        .workflow-step {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            align-items: flex-start;
+        }
+
+        .step-number {
+            flex-shrink: 0;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--scenario-color, var(--info-color));
+            color: var(--primary-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        .step-content {
+            flex: 1;
+        }
+
+        .step-title {
+            color: var(--primary-color);
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .step-description {
+            color: var(--secondary-color);
+            margin-bottom: 1rem;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        .command-block {
+            background: var(--primary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            font-family: 'Roboto Mono', monospace;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .command-block::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--scenario-color, var(--info-color));
+        }
+
+        .command-line {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.8rem;
+            flex-wrap: wrap;
+        }
+
+        .command-line:last-child {
+            margin-bottom: 0;
+        }
+
+        .prompt {
+            color: var(--success-color);
+            margin-right: 0.8rem;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .command {
+            color: var(--cyan-color);
+            cursor: pointer;
+            position: relative;
+            flex: 1;
+            font-size: 1rem;
+            min-width: 0;
+            word-break: break-word;
+        }
+
+        .command:hover {
+            background: rgba(0, 212, 170, 0.1);
+            border-radius: 6px;
+            padding: 4px 6px;
+            margin: -4px -6px;
+        }
+
+        .copy-btn {
+            background: none;
+            border: none;
+            color: var(--muted-color);
+            cursor: pointer;
+            padding: 0.4rem;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            opacity: 0;
+            margin-left: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .command-line:hover .copy-btn {
+            opacity: 1;
+        }
+
+        .copy-btn:hover {
+            background: var(--accent-bg);
+            color: var(--cyan-color);
+        }
+
+        .command-explanation {
+            color: var(--warning-color);
+            font-size: 0.95rem;
+            margin-left: 1rem;
+            font-style: italic;
+            margin-top: 0.5rem;
+        }
+
+        .tips-section {
+            background: rgba(72, 187, 120, 0.1);
+            border: 1px solid rgba(72, 187, 120, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .tips-title {
+            color: var(--success-color);
+            font-weight: 600;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .tip-list {
+            list-style: none;
+            color: var(--secondary-color);
+            font-size: 1rem;
+        }
+
+        .tip-list li {
+            margin-bottom: 0.5rem;
+            padding-left: 1.5rem;
+            position: relative;
+            line-height: 1.5;
+        }
+
+        .tip-list li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: var(--success-color);
+            font-weight: bold;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--success-color);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            font-family: 'Roboto Mono', monospace;
+            font-weight: 500;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .footer {
+            margin-top: 4rem;
+            text-align: center;
+            color: var(--muted-color);
+            font-size: 1rem;
+            padding: 2rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .college-brand {
+            color: var(--info-color);
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .container { padding: 1rem; }
+            .scenario-grid { grid-template-columns: 1fr; }
+            .title { font-size: 2.5rem; }
+            .search-controls { position: static; }
+            .filter-tags { justify-content: flex-start; }
+            .scenario-header { padding: 1.5rem; }
+            .scenario-content { padding: 1.5rem; }
+            .workflow-step { gap: 1rem; }
+            .step-number { width: 32px; height: 32px; }
+            .ssh-guide { grid-template-columns: 1fr; }
+        }
+
+        .hidden { display: none !important; }
+
+        /* Scenario-specific colors */
+        .basic-ssh { --scenario-color: var(--info-color); }
+        .ssh-keys { --scenario-color: var(--success-color); }
+        .ssh-config { --scenario-color: var(--warning-color); }
+        .ssh-security { --scenario-color: var(--danger-color); }
+        .ssh-troubleshoot { --scenario-color: var(--purple-color); }
+        .ssh-automation { --scenario-color: var(--cyan-color); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1 class="title">Basic SSH Configuration & Security</h1>
+            <p class="subtitle">Simple Secure Remote Access</p>
+            <div class="course-badge">
+                <span>🔐</span>
+                <span>College of DuPage - AI Cybersecurity Program</span>
+            </div>
+        </header>
+
+        <div class="intro-text">
+            <h3>Master Secure Remote Access</h3>
+            <p>Learn to use SSH for secure remote system administration. From basic connections to advanced security configurations, these are the essential skills every cybersecurity professional needs for secure remote management!</p>
+        </div>
+
+        <div class="ssh-guide">
+            <div class="ssh-card">
+                <h4>Basic SSH Connection</h4>
+                <div class="ssh-example">ssh user@server</div>
+                <div class="ssh-desc">Connect to remote systems securely</div>
+            </div>
+            <div class="ssh-card">
+                <h4>SSH Key Generation</h4>
+                <div class="ssh-example">ssh-keygen</div>
+                <div class="ssh-desc">Create secure key pairs for passwordless login</div>
+            </div>
+            <div class="ssh-card">
+                <h4>Key Distribution</h4>
+                <div class="ssh-example">ssh-copy-id user@server</div>
+                <div class="ssh-desc">Copy public keys to remote systems</div>
+            </div>
+            <div class="ssh-card">
+                <h4>SSH Security</h4>
+                <div class="ssh-example">systemctl reload sshd</div>
+                <div class="ssh-desc">Apply security configuration changes</div>
+            </div>
+        </div>
+
+        <div class="search-controls">
+            <input type="text" class="search-input" placeholder="🔍 Search for scenarios or commands..." id="searchInput">
+            <div class="filter-tags">
+                <button class="filter-tag active" data-category="all">All Tasks</button>
+                <button class="filter-tag" data-category="basic-ssh">Basic SSH</button>
+                <button class="filter-tag" data-category="ssh-keys">SSH Keys</button>
+                <button class="filter-tag" data-category="ssh-config">SSH Config</button>
+                <button class="filter-tag" data-category="ssh-security">SSH Security</button>
+                <button class="filter-tag" data-category="ssh-troubleshoot">Troubleshoot</button>
+                <button class="filter-tag" data-category="ssh-automation">Automation</button>
+            </div>
+        </div>
+
+        <div class="scenario-grid">
+            <!-- Basic SSH Connection -->
+            <div class="scenario-card basic-ssh" data-category="basic-ssh">
+                <div class="scenario-header">
+                    <div class="scenario-title">
+                        <span class="scenario-icon">🖥️</span>
+                        Connect to Remote Systems
+                    </div>
+                    <div class="scenario-description">
+                        You need to remotely manage servers for security updates and monitoring. Learn how to connect securely using SSH and run commands on remote systems.
+                    </div>
+                </div>
+                <div class="scenario-content">
+                    <div class="command-workflow">
+                        <div class="workflow-step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <div class="step-title">Basic SSH Connection</div>
+                                <div class="step-description">Connect to a remote server using SSH with username and password.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@local ~]$</span>
+                                        <span class="command" onclick="copyCommand('ssh user@192.168.1.100')">ssh user@192.168.1.100</span>
+                                        <button class="copy-btn" onclick="copyCommand('ssh user@192.168.1.100')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Connect to server by IP address</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@local ~]$</span>
+                                        <span class="command" onclick="copyCommand('ssh admin@webserver.company.com')">ssh admin@webserver.company.com</span>
+                                        <button class="copy-btn" onclick="copyCommand('ssh admin@webserver.company.com')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Connect to server by hostname</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <div class="step-title">Run Remote Commands</div>
+                                <div class="step-description">Execute commands on remote systems without opening an interactive shell.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@local ~]$</span>
+                                        <span class="command" onclick="copyCommand('ssh admin@webserver hostname')">ssh admin@webserver hostname</span>
+                                        <button class="copy-btn" onclick="copyCommand('ssh admin@webserver hostname')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Get remote server's hostname</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@local ~]$</span>
+                                        <span class="command" onclick="copyCommand('ssh admin@webserver \"df -h\"')">ssh admin@webserver "df -h"</span>
+                                        <button class="copy-btn" onclick="copyCommand('ssh admin@webserver \"df -h\"')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Check disk space on remote server</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <div class="step-title">Check Who's Connected</div>
+                                <div class="step-description">See who else is logged into the remote system for security monitoring.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@webserver ~]$</span>
+                                        <span class="command" onclick="copyCommand('w')">w</span>
+                                        <button class="copy-btn" onclick="copyCommand('w')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Show who is logged in and what they're doing</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@webserver ~]$</span>
+                                        <span class="command" onclick="copyCommand('who --ips')">who --ips</span>
+                                        <button class="copy-btn" onclick="copyCommand('who --ips')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Show connected users with their IP addresses</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">4</div>
+                            <div class="step-content">
+                                <div class="step-title">Safely Disconnect</div>
+                                <div class="step-description">Properly close SSH connections when you're done.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@webserver ~]$</span>
+                                        <span class="command" onclick="copyCommand('exit')">exit</span>
+                                        <button class="copy-btn" onclick="copyCommand('exit')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Close SSH session and return to local terminal</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@local ~]$</span>
+                                        <span class="command" onclick="copyCommand('# Successfully disconnected from remote server')"># Successfully disconnected from remote server</span>
+                                        <button class="copy-btn" onclick="copyCommand('# Successfully disconnected from remote server')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Back on your local system</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tips-section">
+                        <div class="tips-title">💡 What You Just Did</div>
+                        <ul class="tip-list">
+                            <li>Used "ssh user@host" to connect to remote systems securely</li>
+                            <li>Ran commands remotely without opening interactive shells</li>
+                            <li>Checked who else is connected for security monitoring</li>
+                            <li>Properly disconnected from remote systems with "exit"</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SSH Key Authentication -->
+            <div class="scenario-card ssh-keys" data-category="ssh-keys">
+                <div class="scenario-header">
+                    <div class="scenario-title">
+                        <span class="scenario-icon">🔑</span>
+                        Set Up SSH Key Authentication
+                    </div>
+                    <div class="scenario-description">
+                        Passwords can be weak or stolen. Set up SSH key authentication for passwordless, more secure access to your servers. This is essential for automation and security.
+                    </div>
+                </div>
+                <div class="scenario-content">
+                    <div class="command-workflow">
+                        <div class="workflow-step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <div class="step-title">Generate SSH Key Pair</div>
+                                <div class="step-description">Create a public/private key pair for secure authentication.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@local ~]$</span>
+                                        <span class="command" onclick="copyCommand('ssh-keygen -t rsa -b 4096')">ssh-keygen -t rsa -b 4096</span>
+                                        <button class="copy-btn" onclick="copyCommand('ssh-keygen -t rsa -b 4096')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Generate strong 4096-bit RSA key pair</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@local ~]$</span>
+                                        <span class="command" onclick="copyCommand('ssh-keygen -t ed25519')">ssh-keygen -t ed25519</span>
+                                        <button class="copy-btn" onclick="copyCommand('ssh-keygen -t ed25519')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Generate modern Ed25519 key (recommended)</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <div class="step-title">Copy Public Key to Server</div>
+                                <div class="step-description">Install your public key on the remote server for authentication.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@local ~]$</span>
+                                        <span class="command" onclick="copyCommand('ssh-copy-id admin@webserver')">ssh-copy-id admin@webserver</span>
+                                        <button class="copy-btn" onclick="copyCommand('ssh-copy-id admin@webserver')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Copy your public key to remote server</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@local ~]$</span>
+                                        <span class="command" onclick="copyCommand('ssh-copy-id -i ~/.ssh/id_ed25519.pub admin@192.168.1.100')">ssh-copy-id -i ~/.ssh/id_ed25519.pub admin@192.168.1.100</span>
+                                        <button class="copy-btn" onclick="copyCommand('ssh-copy-id -i ~/.ssh/id_ed25519.pub admin@192.168.1.100')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Copy specific key file to server</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <div class="step-title">Test Key Authentication</div>
+                                <div class="step-description">Verify that key-based authentication is working correctly.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@local ~]$</span>
+                                        <span class="command" onclick="copyCommand('ssh admin@webserver')">ssh admin@webserver</span>
+                                        <button class="copy-btn" onclick="copyCommand('ssh admin@webserver')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Connect without being prompted for password</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@local ~]$</span>
+                                        <span class="command" onclick="copyCommand('ssh admin@webserver whoami')">ssh admin@webserver whoami</span>
+                                        <button class="copy-btn" onclick="copyCommand('ssh admin@webserver whoami')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Test remote command with key authentication</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">4</div>
+                            <div class="step-content">
+                                <div class="step-title">Protect Your Private Key</div>
+                                <div class="step-description">Secure your private key with proper permissions and passphrase.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@local ~]$</span>
+                                        <span class="command" onclick="copyCommand('chmod 600 ~/.ssh/id_ed25519')">chmod 600 ~/.ssh/id_ed25519</span>
+                                        <button class="copy-btn" onclick="copyCommand('chmod 600 ~/.ssh/id_ed25519')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Ensure only you can read your private key</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@local ~]$</span>
+                                        <span class="command" onclick="copyCommand('ls -la ~/.ssh/')">ls -la ~/.ssh/</span>
+                                        <button class="copy-btn" onclick="copyCommand('ls -la ~/.ssh/')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Verify SSH directory permissions are secure</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tips-section">
+                        <div class="tips-title">💡 What You Just Did</div>
+                        <ul class="tip-list">
+                            <li>Generated secure SSH key pairs for passwordless authentication</li>
+                            <li>Copied public keys to remote servers with "ssh-copy-id"</li>
+                            <li>Tested key-based authentication to ensure it works properly</li>
+                            <li>Secured private keys with proper file permissions</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SSH Configuration -->
+            <div class="scenario-card ssh-config" data-category="ssh-config">
+                <div class="scenario-header">
+                    <div class="scenario-title">
+                        <span class="scenario-icon">⚙️</span>
+                        Configure SSH Client
+                    </div>
+                    <div class="scenario-description">
+                        You manage many servers with different usernames, ports, and keys. Create SSH client configuration to simplify connections and avoid repeating options every time.
+                    </div>
+                </div>
+                <div class="scenario-content">
+                    <div class="command-workflow">
+                        <div class="workflow-step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <div class="step-title">Create SSH Client Config</div>
+                                <div class="step-description">Set up ~/.ssh/config to simplify server connections.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@local ~]$</span>
+                                        <span class="command" onclick="copyCommand('touch ~/.ssh/config && chmod 600 ~/.ssh/config')">touch ~/.ssh/config && chmod 600 ~/.ssh/config</span>
+                                        <button class="copy-btn" onclick="copyCommand('touch ~/.ssh/config && chmod 600 ~/.ssh/config')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Create and secure SSH config file</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@local ~]$</span>
+                                        <span class="command" onclick="copyCommand('nano ~/.ssh/config')">nano ~/.ssh/config</span>
+                                        <button class="copy-btn" onclick="copyCommand('nano ~/.ssh/config')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Edit SSH configuration file</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <div class="step-title">Add Server Configurations</div>
+                                <div class="step-description">Define shortcuts for different servers with their specific settings.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt"># Web server configuration</span>
+                                        <span class="command" onclick="copyCommand('Host webserver\n    HostName 192.168.1.100\n    User admin\n    Port 22\n    IdentityFile ~/.ssh/id_ed25519')">Host webserver<br>    HostName 192.168.1.100<br>    User admin<br>    Port 22<br>    IdentityFile ~/.ssh/id_ed25519</span>
+                                        <button class="copy-btn" onclick="copyCommand('Host webserver\n    HostName 192.168.1.100\n    User admin\n    Port 22\n    IdentityFile ~/.ssh/id_ed25519')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Configure shortcut for web server</div>
+                                    <div class="command-line">
+                                        <span class="prompt"># Database server configuration</span>
+                                        <span class="command" onclick="copyCommand('Host database\n    HostName db.company.com\n    User dbadmin\n    Port 2222\n    IdentityFile ~/.ssh/db_key')">Host database<br>    HostName db.company.com<br>    User dbadmin<br>    Port 2222<br>    IdentityFile ~/.ssh/db_key</span>
+                                        <button class="copy-btn" onclick="copyCommand('Host database\n    HostName db.company.com\n    User dbadmin\n    Port 2222\n    IdentityFile ~/.ssh/db_key')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Configure shortcut for database server</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <div class="step-title">Use SSH Shortcuts</div>
+                                <div class="step-description">Connect to servers using your configured shortcuts.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@local ~]$</span>
+                                        <span class="command" onclick="copyCommand('ssh webserver')">ssh webserver</span>
+                                        <button class="copy-btn" onclick="copyCommand('ssh webserver')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Connect using configured shortcut</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@local ~]$</span>
+                                        <span class="command" onclick="copyCommand('ssh database \"mysql -e \'SHOW DATABASES;\'\"')">ssh database "mysql -e 'SHOW DATABASES;'"</span>
+                                        <button class="copy-btn" onclick="copyCommand('ssh database \"mysql -e \'SHOW DATABASES;\'\"')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Run command on database server</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">4</div>
+                            <div class="step-content">
+                                <div class="step-title">Add Global SSH Options</div>
+                                <div class="step-description">Set default options that apply to all connections.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt"># Global defaults</span>
+                                        <span class="command" onclick="copyCommand('Host *\n    ServerAliveInterval 60\n    ServerAliveCountMax 3\n    ConnectTimeout 10')">Host *<br>    ServerAliveInterval 60<br>    ServerAliveCountMax 3<br>    ConnectTimeout 10</span>
+                                        <button class="copy-btn" onclick="copyCommand('Host *\n    ServerAliveInterval 60\n    ServerAliveCountMax 3\n    ConnectTimeout 10')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Keep connections alive and set timeouts</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@local ~]$</span>
+                                        <span class="command" onclick="copyCommand('ssh -F ~/.ssh/config webserver')">ssh -F ~/.ssh/config webserver</span>
+                                        <button class="copy-btn" onclick="copyCommand('ssh -F ~/.ssh/config webserver')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Explicitly use specific config file</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tips-section">
+                        <div class="tips-title">💡 What You Just Did</div>
+                        <ul class="tip-list">
+                            <li>Created ~/.ssh/config to simplify server connections</li>
+                            <li>Configured shortcuts with specific hostnames, users, and keys</li>
+                            <li>Set global options that apply to all SSH connections</li>
+                            <li>Used shortcuts to connect easily to multiple servers</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SSH Security Hardening -->
+            <div class="scenario-card ssh-security" data-category="ssh-security">
+                <div class="scenario-header">
+                    <div class="scenario-title">
+                        <span class="scenario-icon">🔒</span>
+                        Secure SSH Server Configuration
+                    </div>
+                    <div class="scenario-description">
+                        Your SSH server is exposed to the internet and under constant attack. Configure SSH security settings to protect against brute force attacks and unauthorized access.
+                    </div>
+                </div>
+                <div class="scenario-content">
+                    <div class="command-workflow">
+                        <div class="workflow-step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <div class="step-title">Check Current SSH Configuration</div>
+                                <div class="step-description">Review current SSH server settings before making security changes.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('sudo systemctl status sshd')">sudo systemctl status sshd</span>
+                                        <button class="copy-btn" onclick="copyCommand('sudo systemctl status sshd')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Check SSH service status</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('sudo sshd -T | grep -E \"^(port|permitrootlogin|passwordauthentication)\"')">sudo sshd -T | grep -E "^(port|permitrootlogin|passwordauthentication)"</span>
+                                        <button class="copy-btn" onclick="copyCommand('sudo sshd -T | grep -E \"^(port|permitrootlogin|passwordauthentication)\"')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Check current security settings</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <div class="step-title">Disable Root Login</div>
+                                <div class="step-description">Prevent direct root access for better security.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('sudo cp /etc/ssh/sshd_config /etc/ssh/sshd_config.backup')">sudo cp /etc/ssh/sshd_config /etc/ssh/sshd_config.backup</span>
+                                        <button class="copy-btn" onclick="copyCommand('sudo cp /etc/ssh/sshd_config /etc/ssh/sshd_config.backup')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Backup SSH configuration before changes</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('sudo sed -i \'s/#PermitRootLogin yes/PermitRootLogin no/\' /etc/ssh/sshd_config')">sudo sed -i 's/#PermitRootLogin yes/PermitRootLogin no/' /etc/ssh/sshd_config</span>
+                                        <button class="copy-btn" onclick="copyCommand('sudo sed -i \'s/#PermitRootLogin yes/PermitRootLogin no/\' /etc/ssh/sshd_config')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Disable root login via SSH</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <div class="step-title">Enforce Key-Only Authentication</div>
+                                <div class="step-description">Disable password authentication to prevent brute force attacks.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('sudo sed -i \'s/#PasswordAuthentication yes/PasswordAuthentication no/\' /etc/ssh/sshd_config')">sudo sed -i 's/#PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config</span>
+                                        <button class="copy-btn" onclick="copyCommand('sudo sed -i \'s/#PasswordAuthentication yes/PasswordAuthentication no/\' /etc/ssh/sshd_config')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Disable password authentication</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('echo \"PubkeyAuthentication yes\" | sudo tee -a /etc/ssh/sshd_config')">echo "PubkeyAuthentication yes" | sudo tee -a /etc/ssh/sshd_config</span>
+                                        <button class="copy-btn" onclick="copyCommand('echo \"PubkeyAuthentication yes\" | sudo tee -a /etc/ssh/sshd_config')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Ensure public key authentication is enabled</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">4</div>
+                            <div class="step-content">
+                                <div class="step-title">Apply Security Configuration</div>
+                                <div class="step-description">Test and apply the SSH security configuration changes.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('sudo sshd -t')">sudo sshd -t</span>
+                                        <button class="copy-btn" onclick="copyCommand('sudo sshd -t')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Test SSH configuration for errors</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('sudo systemctl reload sshd')">sudo systemctl reload sshd</span>
+                                        <button class="copy-btn" onclick="copyCommand('sudo systemctl reload sshd')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Apply changes without dropping connections</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('sudo systemctl status sshd')">sudo systemctl status sshd</span>
+                                        <button class="copy-btn" onclick="copyCommand('sudo systemctl status sshd')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Verify SSH service reloaded successfully</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tips-section">
+                        <div class="tips-title">💡 What You Just Did</div>
+                        <ul class="tip-list">
+                            <li>Backed up SSH configuration before making security changes</li>
+                            <li>Disabled root login to prevent direct admin access</li>
+                            <li>Enforced key-only authentication to stop password attacks</li>
+                            <li>Tested and applied configuration safely with "sshd -t" and "reload"</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SSH Troubleshooting -->
+            <div class="scenario-card ssh-troubleshoot" data-category="ssh-troubleshoot">
+                <div class="scenario-header">
+                    <div class="scenario-title">
+                        <span class="scenario-icon">🔧</span>
+                        Troubleshoot SSH Connection Problems
+                    </div>
+                    <div class="scenario-description">
+                        SSH connections are failing and you need to figure out why. Use debugging tools and log analysis to identify and fix SSH authentication and connection issues.
+                    </div>
+                </div>
+                <div class="scenario-content">
+                    <div class="command-workflow">
+                        <div class="workflow-step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <div class="step-title">Use Verbose SSH Debugging</div>
+                                <div class="step-description">Enable detailed debugging to see what's happening during connection attempts.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@local ~]$</span>
+                                        <span class="command" onclick="copyCommand('ssh -v admin@webserver')">ssh -v admin@webserver</span>
+                                        <button class="copy-btn" onclick="copyCommand('ssh -v admin@webserver')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Basic verbose output for debugging</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@local ~]$</span>
+                                        <span class="command" onclick="copyCommand('ssh -vv admin@webserver')">ssh -vv admin@webserver</span>
+                                        <button class="copy-btn" onclick="copyCommand('ssh -vv admin@webserver')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">More detailed debugging information</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <div class="step-title">Check SSH Key Problems</div>
+                                <div class="step-description">Verify SSH keys are properly configured and accessible.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@local ~]$</span>
+                                        <span class="command" onclick="copyCommand('ls -la ~/.ssh/')">ls -la ~/.ssh/</span>
+                                        <button class="copy-btn" onclick="copyCommand('ls -la ~/.ssh/')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Check SSH directory contents and permissions</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@local ~]$</span>
+                                        <span class="command" onclick="copyCommand('ssh-keygen -l -f ~/.ssh/id_ed25519.pub')">ssh-keygen -l -f ~/.ssh/id_ed25519.pub</span>
+                                        <button class="copy-btn" onclick="copyCommand('ssh-keygen -l -f ~/.ssh/id_ed25519.pub')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Display public key fingerprint</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <div class="step-title">Check Server SSH Logs</div>
+                                <div class="step-description">Look at server-side logs to understand why connections are failing.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('sudo journalctl -u sshd -n 20')">sudo journalctl -u sshd -n 20</span>
+                                        <button class="copy-btn" onclick="copyCommand('sudo journalctl -u sshd -n 20')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Check last 20 SSH service log entries</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('sudo tail -f /var/log/secure | grep sshd')">sudo tail -f /var/log/secure | grep sshd</span>
+                                        <button class="copy-btn" onclick="copyCommand('sudo tail -f /var/log/secure | grep sshd')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Watch SSH logs in real-time</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">4</div>
+                            <div class="step-content">
+                                <div class="step-title">Fix Common SSH Problems</div>
+                                <div class="step-description">Resolve typical SSH authentication and permission issues.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@local ~]$</span>
+                                        <span class="command" onclick="copyCommand('ssh-keygen -R webserver')">ssh-keygen -R webserver</span>
+                                        <button class="copy-btn" onclick="copyCommand('ssh-keygen -R webserver')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Remove old host key from known_hosts</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@local ~]$</span>
+                                        <span class="command" onclick="copyCommand('chmod 700 ~/.ssh && chmod 600 ~/.ssh/id_ed25519 ~/.ssh/authorized_keys')">chmod 700 ~/.ssh && chmod 600 ~/.ssh/id_ed25519 ~/.ssh/authorized_keys</span>
+                                        <button class="copy-btn" onclick="copyCommand('chmod 700 ~/.ssh && chmod 600 ~/.ssh/id_ed25519 ~/.ssh/authorized_keys')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Fix SSH file permissions</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tips-section">
+                        <div class="tips-title">💡 What You Just Did</div>
+                        <ul class="tip-list">
+                            <li>Used "ssh -v" and "ssh -vv" for detailed connection debugging</li>
+                            <li>Checked SSH key files and their permissions</li>
+                            <li>Examined server-side SSH logs for connection failures</li>
+                            <li>Fixed common issues like host key conflicts and permissions</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SSH Automation -->
+            <div class="scenario-card ssh-automation" data-category="ssh-automation">
+                <div class="scenario-header">
+                    <div class="scenario-title">
+                        <span class="scenario-icon">🤖</span>
+                        Automate Tasks with SSH
+                    </div>
+                    <div class="scenario-description">
+                        You need to run the same security checks and updates across multiple servers. Create scripts that use SSH to automate repetitive administration and security tasks.
+                    </div>
+                </div>
+                <div class="scenario-content">
+                    <div class="command-workflow">
+                        <div class="workflow-step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <div class="step-title">Create Server List</div>
+                                <div class="step-description">Maintain a list of servers for automated management.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@local ~]$</span>
+                                        <span class="command" onclick="copyCommand('cat > servers.txt << EOF\\nwebserver\\ndatabase\\nfileserver\\nmailserver\\nEOF')">cat > servers.txt << EOF\nwebserver\ndatabase\nfileserver\nmailserver\nEOF</span>
+                                        <button class="copy-btn" onclick="copyCommand('cat > servers.txt << EOF\\nwebserver\\ndatabase\\nfileserver\\nmailserver\\nEOF')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Create list of servers to manage</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@local ~]$</span>
+                                        <span class="command" onclick="copyCommand('cat servers.txt')">cat servers.txt</span>
+                                        <button class="copy-btn" onclick="copyCommand('cat servers.txt')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Verify server list contents</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <div class="step-title">Check Server Status</div>
+                                <div class="step-description">Create script to check basic status across all servers.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@local ~]$</span>
+                                        <span class="command" onclick="copyCommand('for server in $(cat servers.txt); do echo \"=== $server ===\"; ssh $server \"hostname && uptime\"; done')">for server in $(cat servers.txt); do echo "=== $server ==="; ssh $server "hostname && uptime"; done</span>
+                                        <button class="copy-btn" onclick="copyCommand('for server in $(cat servers.txt); do echo \"=== $server ===\"; ssh $server \"hostname && uptime\"; done')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Check hostname and uptime on all servers</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@local ~]$</span>
+                                        <span class="command" onclick="copyCommand('while read server; do echo \"$server: $(ssh $server \"free -h | grep Mem | awk '{print $3\"/\"$2}'\")\" ; done < servers.txt')">while read server; do echo "$server: $(ssh $server "free -h | grep Mem | awk '{print $3\"/\"$2}'")" ; done < servers.txt</span>
+                                        <button class="copy-btn" onclick="copyCommand('while read server; do echo \"$server: $(ssh $server \"free -h | grep Mem | awk '{print $3\"/\"$2}'\")\" ; done < servers.txt')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Check memory usage on all servers</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <div class="step-title">Run Security Updates</div>
+                                <div class="step-description">Automate security updates across multiple servers.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@local ~]$</span>
+                                        <span class="command" onclick="copyCommand('cat > security_update.sh << EOF\\n#!/bin/bash\\nfor server in $(cat servers.txt); do\\n  echo \"Updating $server...\"\\n  ssh $server \"sudo dnf update -y --security\"\\n  echo \"$server update completed\"\\ndone\\nEOF')">cat > security_update.sh << EOF\n#!/bin/bash\nfor server in $(cat servers.txt); do\n  echo "Updating $server..."\n  ssh $server "sudo dnf update -y --security"\n  echo "$server update completed"\ndone\nEOF</span>
+                                        <button class="copy-btn" onclick="copyCommand('cat > security_update.sh << EOF\\n#!/bin/bash\\nfor server in $(cat servers.txt); do\\n  echo \"Updating $server...\"\\n  ssh $server \"sudo dnf update -y --security\"\\n  echo \"$server update completed\"\\ndone\\nEOF')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Create security update automation script</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@local ~]$</span>
+                                        <span class="command" onclick="copyCommand('chmod +x security_update.sh')">chmod +x security_update.sh</span>
+                                        <button class="copy-btn" onclick="copyCommand('chmod +x security_update.sh')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Make the script executable</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">4</div>
+                            <div class="step-content">
+                                <div class="step-title">Collect Security Information</div>
+                                <div class="step-description">Gather security-relevant information from all servers.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@local ~]$</span>
+                                        <span class="command" onclick="copyCommand('for server in $(cat servers.txt); do echo \"=== $server SSH users ===\"; ssh $server \"who\"; done > security_report.txt')">for server in $(cat servers.txt); do echo "=== $server SSH users ==="; ssh $server "who"; done > security_report.txt</span>
+                                        <button class="copy-btn" onclick="copyCommand('for server in $(cat servers.txt); do echo \"=== $server SSH users ===\"; ssh $server \"who\"; done > security_report.txt')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Collect logged-in users from all servers</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@local ~]$</span>
+                                        <span class="command" onclick="copyCommand('parallel -j5 ssh {} \"hostname && systemctl is-active firewalld sshd\" ::: $(cat servers.txt)')">parallel -j5 ssh {} "hostname && systemctl is-active firewalld sshd" ::: $(cat servers.txt)</span>
+                                        <button class="copy-btn" onclick="copyCommand('parallel -j5 ssh {} \"hostname && systemctl is-active firewalld sshd\" ::: $(cat servers.txt)')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Check security services in parallel (if parallel is installed)</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tips-section">
+                        <div class="tips-title">💡 What You Just Did</div>
+                        <ul class="tip-list">
+                            <li>Created server lists for automated management tasks</li>
+                            <li>Used loops to run commands across multiple servers</li>
+                            <li>Automated security updates with shell scripts</li>
+                            <li>Collected security information for monitoring and reporting</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>© 2025 <span class="college-brand">College of DuPage</span> - Computer Information Technology Department</p>
+            <p>CIT 1450 Linux/Unix Systems | AI Cybersecurity Program</p>
+            <p><em>Making SSH simple, secure, and practical for everyday use</em></p>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // Initialize variables
+        const searchInput = document.getElementById('searchInput');
+        const filterTags = document.querySelectorAll('.filter-tag');
+        const scenarioCards = document.querySelectorAll('.scenario-card');
+        let currentFilter = 'all';
+
+        // Search functionality
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            filterScenarios(searchTerm, currentFilter);
+        });
+
+        // Filter tag functionality
+        filterTags.forEach(tag => {
+            tag.addEventListener('click', function() {
+                // Update active tag
+                filterTags.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                
+                currentFilter = this.dataset.category;
+                const searchTerm = searchInput.value.toLowerCase();
+                filterScenarios(searchTerm, currentFilter);
+            });
+        });
+
+        // Filter scenarios based on search and category
+        function filterScenarios(searchTerm, category) {
+            scenarioCards.forEach(card => {
+                const cardCategory = card.dataset.category;
+                const cardText = card.textContent.toLowerCase();
+                
+                const matchesCategory = category === 'all' || category === cardCategory;
+                const matchesSearch = !searchTerm || cardText.includes(searchTerm);
+                
+                if (matchesCategory && matchesSearch) {
+                    card.classList.remove('hidden');
+                } else {
+                    card.classList.add('hidden');
+                }
+            });
+        }
+
+        // Copy command to clipboard
+        function copyCommand(command) {
+            navigator.clipboard.writeText(command).then(() => {
+                showToast(`Copied: ${command}`);
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+                showToast('Copy failed - try selecting manually');
+            });
+        }
+
+        // Show toast notification
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2500);
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl/Cmd + K to focus search
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                searchInput.focus();
+                searchInput.select();
+            }
+            
+            // Escape to clear search
+            if (e.key === 'Escape') {
+                searchInput.value = '';
+                filterScenarios('', currentFilter);
+                searchInput.blur();
+            }
+        });
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add click to copy for all commands
+            document.querySelectorAll('.command').forEach(cmd => {
+                cmd.addEventListener('click', function() {
+                    copyCommand(this.textContent.trim());
+                });
+            });
+
+            // Focus search on page load
+            setTimeout(() => {
+                searchInput.focus();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

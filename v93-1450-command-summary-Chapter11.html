@@ -1,0 +1,1345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Basic Network Management - Chapter 11</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-bg: #0a0e1a;
+            --secondary-bg: #1a1f2e;
+            --accent-bg: #242b3d;
+            --border-color: #2d3748;
+            --primary-color: #e2e8f0;
+            --secondary-color: #a0aec0;
+            --muted-color: #718096;
+            --success-color: #48bb78;
+            --warning-color: #ed8936;
+            --danger-color: #f56565;
+            --info-color: #4299e1;
+            --purple-color: #9f7aea;
+            --cyan-color: #00d4aa;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, var(--primary-bg) 0%, #0f1419 100%);
+            color: var(--primary-color);
+            line-height: 1.7;
+            min-height: 100vh;
+            font-size: 16px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            position: relative;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -30px;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--info-color), var(--purple-color), var(--success-color), transparent);
+            animation: pulse 3s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; transform: scaleX(0.8); }
+            50% { opacity: 1; transform: scaleX(1); }
+        }
+
+        .title {
+            font-size: clamp(2.5rem, 6vw, 3.8rem);
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--info-color), var(--purple-color), var(--success-color));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+        }
+
+        .subtitle {
+            font-size: 1.4rem;
+            color: var(--secondary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .course-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: linear-gradient(135deg, var(--accent-bg), var(--secondary-bg));
+            border: 1px solid var(--border-color);
+            border-radius: 50px;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            color: var(--info-color);
+            margin-top: 1rem;
+        }
+
+        .intro-text {
+            background: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 3rem;
+            text-align: center;
+        }
+
+        .intro-text h3 {
+            color: var(--info-color);
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+        }
+
+        .intro-text p {
+            color: var(--secondary-color);
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        .network-guide {
+            background: var(--accent-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 3rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        .network-card {
+            background: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .network-card h4 {
+            color: var(--cyan-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .network-example {
+            font-family: 'Roboto Mono', monospace;
+            color: var(--success-color);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .network-desc {
+            color: var(--secondary-color);
+            font-size: 0.9rem;
+        }
+
+        .search-controls {
+            position: sticky;
+            top: 2rem;
+            z-index: 100;
+            background: rgba(26, 31, 46, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 1rem 1.25rem;
+            background: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            color: var(--primary-color);
+            font-family: inherit;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--info-color);
+            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.15);
+        }
+
+        .search-input::placeholder {
+            color: var(--muted-color);
+        }
+
+        .filter-tags {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .filter-tag {
+            padding: 0.6rem 1.2rem;
+            background: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 25px;
+            color: var(--secondary-color);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        .filter-tag:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .filter-tag.active {
+            background: linear-gradient(135deg, var(--info-color), var(--purple-color));
+            color: var(--primary-bg);
+            border-color: var(--info-color);
+            box-shadow: 0 4px 20px rgba(66, 153, 225, 0.3);
+        }
+
+        .scenario-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 2.5rem;
+        }
+
+        .scenario-card {
+            background: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            overflow: hidden;
+            transition: all 0.4s ease;
+            position: relative;
+            opacity: 0;
+            animation: fadeInUp 0.8s ease forwards;
+        }
+
+        .scenario-card:nth-child(odd) { animation-delay: 0.1s; }
+        .scenario-card:nth-child(even) { animation-delay: 0.2s; }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .scenario-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.4);
+            border-color: var(--scenario-color, var(--info-color));
+        }
+
+        .scenario-header {
+            padding: 2rem;
+            background: linear-gradient(135deg, var(--accent-bg), var(--secondary-bg));
+            border-bottom: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        .scenario-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--scenario-color, var(--info-color));
+            border-radius: 16px 16px 0 0;
+        }
+
+        .scenario-title {
+            font-size: 1.6rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .scenario-icon {
+            font-size: 2rem;
+            color: var(--scenario-color, var(--info-color));
+        }
+
+        .scenario-description {
+            color: var(--secondary-color);
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        .scenario-content {
+            padding: 2rem;
+        }
+
+        .command-workflow {
+            margin-bottom: 2rem;
+        }
+
+        .workflow-step {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            align-items: flex-start;
+        }
+
+        .step-number {
+            flex-shrink: 0;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--scenario-color, var(--info-color));
+            color: var(--primary-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        .step-content {
+            flex: 1;
+        }
+
+        .step-title {
+            color: var(--primary-color);
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .step-description {
+            color: var(--secondary-color);
+            margin-bottom: 1rem;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        .command-block {
+            background: var(--primary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            font-family: 'Roboto Mono', monospace;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .command-block::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--scenario-color, var(--info-color));
+        }
+
+        .command-line {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.8rem;
+            flex-wrap: wrap;
+        }
+
+        .command-line:last-child {
+            margin-bottom: 0;
+        }
+
+        .prompt {
+            color: var(--success-color);
+            margin-right: 0.8rem;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .command {
+            color: var(--cyan-color);
+            cursor: pointer;
+            position: relative;
+            flex: 1;
+            font-size: 1rem;
+            min-width: 0;
+            word-break: break-word;
+        }
+
+        .command:hover {
+            background: rgba(0, 212, 170, 0.1);
+            border-radius: 6px;
+            padding: 4px 6px;
+            margin: -4px -6px;
+        }
+
+        .copy-btn {
+            background: none;
+            border: none;
+            color: var(--muted-color);
+            cursor: pointer;
+            padding: 0.4rem;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            opacity: 0;
+            margin-left: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .command-line:hover .copy-btn {
+            opacity: 1;
+        }
+
+        .copy-btn:hover {
+            background: var(--accent-bg);
+            color: var(--cyan-color);
+        }
+
+        .command-explanation {
+            color: var(--warning-color);
+            font-size: 0.95rem;
+            margin-left: 1rem;
+            font-style: italic;
+            margin-top: 0.5rem;
+        }
+
+        .tips-section {
+            background: rgba(66, 153, 225, 0.1);
+            border: 1px solid rgba(66, 153, 225, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .tips-title {
+            color: var(--info-color);
+            font-weight: 600;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .tip-list {
+            list-style: none;
+            color: var(--secondary-color);
+            font-size: 1rem;
+        }
+
+        .tip-list li {
+            margin-bottom: 0.5rem;
+            padding-left: 1.5rem;
+            position: relative;
+            line-height: 1.5;
+        }
+
+        .tip-list li::before {
+            content: '💡';
+            position: absolute;
+            left: 0;
+            font-size: 0.9rem;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--success-color);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            font-family: 'Roboto Mono', monospace;
+            font-weight: 500;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .footer {
+            margin-top: 4rem;
+            text-align: center;
+            color: var(--muted-color);
+            font-size: 1rem;
+            padding: 2rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .college-brand {
+            color: var(--info-color);
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .container { padding: 1rem; }
+            .scenario-grid { grid-template-columns: 1fr; }
+            .title { font-size: 2.5rem; }
+            .search-controls { position: static; }
+            .filter-tags { justify-content: flex-start; }
+            .scenario-header { padding: 1.5rem; }
+            .scenario-content { padding: 1.5rem; }
+            .workflow-step { gap: 1rem; }
+            .step-number { width: 32px; height: 32px; }
+            .network-guide { grid-template-columns: 1fr; }
+        }
+
+        .hidden { display: none !important; }
+
+        /* Scenario-specific colors */
+        .network-info { --scenario-color: var(--info-color); }
+        .connectivity-test { --scenario-color: var(--success-color); }
+        .network-config { --scenario-color: var(--purple-color); }
+        .network-troubleshoot { --scenario-color: var(--warning-color); }
+        .hostname-dns { --scenario-color: var(--cyan-color); }
+        .network-monitor { --scenario-color: var(--danger-color); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1 class="title">Basic Network Management</h1>
+            <p class="subtitle">Simple Network Configuration & Troubleshooting</p>
+            <div class="course-badge">
+                <span>🌐</span>
+                <span>College of DuPage - AI Cybersecurity Program</span>
+            </div>
+        </header>
+
+        <div class="intro-text">
+            <h3>Master Network Administration</h3>
+            <p>Learn essential networking skills for Linux system administration. From checking network interfaces to configuring connections, these are the basic networking tasks every cybersecurity professional needs to manage servers and troubleshoot network issues!</p>
+        </div>
+
+        <div class="network-guide">
+            <div class="network-card">
+                <h4>Network Information</h4>
+                <div class="network-example">ip addr show</div>
+                <div class="network-desc">Check network interfaces and IP addresses</div>
+            </div>
+            <div class="network-card">
+                <h4>Connection Management</h4>
+                <div class="network-example">nmcli con show</div>
+                <div class="network-desc">Manage network connections and settings</div>
+            </div>
+            <div class="network-card">
+                <h4>Connectivity Testing</h4>
+                <div class="network-example">ping hostname</div>
+                <div class="network-desc">Test network connectivity and troubleshoot</div>
+            </div>
+            <div class="network-card">
+                <h4>Name Resolution</h4>
+                <div class="network-example">host domain.com</div>
+                <div class="network-desc">Test DNS and hostname resolution</div>
+            </div>
+        </div>
+
+        <div class="search-controls">
+            <input type="text" class="search-input" placeholder="🔍 Search for scenarios or network commands..." id="searchInput">
+            <div class="filter-tags">
+                <button class="filter-tag active" data-category="all">All Tasks</button>
+                <button class="filter-tag" data-category="network-info">Network Info</button>
+                <button class="filter-tag" data-category="connectivity-test">Connectivity</button>
+                <button class="filter-tag" data-category="network-config">Configuration</button>
+                <button class="filter-tag" data-category="network-troubleshoot">Troubleshoot</button>
+                <button class="filter-tag" data-category="hostname-dns">Hostname/DNS</button>
+                <button class="filter-tag" data-category="network-monitor">Monitoring</button>
+            </div>
+        </div>
+
+        <div class="scenario-grid">
+            <!-- Check Network Information -->
+            <div class="scenario-card network-info" data-category="network-info">
+                <div class="scenario-header">
+                    <div class="scenario-title">
+                        <span class="scenario-icon">📡</span>
+                        Check Network Information
+                    </div>
+                    <div class="scenario-description">
+                        You need to check what network interfaces are available on your server and see their current IP addresses and status for security monitoring and troubleshooting.
+                    </div>
+                </div>
+                <div class="scenario-content">
+                    <div class="command-workflow">
+                        <div class="workflow-step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <div class="step-title">List All Network Interfaces</div>
+                                <div class="step-description">See what network cards and connections are available on your system.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('ip link show')">ip link show</span>
+                                        <button class="copy-btn" onclick="copyCommand('ip link show')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Show all network interfaces (like eth0, ens3, wlan0)</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('ip link')">ip link</span>
+                                        <button class="copy-btn" onclick="copyCommand('ip link')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Shorter version of the same command</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <div class="step-title">Check IP Addresses</div>
+                                <div class="step-description">See what IP addresses are assigned to your network interfaces.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('ip addr show')">ip addr show</span>
+                                        <button class="copy-btn" onclick="copyCommand('ip addr show')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Show all IP addresses on all interfaces</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('ip addr show eth0')">ip addr show eth0</span>
+                                        <button class="copy-btn" onclick="copyCommand('ip addr show eth0')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Show IP address for specific interface (eth0)</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <div class="step-title">Check Network Statistics</div>
+                                <div class="step-description">Look for network problems by checking error counts and packet statistics.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('ip -s link show eth0')">ip -s link show eth0</span>
+                                        <button class="copy-btn" onclick="copyCommand('ip -s link show eth0')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Show network statistics (packets sent/received, errors)</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('ip -br addr')">ip -br addr</span>
+                                        <button class="copy-btn" onclick="copyCommand('ip -br addr')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Brief summary of all interfaces and their IPs</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">4</div>
+                            <div class="step-content">
+                                <div class="step-title">Check Routing Information</div>
+                                <div class="step-description">See how your server routes network traffic and what the default gateway is.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('ip route show')">ip route show</span>
+                                        <button class="copy-btn" onclick="copyCommand('ip route show')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Show routing table (where traffic goes)</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('ip route | grep default')">ip route | grep default</span>
+                                        <button class="copy-btn" onclick="copyCommand('ip route | grep default')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Show only the default gateway (where unknown traffic goes)</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tips-section">
+                        <div class="tips-title">💡 What You Just Did</div>
+                        <ul class="tip-list">
+                            <li>Used "ip link" to see all network interfaces available</li>
+                            <li>Used "ip addr" to check what IP addresses are assigned</li>
+                            <li>Used "ip -s link" to check for network errors and problems</li>
+                            <li>Used "ip route" to see how network traffic is routed</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Test Network Connectivity -->
+            <div class="scenario-card connectivity-test" data-category="connectivity-test">
+                <div class="scenario-header">
+                    <div class="scenario-title">
+                        <span class="scenario-icon">🔗</span>
+                        Test Network Connectivity
+                    </div>
+                    <div class="scenario-description">
+                        Your server needs to communicate with other systems. Test whether network connections are working properly and troubleshoot connectivity issues.
+                    </div>
+                </div>
+                <div class="scenario-content">
+                    <div class="command-workflow">
+                        <div class="workflow-step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <div class="step-title">Test Basic Connectivity</div>
+                                <div class="step-description">Use ping to test if you can reach other computers or websites.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('ping -c 3 google.com')">ping -c 3 google.com</span>
+                                        <button class="copy-btn" onclick="copyCommand('ping -c 3 google.com')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Send 3 ping packets to google.com</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('ping -c 3 192.168.1.1')">ping -c 3 192.168.1.1</span>
+                                        <button class="copy-btn" onclick="copyCommand('ping -c 3 192.168.1.1')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Test connectivity to your router/gateway</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <div class="step-title">Test IPv6 Connectivity</div>
+                                <div class="step-description">Test IPv6 connections if your network uses IPv6.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('ping6 -c 3 google.com')">ping6 -c 3 google.com</span>
+                                        <button class="copy-btn" onclick="copyCommand('ping6 -c 3 google.com')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Test IPv6 connectivity to google.com</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('ping6 -c 3 ff02::1%eth0')">ping6 -c 3 ff02::1%eth0</span>
+                                        <button class="copy-btn" onclick="copyCommand('ping6 -c 3 ff02::1%eth0')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Find other IPv6 devices on the local network</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <div class="step-title">Trace Network Route</div>
+                                <div class="step-description">See the path your network packets take to reach their destination.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('tracepath google.com')">tracepath google.com</span>
+                                        <button class="copy-btn" onclick="copyCommand('tracepath google.com')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Show route packets take to reach google.com</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('tracepath 8.8.8.8')">tracepath 8.8.8.8</span>
+                                        <button class="copy-btn" onclick="copyCommand('tracepath 8.8.8.8')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Trace route to Google's DNS server</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">4</div>
+                            <div class="step-content">
+                                <div class="step-title">Check Network Services</div>
+                                <div class="step-description">See what network services are running on your server.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('ss -tuln')">ss -tuln</span>
+                                        <button class="copy-btn" onclick="copyCommand('ss -tuln')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Show listening network services (TCP and UDP)</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('ss -tuna')">ss -tuna</span>
+                                        <button class="copy-btn" onclick="copyCommand('ss -tuna')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Show all network connections (active and listening)</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tips-section">
+                        <div class="tips-title">💡 What You Just Did</div>
+                        <ul class="tip-list">
+                            <li>Used "ping -c 3" to send exactly 3 test packets</li>
+                            <li>Tested both IPv4 and IPv6 connectivity where available</li>
+                            <li>Used "tracepath" to see the network route to destinations</li>
+                            <li>Used "ss" to see what network services are running</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Configure Network Connections -->
+            <div class="scenario-card network-config" data-category="network-config">
+                <div class="scenario-header">
+                    <div class="scenario-title">
+                        <span class="scenario-icon">⚙️</span>
+                        Configure Network Connections
+                    </div>
+                    <div class="scenario-description">
+                        You need to set up or change network configuration on your server. Use NetworkManager commands to create and manage network connections.
+                    </div>
+                </div>
+                <div class="scenario-content">
+                    <div class="command-workflow">
+                        <div class="workflow-step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <div class="step-title">Check Current Network Connections</div>
+                                <div class="step-description">See what network connections are currently configured and active.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('nmcli con show')">nmcli con show</span>
+                                        <button class="copy-btn" onclick="copyCommand('nmcli con show')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Show all configured network connections</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('nmcli con show --active')">nmcli con show --active</span>
+                                        <button class="copy-btn" onclick="copyCommand('nmcli con show --active')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Show only active network connections</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <div class="step-title">Check Device Status</div>
+                                <div class="step-description">See the status of your network devices and what connections they're using.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('nmcli dev status')">nmcli dev status</span>
+                                        <button class="copy-btn" onclick="copyCommand('nmcli dev status')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Show status of all network devices</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('nmcli dev show eth0')">nmcli dev show eth0</span>
+                                        <button class="copy-btn" onclick="copyCommand('nmcli dev show eth0')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Show detailed information about eth0 device</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <div class="step-title">Create a Static IP Connection</div>
+                                <div class="step-description">Set up a connection with a fixed IP address instead of DHCP.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('sudo nmcli con add con-name static-eth0 ifname eth0 type ethernet ipv4.method manual ipv4.addresses 192.168.1.100/24 ipv4.gateway 192.168.1.1 ipv4.dns 8.8.8.8')">sudo nmcli con add con-name static-eth0 ifname eth0 type ethernet ipv4.method manual ipv4.addresses 192.168.1.100/24 ipv4.gateway 192.168.1.1 ipv4.dns 8.8.8.8</span>
+                                        <button class="copy-btn" onclick="copyCommand('sudo nmcli con add con-name static-eth0 ifname eth0 type ethernet ipv4.method manual ipv4.addresses 192.168.1.100/24 ipv4.gateway 192.168.1.1 ipv4.dns 8.8.8.8')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Create static IP connection with IP, gateway, and DNS</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('sudo nmcli con up static-eth0')">sudo nmcli con up static-eth0</span>
+                                        <button class="copy-btn" onclick="copyCommand('sudo nmcli con up static-eth0')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Activate the new static IP connection</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">4</div>
+                            <div class="step-content">
+                                <div class="step-title">Manage Connections</div>
+                                <div class="step-description">Modify, activate, deactivate, or delete network connections as needed.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('sudo nmcli con mod static-eth0 ipv4.dns +8.8.4.4')">sudo nmcli con mod static-eth0 ipv4.dns +8.8.4.4</span>
+                                        <button class="copy-btn" onclick="copyCommand('sudo nmcli con mod static-eth0 ipv4.dns +8.8.4.4')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Add a second DNS server to the connection</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('sudo nmcli con down static-eth0')">sudo nmcli con down static-eth0</span>
+                                        <button class="copy-btn" onclick="copyCommand('sudo nmcli con down static-eth0')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Deactivate the connection</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tips-section">
+                        <div class="tips-title">💡 What You Just Did</div>
+                        <ul class="tip-list">
+                            <li>Used "nmcli con show" to list all network connections</li>
+                            <li>Used "nmcli dev status" to check network device status</li>
+                            <li>Created a static IP connection with specific IP and DNS settings</li>
+                            <li>Modified connections with "nmcli con mod" to add DNS servers</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Network Troubleshooting -->
+            <div class="scenario-card network-troubleshoot" data-category="network-troubleshoot">
+                <div class="scenario-header">
+                    <div class="scenario-title">
+                        <span class="scenario-icon">🔧</span>
+                        Network Troubleshooting
+                    </div>
+                    <div class="scenario-description">
+                        Network connectivity isn't working correctly. Use systematic troubleshooting to identify and fix network problems step by step.
+                    </div>
+                </div>
+                <div class="scenario-content">
+                    <div class="command-workflow">
+                        <div class="workflow-step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <div class="step-title">Check Physical Network Connection</div>
+                                <div class="step-description">Make sure your network interface is up and connected to the network.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('ip link show')">ip link show</span>
+                                        <button class="copy-btn" onclick="copyCommand('ip link show')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Check if interfaces show "UP" status</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('nmcli dev status')">nmcli dev status</span>
+                                        <button class="copy-btn" onclick="copyCommand('nmcli dev status')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Check if devices show "connected" status</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <div class="step-title">Test Local Network</div>
+                                <div class="step-description">Test if you can reach your gateway (router) and other local devices.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('ip route | grep default')">ip route | grep default</span>
+                                        <button class="copy-btn" onclick="copyCommand('ip route | grep default')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Find your gateway/router IP address</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('ping -c 3 $(ip route | grep default | awk \'{print $3}\' | head -1)')">ping -c 3 $(ip route | grep default | awk '{print $3}' | head -1)</span>
+                                        <button class="copy-btn" onclick="copyCommand('ping -c 3 $(ip route | grep default | awk \'{print $3}\' | head -1)')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Ping your gateway to test local connectivity</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <div class="step-title">Test Internet Connectivity</div>
+                                <div class="step-description">Check if you can reach the internet and test DNS resolution.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('ping -c 3 8.8.8.8')">ping -c 3 8.8.8.8</span>
+                                        <button class="copy-btn" onclick="copyCommand('ping -c 3 8.8.8.8')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Test internet connectivity using Google's DNS IP</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('ping -c 3 google.com')">ping -c 3 google.com</span>
+                                        <button class="copy-btn" onclick="copyCommand('ping -c 3 google.com')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Test DNS resolution by pinging a hostname</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">4</div>
+                            <div class="step-content">
+                                <div class="step-title">Restart Network Services</div>
+                                <div class="step-description">If problems persist, try restarting network connections and services.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('sudo nmcli con down \"System eth0\" && sudo nmcli con up \"System eth0\"')">sudo nmcli con down "System eth0" && sudo nmcli con up "System eth0"</span>
+                                        <button class="copy-btn" onclick="copyCommand('sudo nmcli con down \"System eth0\" && sudo nmcli con up \"System eth0\"')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Restart the network connection (use your connection name)</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('sudo systemctl restart NetworkManager')">sudo systemctl restart NetworkManager</span>
+                                        <button class="copy-btn" onclick="copyCommand('sudo systemctl restart NetworkManager')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Restart NetworkManager service if needed</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tips-section">
+                        <div class="tips-title">💡 What You Just Did</div>
+                        <ul class="tip-list">
+                            <li>Checked physical network interface status first</li>
+                            <li>Tested local network by pinging the gateway</li>
+                            <li>Tested internet by pinging both IP and hostname</li>
+                            <li>Restarted network connections when needed</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hostname and DNS Configuration -->
+            <div class="scenario-card hostname-dns" data-category="hostname-dns">
+                <div class="scenario-header">
+                    <div class="scenario-title">
+                        <span class="scenario-icon">🏷️</span>
+                        Hostname and DNS Configuration
+                    </div>
+                    <div class="scenario-description">
+                        Configure your server's hostname and DNS settings so it can resolve domain names and be identified properly on the network.
+                    </div>
+                </div>
+                <div class="scenario-content">
+                    <div class="command-workflow">
+                        <div class="workflow-step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <div class="step-title">Check Current Hostname</div>
+                                <div class="step-description">See what your server's current hostname is and check hostname settings.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('hostname')">hostname</span>
+                                        <button class="copy-btn" onclick="copyCommand('hostname')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Display current hostname</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('hostnamectl status')">hostnamectl status</span>
+                                        <button class="copy-btn" onclick="copyCommand('hostnamectl status')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Show detailed hostname information</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <div class="step-title">Set a New Hostname</div>
+                                <div class="step-description">Change your server's hostname for better identification on the network.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('sudo hostnamectl hostname webserver.company.com')">sudo hostnamectl hostname webserver.company.com</span>
+                                        <button class="copy-btn" onclick="copyCommand('sudo hostnamectl hostname webserver.company.com')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Set permanent hostname (stays after reboot)</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('hostname')">hostname</span>
+                                        <button class="copy-btn" onclick="copyCommand('hostname')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Verify the new hostname was set</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <div class="step-title">Test DNS Resolution</div>
+                                <div class="step-description">Check if your server can resolve domain names to IP addresses.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('host google.com')">host google.com</span>
+                                        <button class="copy-btn" onclick="copyCommand('host google.com')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Look up IP address for google.com</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('dig google.com')">dig google.com</span>
+                                        <button class="copy-btn" onclick="copyCommand('dig google.com')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Get detailed DNS information for google.com</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">4</div>
+                            <div class="step-content">
+                                <div class="step-title">Configure Local Name Resolution</div>
+                                <div class="step-description">Add local hostname mappings for servers in your network.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('cat /etc/hosts')">cat /etc/hosts</span>
+                                        <button class="copy-btn" onclick="copyCommand('cat /etc/hosts')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">View current local hostname mappings</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('echo \"192.168.1.50 database.company.com database\" | sudo tee -a /etc/hosts')">echo "192.168.1.50 database.company.com database" | sudo tee -a /etc/hosts</span>
+                                        <button class="copy-btn" onclick="copyCommand('echo \"192.168.1.50 database.company.com database\" | sudo tee -a /etc/hosts')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Add local mapping for database server</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('getent hosts database')">getent hosts database</span>
+                                        <button class="copy-btn" onclick="copyCommand('getent hosts database')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Test the local hostname mapping</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tips-section">
+                        <div class="tips-title">💡 What You Just Did</div>
+                        <ul class="tip-list">
+                            <li>Used "hostnamectl" to check and set permanent hostnames</li>
+                            <li>Used "host" and "dig" to test DNS name resolution</li>
+                            <li>Added entries to /etc/hosts for local name resolution</li>
+                            <li>Used "getent hosts" to test local hostname mappings</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Network Monitoring -->
+            <div class="scenario-card network-monitor" data-category="network-monitor">
+                <div class="scenario-header">
+                    <div class="scenario-title">
+                        <span class="scenario-icon">📊</span>
+                        Network Monitoring & Performance
+                    </div>
+                    <div class="scenario-description">
+                        Monitor network performance and troubleshoot network problems by checking connection statistics, bandwidth usage, and network service status.
+                    </div>
+                </div>
+                <div class="scenario-content">
+                    <div class="command-workflow">
+                        <div class="workflow-step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <div class="step-title">Monitor Active Network Connections</div>
+                                <div class="step-description">See what network connections are currently active on your server.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('ss -tuln')">ss -tuln</span>
+                                        <button class="copy-btn" onclick="copyCommand('ss -tuln')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Show listening TCP and UDP services</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('ss -tuna | grep ESTAB')">ss -tuna | grep ESTAB</span>
+                                        <button class="copy-btn" onclick="copyCommand('ss -tuna | grep ESTAB')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Show active established connections</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <div class="step-title">Check Network Performance</div>
+                                <div class="step-description">Monitor network statistics and look for errors or performance issues.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('ip -s link show')">ip -s link show</span>
+                                        <button class="copy-btn" onclick="copyCommand('ip -s link show')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Check packet statistics for all interfaces</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('watch -n 2 \"ip -s link show eth0\"')">watch -n 2 "ip -s link show eth0"</span>
+                                        <button class="copy-btn" onclick="copyCommand('watch -n 2 \"ip -s link show eth0\"')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Monitor eth0 statistics in real-time (Ctrl+C to stop)</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <div class="step-title">Test Network Speed</div>
+                                <div class="step-description">Test network latency and connection quality to various destinations.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('ping -c 10 8.8.8.8 | tail -1')">ping -c 10 8.8.8.8 | tail -1</span>
+                                        <button class="copy-btn" onclick="copyCommand('ping -c 10 8.8.8.8 | tail -1')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Get average ping time to Google DNS</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('tracepath -n 8.8.8.8')">tracepath -n 8.8.8.8</span>
+                                        <button class="copy-btn" onclick="copyCommand('tracepath -n 8.8.8.8')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Show network path with timing information</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">4</div>
+                            <div class="step-content">
+                                <div class="step-title">Monitor Network Services</div>
+                                <div class="step-description">Check which network services are running and accessible.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('ss -tlnp')">ss -tlnp</span>
+                                        <button class="copy-btn" onclick="copyCommand('ss -tlnp')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Show listening TCP services with process names</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('nmcli gen permissions')">nmcli gen permissions</span>
+                                        <button class="copy-btn" onclick="copyCommand('nmcli gen permissions')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Check NetworkManager permissions and status</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tips-section">
+                        <div class="tips-title">💡 What You Just Did</div>
+                        <ul class="tip-list">
+                            <li>Used "ss" to monitor active network connections and services</li>
+                            <li>Checked network statistics with "ip -s link" for errors</li>
+                            <li>Tested network performance with ping and tracepath</li>
+                            <li>Monitored which processes are using network ports</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>© 2025 <span class="college-brand">College of DuPage</span> - Computer Information Technology Department</p>
+            <p>CIT 1450 Linux/Unix Systems | AI Cybersecurity Program</p>
+            <p><em>Making network administration simple and practical for everyday use</em></p>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // Initialize variables
+        const searchInput = document.getElementById('searchInput');
+        const filterTags = document.querySelectorAll('.filter-tag');
+        const scenarioCards = document.querySelectorAll('.scenario-card');
+        let currentFilter = 'all';
+
+        // Search functionality
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            filterScenarios(searchTerm, currentFilter);
+        });
+
+        // Filter tag functionality
+        filterTags.forEach(tag => {
+            tag.addEventListener('click', function() {
+                // Update active tag
+                filterTags.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                
+                currentFilter = this.dataset.category;
+                const searchTerm = searchInput.value.toLowerCase();
+                filterScenarios(searchTerm, currentFilter);
+            });
+        });
+
+        // Filter scenarios based on search and category
+        function filterScenarios(searchTerm, category) {
+            scenarioCards.forEach(card => {
+                const cardCategory = card.dataset.category;
+                const cardText = card.textContent.toLowerCase();
+                
+                const matchesCategory = category === 'all' || category === cardCategory;
+                const matchesSearch = !searchTerm || cardText.includes(searchTerm);
+                
+                if (matchesCategory && matchesSearch) {
+                    card.classList.remove('hidden');
+                } else {
+                    card.classList.add('hidden');
+                }
+            });
+        }
+
+        // Copy command to clipboard
+        function copyCommand(command) {
+            navigator.clipboard.writeText(command).then(() => {
+                showToast(`Copied: ${command}`);
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+                showToast('Copy failed - try selecting manually');
+            });
+        }
+
+        // Show toast notification
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2500);
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl/Cmd + K to focus search
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                searchInput.focus();
+                searchInput.select();
+            }
+            
+            // Escape to clear search
+            if (e.key === 'Escape') {
+                searchInput.value = '';
+                filterScenarios('', currentFilter);
+                searchInput.blur();
+            }
+        });
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add click to copy for all commands
+            document.querySelectorAll('.command').forEach(cmd => {
+                cmd.addEventListener('click', function() {
+                    copyCommand(this.textContent.trim());
+                });
+            });
+
+            // Focus search on page load
+            setTimeout(() => {
+                searchInput.focus();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

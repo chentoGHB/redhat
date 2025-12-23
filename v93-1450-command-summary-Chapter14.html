@@ -1,0 +1,1341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Server Analysis & Support - Chapter 14</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-bg: #0a0e1a;
+            --secondary-bg: #1a1f2e;
+            --accent-bg: #242b3d;
+            --border-color: #2d3748;
+            --primary-color: #e2e8f0;
+            --secondary-color: #a0aec0;
+            --muted-color: #718096;
+            --success-color: #48bb78;
+            --warning-color: #ed8936;
+            --danger-color: #f56565;
+            --info-color: #4299e1;
+            --purple-color: #9f7aea;
+            --cyan-color: #00d4aa;
+            --monitor-color: #f093fb;
+            --analysis-color: #f5af19;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, var(--primary-bg) 0%, #0f1419 100%);
+            color: var(--primary-color);
+            line-height: 1.7;
+            min-height: 100vh;
+            font-size: 16px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            position: relative;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -30px;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--monitor-color), var(--analysis-color), var(--info-color), transparent);
+            animation: pulse 3s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; transform: scaleX(0.8); }
+            50% { opacity: 1; transform: scaleX(1); }
+        }
+
+        .title {
+            font-size: clamp(2.5rem, 6vw, 3.8rem);
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--monitor-color), var(--analysis-color), var(--info-color));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+        }
+
+        .subtitle {
+            font-size: 1.4rem;
+            color: var(--secondary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .course-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: linear-gradient(135deg, var(--accent-bg), var(--secondary-bg));
+            border: 1px solid var(--border-color);
+            border-radius: 50px;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            color: var(--monitor-color);
+            margin-top: 1rem;
+        }
+
+        .intro-text {
+            background: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 3rem;
+            text-align: center;
+        }
+
+        .intro-text h3 {
+            color: var(--monitor-color);
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+        }
+
+        .intro-text p {
+            color: var(--secondary-color);
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        .support-guide {
+            background: var(--accent-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 3rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        .support-card {
+            background: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .support-card h4 {
+            color: var(--cyan-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .support-example {
+            font-family: 'Roboto Mono', monospace;
+            color: var(--success-color);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .support-desc {
+            color: var(--secondary-color);
+            font-size: 0.9rem;
+        }
+
+        .search-controls {
+            position: sticky;
+            top: 2rem;
+            z-index: 100;
+            background: rgba(26, 31, 46, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 1rem 1.25rem;
+            background: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            color: var(--primary-color);
+            font-family: inherit;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--monitor-color);
+            box-shadow: 0 0 0 3px rgba(240, 147, 251, 0.15);
+        }
+
+        .search-input::placeholder {
+            color: var(--muted-color);
+        }
+
+        .filter-tags {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .filter-tag {
+            padding: 0.6rem 1.2rem;
+            background: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 25px;
+            color: var(--secondary-color);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        .filter-tag:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .filter-tag.active {
+            background: linear-gradient(135deg, var(--monitor-color), var(--analysis-color));
+            color: var(--primary-bg);
+            border-color: var(--monitor-color);
+            box-shadow: 0 4px 20px rgba(240, 147, 251, 0.3);
+        }
+
+        .scenario-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 2.5rem;
+        }
+
+        .scenario-card {
+            background: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            overflow: hidden;
+            transition: all 0.4s ease;
+            position: relative;
+            opacity: 0;
+            animation: fadeInUp 0.8s ease forwards;
+        }
+
+        .scenario-card:nth-child(odd) { animation-delay: 0.1s; }
+        .scenario-card:nth-child(even) { animation-delay: 0.2s; }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .scenario-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.4);
+            border-color: var(--scenario-color, var(--monitor-color));
+        }
+
+        .scenario-header {
+            padding: 2rem;
+            background: linear-gradient(135deg, var(--accent-bg), var(--secondary-bg));
+            border-bottom: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        .scenario-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--scenario-color, var(--monitor-color));
+            border-radius: 16px 16px 0 0;
+        }
+
+        .scenario-title {
+            font-size: 1.6rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .scenario-icon {
+            font-size: 2rem;
+            color: var(--scenario-color, var(--monitor-color));
+        }
+
+        .scenario-description {
+            color: var(--secondary-color);
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        .scenario-content {
+            padding: 2rem;
+        }
+
+        .command-workflow {
+            margin-bottom: 2rem;
+        }
+
+        .workflow-step {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            align-items: flex-start;
+        }
+
+        .step-number {
+            flex-shrink: 0;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--scenario-color, var(--monitor-color));
+            color: var(--primary-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        .step-content {
+            flex: 1;
+        }
+
+        .step-title {
+            color: var(--primary-color);
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .step-description {
+            color: var(--secondary-color);
+            margin-bottom: 1rem;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        .command-block {
+            background: var(--primary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            font-family: 'Roboto Mono', monospace;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .command-block::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--scenario-color, var(--monitor-color));
+        }
+
+        .command-line {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.8rem;
+            flex-wrap: wrap;
+        }
+
+        .command-line:last-child {
+            margin-bottom: 0;
+        }
+
+        .prompt {
+            color: var(--success-color);
+            margin-right: 0.8rem;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .command {
+            color: var(--cyan-color);
+            cursor: pointer;
+            position: relative;
+            flex: 1;
+            font-size: 1rem;
+            min-width: 0;
+            word-break: break-word;
+        }
+
+        .command:hover {
+            background: rgba(0, 212, 170, 0.1);
+            border-radius: 6px;
+            padding: 4px 6px;
+            margin: -4px -6px;
+        }
+
+        .copy-btn {
+            background: none;
+            border: none;
+            color: var(--muted-color);
+            cursor: pointer;
+            padding: 0.4rem;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            opacity: 0;
+            margin-left: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .command-line:hover .copy-btn {
+            opacity: 1;
+        }
+
+        .copy-btn:hover {
+            background: var(--accent-bg);
+            color: var(--cyan-color);
+        }
+
+        .command-explanation {
+            color: var(--warning-color);
+            font-size: 0.95rem;
+            margin-left: 1rem;
+            font-style: italic;
+            margin-top: 0.5rem;
+        }
+
+        .tips-section {
+            background: rgba(240, 147, 251, 0.1);
+            border: 1px solid rgba(240, 147, 251, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .tips-title {
+            color: var(--monitor-color);
+            font-weight: 600;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .tip-list {
+            list-style: none;
+            color: var(--secondary-color);
+            font-size: 1rem;
+        }
+
+        .tip-list li {
+            margin-bottom: 0.5rem;
+            padding-left: 1.5rem;
+            position: relative;
+            line-height: 1.5;
+        }
+
+        .tip-list li::before {
+            content: '💡';
+            position: absolute;
+            left: 0;
+            font-size: 0.9rem;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--monitor-color);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            font-family: 'Roboto Mono', monospace;
+            font-weight: 500;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .footer {
+            margin-top: 4rem;
+            text-align: center;
+            color: var(--muted-color);
+            font-size: 1rem;
+            padding: 2rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .college-brand {
+            color: var(--monitor-color);
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .container { padding: 1rem; }
+            .scenario-grid { grid-template-columns: 1fr; }
+            .title { font-size: 2.5rem; }
+            .search-controls { position: static; }
+            .filter-tags { justify-content: flex-start; }
+            .scenario-header { padding: 1.5rem; }
+            .scenario-content { padding: 1.5rem; }
+            .workflow-step { gap: 1rem; }
+            .step-number { width: 32px; height: 32px; }
+            .support-guide { grid-template-columns: 1fr; }
+        }
+
+        .hidden { display: none !important; }
+
+        /* Scenario-specific colors */
+        .web-console { --scenario-color: var(--info-color); }
+        .system-monitor { --scenario-color: var(--monitor-color); }
+        .diagnostic-report { --scenario-color: var(--analysis-color); }
+        .user-management { --scenario-color: var(--success-color); }
+        .service-management { --scenario-color: var(--purple-color); }
+        .support-case { --scenario-color: var(--warning-color); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1 class="title">Server Analysis & Support</h1>
+            <p class="subtitle">Remote Management & Diagnostic Operations</p>
+            <div class="course-badge">
+                <span>📊</span>
+                <span>College of DuPage - AI Cybersecurity Program</span>
+            </div>
+        </header>
+
+        <div class="intro-text">
+            <h3>Master Remote Server Management</h3>
+            <p>Learn essential server analysis and support operations for Linux system administration. From setting up web console management to creating diagnostic reports, these are the key skills cybersecurity professionals need for monitoring and maintaining secure server environments!</p>
+        </div>
+
+        <div class="support-guide">
+            <div class="support-card">
+                <h4>Web Console Setup</h4>
+                <div class="support-example">systemctl enable --now cockpit.socket</div>
+                <div class="support-desc">Set up remote web-based management</div>
+            </div>
+            <div class="support-card">
+                <h4>System Monitoring</h4>
+                <div class="support-example">Access https://server:9090</div>
+                <div class="support-desc">Monitor performance and logs remotely</div>
+            </div>
+            <div class="support-card">
+                <h4>Diagnostic Reports</h4>
+                <div class="support-example">sos report</div>
+                <div class="support-desc">Generate support case documentation</div>
+            </div>
+            <div class="support-card">
+                <h4>Remote Management</h4>
+                <div class="support-example">Web-based administration</div>
+                <div class="support-desc">Manage users, services, and settings</div>
+            </div>
+        </div>
+
+        <div class="search-controls">
+            <input type="text" class="search-input" placeholder="🔍 Search for scenarios or server management commands..." id="searchInput">
+            <div class="filter-tags">
+                <button class="filter-tag active" data-category="all">All Tasks</button>
+                <button class="filter-tag" data-category="web-console">Web Console</button>
+                <button class="filter-tag" data-category="system-monitor">Monitoring</button>
+                <button class="filter-tag" data-category="diagnostic-report">Diagnostics</button>
+                <button class="filter-tag" data-category="user-management">User Management</button>
+                <button class="filter-tag" data-category="service-management">Services</button>
+                <button class="filter-tag" data-category="support-case">Support Cases</button>
+            </div>
+        </div>
+
+        <div class="scenario-grid">
+            <!-- Set Up Web Console for Remote Management -->
+            <div class="scenario-card web-console" data-category="web-console">
+                <div class="scenario-header">
+                    <div class="scenario-title">
+                        <span class="scenario-icon">🌐</span>
+                        Set Up Web Console for Remote Management
+                    </div>
+                    <div class="scenario-description">
+                        Install and configure Cockpit web console for secure remote server management. Essential for managing multiple servers and accessing systems remotely.
+                    </div>
+                </div>
+                <div class="scenario-content">
+                    <div class="command-workflow">
+                        <div class="workflow-step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <div class="step-title">Install Web Console</div>
+                                <div class="step-description">Install the Cockpit web console package on your server.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('sudo dnf install cockpit')">sudo dnf install cockpit</span>
+                                        <button class="copy-btn" onclick="copyCommand('sudo dnf install cockpit')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Install Cockpit web console package</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('rpm -q cockpit')">rpm -q cockpit</span>
+                                        <button class="copy-btn" onclick="copyCommand('rpm -q cockpit')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Verify Cockpit is installed</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <div class="step-title">Enable and Start Cockpit Service</div>
+                                <div class="step-description">Activate the web console service so you can connect remotely.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('sudo systemctl enable --now cockpit.socket')">sudo systemctl enable --now cockpit.socket</span>
+                                        <button class="copy-btn" onclick="copyCommand('sudo systemctl enable --now cockpit.socket')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Enable and start the web console socket</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('systemctl status cockpit.socket')">systemctl status cockpit.socket</span>
+                                        <button class="copy-btn" onclick="copyCommand('systemctl status cockpit.socket')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Check if the service is running properly</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <div class="step-title">Configure Firewall Access</div>
+                                <div class="step-description">Open the firewall to allow web console connections on port 9090.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('sudo firewall-cmd --add-service=cockpit --permanent')">sudo firewall-cmd --add-service=cockpit --permanent</span>
+                                        <button class="copy-btn" onclick="copyCommand('sudo firewall-cmd --add-service=cockpit --permanent')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Allow Cockpit through the firewall permanently</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('sudo firewall-cmd --reload')">sudo firewall-cmd --reload</span>
+                                        <button class="copy-btn" onclick="copyCommand('sudo firewall-cmd --reload')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Apply the firewall changes</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">4</div>
+                            <div class="step-content">
+                                <div class="step-title">Access Web Console</div>
+                                <div class="step-description">Connect to the web console and verify everything is working.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('ss -tlnp | grep 9090')">ss -tlnp | grep 9090</span>
+                                        <button class="copy-btn" onclick="copyCommand('ss -tlnp | grep 9090')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Verify port 9090 is listening</div>
+                                    <div class="command-line">
+                                        <span class="prompt">Web Browser:</span>
+                                        <span class="command" onclick="copyCommand('https://your-server-ip:9090')">https://your-server-ip:9090</span>
+                                        <button class="copy-btn" onclick="copyCommand('https://your-server-ip:9090')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Access the web console in your browser</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tips-section">
+                        <div class="tips-title">💡 What You Just Did</div>
+                        <ul class="tip-list">
+                            <li>Installed Cockpit for web-based server management</li>
+                            <li>Enabled the cockpit.socket service for remote access</li>
+                            <li>Opened firewall port 9090 for secure connections</li>
+                            <li>Verified the web console is accessible and running</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Monitor System Performance -->
+            <div class="scenario-card system-monitor" data-category="system-monitor">
+                <div class="scenario-header">
+                    <div class="scenario-title">
+                        <span class="scenario-icon">📈</span>
+                        Monitor System Performance
+                    </div>
+                    <div class="scenario-description">
+                        Use the web console to monitor real-time system performance, check logs, and analyze server health for security monitoring and troubleshooting.
+                    </div>
+                </div>
+                <div class="scenario-content">
+                    <div class="command-workflow">
+                        <div class="workflow-step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <div class="step-title">Check System Overview</div>
+                                <div class="step-description">Monitor basic system information and current resource usage.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">Web Console:</span>
+                                        <span class="command" onclick="copyCommand('Overview → View metrics and history')">Overview → View metrics and history</span>
+                                        <button class="copy-btn" onclick="copyCommand('Overview → View metrics and history')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Access system performance dashboard</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('uptime')">uptime</span>
+                                        <button class="copy-btn" onclick="copyCommand('uptime')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Check system load from command line</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <div class="step-title">Monitor CPU and Memory</div>
+                                <div class="step-description">Track CPU usage and memory consumption over time.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">Web Console:</span>
+                                        <span class="command" onclick="copyCommand('Usage graphs → CPU, Memory, Disk I/O')">Usage graphs → CPU, Memory, Disk I/O</span>
+                                        <button class="copy-btn" onclick="copyCommand('Usage graphs → CPU, Memory, Disk I/O')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">View real-time performance graphs</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('top')">top</span>
+                                        <button class="copy-btn" onclick="copyCommand('top')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Monitor processes from command line</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <div class="step-title">Inspect System Logs</div>
+                                <div class="step-description">Check system logs for errors, security events, and troubleshooting information.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">Web Console:</span>
+                                        <span class="command" onclick="copyCommand('Logs → Filter by priority and date')">Logs → Filter by priority and date</span>
+                                        <button class="copy-btn" onclick="copyCommand('Logs → Filter by priority and date')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Browse logs in web interface</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('journalctl -f')">journalctl -f</span>
+                                        <button class="copy-btn" onclick="copyCommand('journalctl -f')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Follow live system logs from command line</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">4</div>
+                            <div class="step-content">
+                                <div class="step-title">Use Terminal in Web Console</div>
+                                <div class="step-description">Access command line directly through the web interface.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">Web Console:</span>
+                                        <span class="command" onclick="copyCommand('Terminal → Full command line access')">Terminal → Full command line access</span>
+                                        <button class="copy-btn" onclick="copyCommand('Terminal → Full command line access')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Access terminal through web browser</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[web-terminal]$</span>
+                                        <span class="command" onclick="copyCommand('free -h && df -h')">free -h && df -h</span>
+                                        <button class="copy-btn" onclick="copyCommand('free -h && df -h')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Check memory and disk usage in web terminal</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tips-section">
+                        <div class="tips-title">💡 What You Just Did</div>
+                        <ul class="tip-list">
+                            <li>Monitored system performance through web dashboard</li>
+                            <li>Tracked CPU, memory, and disk usage over time</li>
+                            <li>Inspected system logs for security events and errors</li>
+                            <li>Used embedded terminal for command line access</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Generate Diagnostic Reports -->
+            <div class="scenario-card diagnostic-report" data-category="diagnostic-report">
+                <div class="scenario-header">
+                    <div class="scenario-title">
+                        <span class="scenario-icon">🔧</span>
+                        Generate Diagnostic Reports
+                    </div>
+                    <div class="scenario-description">
+                        Create comprehensive diagnostic reports for troubleshooting and support cases. Essential for documenting system issues and working with technical support.
+                    </div>
+                </div>
+                <div class="scenario-content">
+                    <div class="command-workflow">
+                        <div class="workflow-step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <div class="step-title">Install SOS Report Tool</div>
+                                <div class="step-description">Install the SOS report utility for generating diagnostic information.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('sudo dnf install sos')">sudo dnf install sos</span>
+                                        <button class="copy-btn" onclick="copyCommand('sudo dnf install sos')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Install the SOS diagnostic utility</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('rpm -q sos')">rpm -q sos</span>
+                                        <button class="copy-btn" onclick="copyCommand('rpm -q sos')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Verify SOS is installed</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <div class="step-title">Generate Diagnostic Report</div>
+                                <div class="step-description">Create a comprehensive system diagnostic report for support cases.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('sudo sos report')">sudo sos report</span>
+                                        <button class="copy-btn" onclick="copyCommand('sudo sos report')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Generate diagnostic report (may take several minutes)</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('sudo sos report --case-id=12345')">sudo sos report --case-id=12345</span>
+                                        <button class="copy-btn" onclick="copyCommand('sudo sos report --case-id=12345')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Generate report with support case ID</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <div class="step-title">Generate Report via Web Console</div>
+                                <div class="step-description">Use the web console to create and download diagnostic reports.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">Web Console:</span>
+                                        <span class="command" onclick="copyCommand('Diagnostic Reports → Run report')">Diagnostic Reports → Run report</span>
+                                        <button class="copy-btn" onclick="copyCommand('Diagnostic Reports → Run report')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Start diagnostic report from web interface</div>
+                                    <div class="command-line">
+                                        <span class="prompt">Web Console:</span>
+                                        <span class="command" onclick="copyCommand('Add label → Run report → Download')">Add label → Run report → Download</span>
+                                        <button class="copy-btn" onclick="copyCommand('Add label → Run report → Download')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Label and download the completed report</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">4</div>
+                            <div class="step-content">
+                                <div class="step-title">Clean Sensitive Data</div>
+                                <div class="step-description">Remove or obfuscate sensitive information before sharing reports.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('ls -l /var/tmp/sosreport*')">ls -l /var/tmp/sosreport*</span>
+                                        <button class="copy-btn" onclick="copyCommand('ls -l /var/tmp/sosreport*')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Find generated report files</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('sudo sos clean /var/tmp/sosreport*.tar.xz')">sudo sos clean /var/tmp/sosreport*.tar.xz</span>
+                                        <button class="copy-btn" onclick="copyCommand('sudo sos clean /var/tmp/sosreport*.tar.xz')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Clean sensitive data from report</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tips-section">
+                        <div class="tips-title">💡 What You Just Did</div>
+                        <ul class="tip-list">
+                            <li>Installed and used the SOS diagnostic reporting tool</li>
+                            <li>Generated comprehensive system reports for support cases</li>
+                            <li>Used both command line and web console for report generation</li>
+                            <li>Cleaned sensitive data before sharing diagnostic reports</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Manage Users Through Web Console -->
+            <div class="scenario-card user-management" data-category="user-management">
+                <div class="scenario-header">
+                    <div class="scenario-title">
+                        <span class="scenario-icon">👥</span>
+                        Manage Users Through Web Console
+                    </div>
+                    <div class="scenario-description">
+                        Create and manage user accounts remotely through the web interface. Perfect for managing multiple servers and user access from anywhere.
+                    </div>
+                </div>
+                <div class="scenario-content">
+                    <div class="command-workflow">
+                        <div class="workflow-step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <div class="step-title">Access User Management</div>
+                                <div class="step-description">Navigate to user account management in the web console.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">Web Console:</span>
+                                        <span class="command" onclick="copyCommand('Accounts → View all user accounts')">Accounts → View all user accounts</span>
+                                        <button class="copy-btn" onclick="copyCommand('Accounts → View all user accounts')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Access user account management page</div>
+                                    <div class="command-line">
+                                        <span class="prompt">Web Console:</span>
+                                        <span class="command" onclick="copyCommand('Administrative access → Enable privileges')">Administrative access → Enable privileges</span>
+                                        <button class="copy-btn" onclick="copyCommand('Administrative access → Enable privileges')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Switch to administrative mode for user management</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <div class="step-title">Create New User Account</div>
+                                <div class="step-description">Add new users to the system through the web interface.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">Web Console:</span>
+                                        <span class="command" onclick="copyCommand('Create new account → Enter details')">Create new account → Enter details</span>
+                                        <button class="copy-btn" onclick="copyCommand('Create new account → Enter details')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Start creating a new user account</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('sudo useradd -m newuser')">sudo useradd -m newuser</span>
+                                        <button class="copy-btn" onclick="copyCommand('sudo useradd -m newuser')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Create user from command line (alternative)</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <div class="step-title">Manage User Privileges</div>
+                                <div class="step-description">Add users to groups and manage their administrative privileges.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">Web Console:</span>
+                                        <span class="command" onclick="copyCommand('User details → Groups → Add to wheel')">User details → Groups → Add to wheel</span>
+                                        <button class="copy-btn" onclick="copyCommand('User details → Groups → Add to wheel')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Give user sudo privileges through web interface</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('sudo usermod -aG wheel newuser')">sudo usermod -aG wheel newuser</span>
+                                        <button class="copy-btn" onclick="copyCommand('sudo usermod -aG wheel newuser')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Add user to wheel group from command line</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">4</div>
+                            <div class="step-content">
+                                <div class="step-title">Set Passwords and SSH Keys</div>
+                                <div class="step-description">Configure authentication methods for the user account.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">Web Console:</span>
+                                        <span class="command" onclick="copyCommand('Set password → Enter new password')">Set password → Enter new password</span>
+                                        <button class="copy-btn" onclick="copyCommand('Set password → Enter new password')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Set user password through web interface</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('sudo passwd newuser')">sudo passwd newuser</span>
+                                        <button class="copy-btn" onclick="copyCommand('sudo passwd newuser')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Set password from command line</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tips-section">
+                        <div class="tips-title">💡 What You Just Did</div>
+                        <ul class="tip-list">
+                            <li>Accessed user management through web console interface</li>
+                            <li>Created new user accounts with home directories</li>
+                            <li>Managed group membership and administrative privileges</li>
+                            <li>Configured user authentication and passwords</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Manage Services and Processes -->
+            <div class="scenario-card service-management" data-category="service-management">
+                <div class="scenario-header">
+                    <div class="scenario-title">
+                        <span class="scenario-icon">⚙️</span>
+                        Manage Services and Processes
+                    </div>
+                    <div class="scenario-description">
+                        Control system services, monitor processes, and manage system resources through the web console interface for efficient server administration.
+                    </div>
+                </div>
+                <div class="scenario-content">
+                    <div class="command-workflow">
+                        <div class="workflow-step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <div class="step-title">Access Service Management</div>
+                                <div class="step-description">Navigate to the services management section in the web console.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">Web Console:</span>
+                                        <span class="command" onclick="copyCommand('Services → System services list')">Services → System services list</span>
+                                        <button class="copy-btn" onclick="copyCommand('Services → System services list')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Access systemd services management</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('systemctl list-units --type=service')">systemctl list-units --type=service</span>
+                                        <button class="copy-btn" onclick="copyCommand('systemctl list-units --type=service')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">List all services from command line</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <div class="step-title">Start and Stop Services</div>
+                                <div class="step-description">Control service states through the web interface.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">Web Console:</span>
+                                        <span class="command" onclick="copyCommand('Search service → Start and Enable')">Search service → Start and Enable</span>
+                                        <button class="copy-btn" onclick="copyCommand('Search service → Start and Enable')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Start and enable services through web interface</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('sudo systemctl enable --now httpd')">sudo systemctl enable --now httpd</span>
+                                        <button class="copy-btn" onclick="copyCommand('sudo systemctl enable --now httpd')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Enable and start Apache web server</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <div class="step-title">Monitor Process Activity</div>
+                                <div class="step-description">Check running processes and resource consumption.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">Web Console:</span>
+                                        <span class="command" onclick="copyCommand('Overview → View processes')">Overview → View processes</span>
+                                        <button class="copy-btn" onclick="copyCommand('Overview → View processes')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Monitor processes through web dashboard</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('ps aux | grep httpd')">ps aux | grep httpd</span>
+                                        <button class="copy-btn" onclick="copyCommand('ps aux | grep httpd')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Check specific service processes</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">4</div>
+                            <div class="step-content">
+                                <div class="step-title">Check Service Status and Logs</div>
+                                <div class="step-description">Verify service health and troubleshoot issues through logs.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">Web Console:</span>
+                                        <span class="command" onclick="copyCommand('Service details → View logs')">Service details → View logs</span>
+                                        <button class="copy-btn" onclick="copyCommand('Service details → View logs')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">View service-specific logs in web interface</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('systemctl status httpd')">systemctl status httpd</span>
+                                        <button class="copy-btn" onclick="copyCommand('systemctl status httpd')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Check service status from command line</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tips-section">
+                        <div class="tips-title">💡 What You Just Did</div>
+                        <ul class="tip-list">
+                            <li>Managed system services through web console interface</li>
+                            <li>Started, stopped, and enabled services remotely</li>
+                            <li>Monitored process activity and resource usage</li>
+                            <li>Checked service status and troubleshot issues through logs</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Prepare Support Cases -->
+            <div class="scenario-card support-case" data-category="support-case">
+                <div class="scenario-header">
+                    <div class="scenario-title">
+                        <span class="scenario-icon">🎫</span>
+                        Prepare Support Cases
+                    </div>
+                    <div class="scenario-description">
+                        Gather system information and prepare documentation for technical support cases. Essential for getting effective help with complex server issues.
+                    </div>
+                </div>
+                <div class="scenario-content">
+                    <div class="command-workflow">
+                        <div class="workflow-step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <div class="step-title">Document Problem Description</div>
+                                <div class="step-description">Clearly describe the issue and gather relevant system information.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('uname -a')">uname -a</span>
+                                        <button class="copy-btn" onclick="copyCommand('uname -a')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Get kernel and system information</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('cat /etc/redhat-release')">cat /etc/redhat-release</span>
+                                        <button class="copy-btn" onclick="copyCommand('cat /etc/redhat-release')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Check Red Hat Enterprise Linux version</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <div class="step-title">Collect Error Information</div>
+                                <div class="step-description">Gather specific error messages and log entries related to the problem.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('journalctl -p err --since today')">journalctl -p err --since today</span>
+                                        <button class="copy-btn" onclick="copyCommand('journalctl -p err --since today')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Show today's error messages</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('dmesg | grep -i error')">dmesg | grep -i error</span>
+                                        <button class="copy-btn" onclick="copyCommand('dmesg | grep -i error')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Check kernel messages for errors</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <div class="step-title">Generate Comprehensive Report</div>
+                                <div class="step-description">Create detailed diagnostic report for support team analysis.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('sudo sos report --batch')">sudo sos report --batch</span>
+                                        <button class="copy-btn" onclick="copyCommand('sudo sos report --batch')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Generate report without interactive prompts</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('sudo sos report --upload')">sudo sos report --upload</span>
+                                        <button class="copy-btn" onclick="copyCommand('sudo sos report --upload')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Generate and upload report directly to support</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">4</div>
+                            <div class="step-content">
+                                <div class="step-title">Prepare Support Case Information</div>
+                                <div class="step-description">Organize information for creating effective support cases.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">Support Case:</span>
+                                        <span class="command" onclick="copyCommand('Problem description + Steps to reproduce')">Problem description + Steps to reproduce</span>
+                                        <button class="copy-btn" onclick="copyCommand('Problem description + Steps to reproduce')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Document clear problem statement</div>
+                                    <div class="command-line">
+                                        <span class="prompt">Red Hat Portal:</span>
+                                        <span class="command" onclick="copyCommand('https://access.redhat.com/support/')">https://access.redhat.com/support/</span>
+                                        <button class="copy-btn" onclick="copyCommand('https://access.redhat.com/support/')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Access Red Hat Customer Portal for support</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tips-section">
+                        <div class="tips-title">💡 What You Just Did</div>
+                        <ul class="tip-list">
+                            <li>Documented system information for support cases</li>
+                            <li>Collected error messages and diagnostic information</li>
+                            <li>Generated comprehensive SOS reports for analysis</li>
+                            <li>Prepared complete documentation for effective support</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>© 2025 <span class="college-brand">College of DuPage</span> - Computer Information Technology Department</p>
+            <p>CIT 1450 Linux/Unix Systems | AI Cybersecurity Program</p>
+            <p><em>Making server analysis and support simple and practical for system administrators</em></p>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // Initialize variables
+        const searchInput = document.getElementById('searchInput');
+        const filterTags = document.querySelectorAll('.filter-tag');
+        const scenarioCards = document.querySelectorAll('.scenario-card');
+        let currentFilter = 'all';
+
+        // Search functionality
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            filterScenarios(searchTerm, currentFilter);
+        });
+
+        // Filter tag functionality
+        filterTags.forEach(tag => {
+            tag.addEventListener('click', function() {
+                // Update active tag
+                filterTags.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                
+                currentFilter = this.dataset.category;
+                const searchTerm = searchInput.value.toLowerCase();
+                filterScenarios(searchTerm, currentFilter);
+            });
+        });
+
+        // Filter scenarios based on search and category
+        function filterScenarios(searchTerm, category) {
+            scenarioCards.forEach(card => {
+                const cardCategory = card.dataset.category;
+                const cardText = card.textContent.toLowerCase();
+                
+                const matchesCategory = category === 'all' || category === cardCategory;
+                const matchesSearch = !searchTerm || cardText.includes(searchTerm);
+                
+                if (matchesCategory && matchesSearch) {
+                    card.classList.remove('hidden');
+                } else {
+                    card.classList.add('hidden');
+                }
+            });
+        }
+
+        // Copy command to clipboard
+        function copyCommand(command) {
+            navigator.clipboard.writeText(command).then(() => {
+                showToast(`Copied: ${command}`);
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+                showToast('Copy failed - try selecting manually');
+            });
+        }
+
+        // Show toast notification
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2500);
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl/Cmd + K to focus search
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                searchInput.focus();
+                searchInput.select();
+            }
+            
+            // Escape to clear search
+            if (e.key === 'Escape') {
+                searchInput.value = '';
+                filterScenarios('', currentFilter);
+                searchInput.blur();
+            }
+        });
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add click to copy for all commands
+            document.querySelectorAll('.command').forEach(cmd => {
+                cmd.addEventListener('click', function() {
+                    copyCommand(this.textContent.trim());
+                });
+            });
+
+            // Focus search on page load
+            setTimeout(() => {
+                searchInput.focus();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

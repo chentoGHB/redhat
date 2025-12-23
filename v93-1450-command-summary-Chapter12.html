@@ -1,0 +1,1339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Basic Package Management - Chapter 12</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-bg: #0a0e1a;
+            --secondary-bg: #1a1f2e;
+            --accent-bg: #242b3d;
+            --border-color: #2d3748;
+            --primary-color: #e2e8f0;
+            --secondary-color: #a0aec0;
+            --muted-color: #718096;
+            --success-color: #48bb78;
+            --warning-color: #ed8936;
+            --danger-color: #f56565;
+            --info-color: #4299e1;
+            --purple-color: #9f7aea;
+            --cyan-color: #00d4aa;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, var(--primary-bg) 0%, #0f1419 100%);
+            color: var(--primary-color);
+            line-height: 1.7;
+            min-height: 100vh;
+            font-size: 16px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            position: relative;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -30px;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--success-color), var(--cyan-color), var(--info-color), transparent);
+            animation: pulse 3s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; transform: scaleX(0.8); }
+            50% { opacity: 1; transform: scaleX(1); }
+        }
+
+        .title {
+            font-size: clamp(2.5rem, 6vw, 3.8rem);
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--success-color), var(--cyan-color), var(--info-color));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+        }
+
+        .subtitle {
+            font-size: 1.4rem;
+            color: var(--secondary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .course-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: linear-gradient(135deg, var(--accent-bg), var(--secondary-bg));
+            border: 1px solid var(--border-color);
+            border-radius: 50px;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            color: var(--success-color);
+            margin-top: 1rem;
+        }
+
+        .intro-text {
+            background: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 3rem;
+            text-align: center;
+        }
+
+        .intro-text h3 {
+            color: var(--success-color);
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+        }
+
+        .intro-text p {
+            color: var(--secondary-color);
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        .package-guide {
+            background: var(--accent-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 3rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        .package-card {
+            background: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .package-card h4 {
+            color: var(--cyan-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .package-example {
+            font-family: 'Roboto Mono', monospace;
+            color: var(--success-color);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .package-desc {
+            color: var(--secondary-color);
+            font-size: 0.9rem;
+        }
+
+        .search-controls {
+            position: sticky;
+            top: 2rem;
+            z-index: 100;
+            background: rgba(26, 31, 46, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 1rem 1.25rem;
+            background: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            color: var(--primary-color);
+            font-family: inherit;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--success-color);
+            box-shadow: 0 0 0 3px rgba(72, 187, 120, 0.15);
+        }
+
+        .search-input::placeholder {
+            color: var(--muted-color);
+        }
+
+        .filter-tags {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .filter-tag {
+            padding: 0.6rem 1.2rem;
+            background: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 25px;
+            color: var(--secondary-color);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        .filter-tag:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .filter-tag.active {
+            background: linear-gradient(135deg, var(--success-color), var(--cyan-color));
+            color: var(--primary-bg);
+            border-color: var(--success-color);
+            box-shadow: 0 4px 20px rgba(72, 187, 120, 0.3);
+        }
+
+        .scenario-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 2.5rem;
+        }
+
+        .scenario-card {
+            background: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            overflow: hidden;
+            transition: all 0.4s ease;
+            position: relative;
+            opacity: 0;
+            animation: fadeInUp 0.8s ease forwards;
+        }
+
+        .scenario-card:nth-child(odd) { animation-delay: 0.1s; }
+        .scenario-card:nth-child(even) { animation-delay: 0.2s; }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .scenario-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.4);
+            border-color: var(--scenario-color, var(--success-color));
+        }
+
+        .scenario-header {
+            padding: 2rem;
+            background: linear-gradient(135deg, var(--accent-bg), var(--secondary-bg));
+            border-bottom: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        .scenario-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--scenario-color, var(--success-color));
+            border-radius: 16px 16px 0 0;
+        }
+
+        .scenario-title {
+            font-size: 1.6rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .scenario-icon {
+            font-size: 2rem;
+            color: var(--scenario-color, var(--success-color));
+        }
+
+        .scenario-description {
+            color: var(--secondary-color);
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        .scenario-content {
+            padding: 2rem;
+        }
+
+        .command-workflow {
+            margin-bottom: 2rem;
+        }
+
+        .workflow-step {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            align-items: flex-start;
+        }
+
+        .step-number {
+            flex-shrink: 0;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--scenario-color, var(--success-color));
+            color: var(--primary-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        .step-content {
+            flex: 1;
+        }
+
+        .step-title {
+            color: var(--primary-color);
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .step-description {
+            color: var(--secondary-color);
+            margin-bottom: 1rem;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        .command-block {
+            background: var(--primary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            font-family: 'Roboto Mono', monospace;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .command-block::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--scenario-color, var(--success-color));
+        }
+
+        .command-line {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.8rem;
+            flex-wrap: wrap;
+        }
+
+        .command-line:last-child {
+            margin-bottom: 0;
+        }
+
+        .prompt {
+            color: var(--success-color);
+            margin-right: 0.8rem;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .command {
+            color: var(--cyan-color);
+            cursor: pointer;
+            position: relative;
+            flex: 1;
+            font-size: 1rem;
+            min-width: 0;
+            word-break: break-word;
+        }
+
+        .command:hover {
+            background: rgba(0, 212, 170, 0.1);
+            border-radius: 6px;
+            padding: 4px 6px;
+            margin: -4px -6px;
+        }
+
+        .copy-btn {
+            background: none;
+            border: none;
+            color: var(--muted-color);
+            cursor: pointer;
+            padding: 0.4rem;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            opacity: 0;
+            margin-left: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .command-line:hover .copy-btn {
+            opacity: 1;
+        }
+
+        .copy-btn:hover {
+            background: var(--accent-bg);
+            color: var(--cyan-color);
+        }
+
+        .command-explanation {
+            color: var(--warning-color);
+            font-size: 0.95rem;
+            margin-left: 1rem;
+            font-style: italic;
+            margin-top: 0.5rem;
+        }
+
+        .tips-section {
+            background: rgba(72, 187, 120, 0.1);
+            border: 1px solid rgba(72, 187, 120, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .tips-title {
+            color: var(--success-color);
+            font-weight: 600;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .tip-list {
+            list-style: none;
+            color: var(--secondary-color);
+            font-size: 1rem;
+        }
+
+        .tip-list li {
+            margin-bottom: 0.5rem;
+            padding-left: 1.5rem;
+            position: relative;
+            line-height: 1.5;
+        }
+
+        .tip-list li::before {
+            content: '💡';
+            position: absolute;
+            left: 0;
+            font-size: 0.9rem;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--success-color);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            font-family: 'Roboto Mono', monospace;
+            font-weight: 500;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .footer {
+            margin-top: 4rem;
+            text-align: center;
+            color: var(--muted-color);
+            font-size: 1rem;
+            padding: 2rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .college-brand {
+            color: var(--success-color);
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .container { padding: 1rem; }
+            .scenario-grid { grid-template-columns: 1fr; }
+            .title { font-size: 2.5rem; }
+            .search-controls { position: static; }
+            .filter-tags { justify-content: flex-start; }
+            .scenario-header { padding: 1.5rem; }
+            .scenario-content { padding: 1.5rem; }
+            .workflow-step { gap: 1rem; }
+            .step-number { width: 32px; height: 32px; }
+            .package-guide { grid-template-columns: 1fr; }
+        }
+
+        .hidden { display: none !important; }
+
+        /* Scenario-specific colors */
+        .package-search { --scenario-color: var(--info-color); }
+        .package-install { --scenario-color: var(--success-color); }
+        .package-update { --scenario-color: var(--warning-color); }
+        .package-remove { --scenario-color: var(--danger-color); }
+        .package-groups { --scenario-color: var(--purple-color); }
+        .package-history { --scenario-color: var(--cyan-color); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1 class="title">Basic Package Management</h1>
+            <p class="subtitle">Simple Software Installation & Updates</p>
+            <div class="course-badge">
+                <span>📦</span>
+                <span>College of DuPage - AI Cybersecurity Program</span>
+            </div>
+        </header>
+
+        <div class="intro-text">
+            <h3>Master Software Package Management</h3>
+            <p>Learn essential package management for Linux system administration. From searching for security tools to installing updates, these are the core package management tasks every cybersecurity professional needs to keep systems secure and up-to-date!</p>
+        </div>
+
+        <div class="package-guide">
+            <div class="package-card">
+                <h4>Search Software</h4>
+                <div class="package-example">dnf search nmap</div>
+                <div class="package-desc">Find security tools and applications to install</div>
+            </div>
+            <div class="package-card">
+                <h4>Install Packages</h4>
+                <div class="package-example">dnf install vim</div>
+                <div class="package-desc">Install software and security tools</div>
+            </div>
+            <div class="package-card">
+                <h4>Update System</h4>
+                <div class="package-example">dnf update</div>
+                <div class="package-desc">Keep your system secure with updates</div>
+            </div>
+            <div class="package-card">
+                <h4>Package Information</h4>
+                <div class="package-example">rpm -qi package</div>
+                <div class="package-desc">Get details about installed software</div>
+            </div>
+        </div>
+
+        <div class="search-controls">
+            <input type="text" class="search-input" placeholder="🔍 Search for scenarios or package commands..." id="searchInput">
+            <div class="filter-tags">
+                <button class="filter-tag active" data-category="all">All Tasks</button>
+                <button class="filter-tag" data-category="package-search">Search</button>
+                <button class="filter-tag" data-category="package-install">Install</button>
+                <button class="filter-tag" data-category="package-update">Update</button>
+                <button class="filter-tag" data-category="package-remove">Remove</button>
+                <button class="filter-tag" data-category="package-groups">Groups</button>
+                <button class="filter-tag" data-category="package-history">History</button>
+            </div>
+        </div>
+
+        <div class="scenario-grid">
+            <!-- Find and Search for Software -->
+            <div class="scenario-card package-search" data-category="package-search">
+                <div class="scenario-header">
+                    <div class="scenario-title">
+                        <span class="scenario-icon">🔍</span>
+                        Find and Search for Software
+                    </div>
+                    <div class="scenario-description">
+                        You need to find security tools or applications to install on your server. Search for available software packages using different methods.
+                    </div>
+                </div>
+                <div class="scenario-content">
+                    <div class="command-workflow">
+                        <div class="workflow-step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <div class="step-title">Search by Package Name</div>
+                                <div class="step-description">Find packages by searching their names or descriptions.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('dnf search nmap')">dnf search nmap</span>
+                                        <button class="copy-btn" onclick="copyCommand('dnf search nmap')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Search for network scanning tool (nmap)</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('dnf search \"security scanner\"')">dnf search "security scanner"</span>
+                                        <button class="copy-btn" onclick="copyCommand('dnf search \"security scanner\"')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Search for security scanning tools by description</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <div class="step-title">List Available Packages</div>
+                                <div class="step-description">Browse available software packages and see what's already installed.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('dnf list available | grep security')">dnf list available | grep security</span>
+                                        <button class="copy-btn" onclick="copyCommand('dnf list available | grep security')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">List available security-related packages</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('dnf list installed')">dnf list installed</span>
+                                        <button class="copy-btn" onclick="copyCommand('dnf list installed')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">List all currently installed packages</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <div class="step-title">Get Package Information</div>
+                                <div class="step-description">Get detailed information about a package before installing it.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('dnf info nmap')">dnf info nmap</span>
+                                        <button class="copy-btn" onclick="copyCommand('dnf info nmap')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Show detailed information about nmap package</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('dnf provides /usr/bin/nmap')">dnf provides /usr/bin/nmap</span>
+                                        <button class="copy-btn" onclick="copyCommand('dnf provides /usr/bin/nmap')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Find which package provides the nmap command</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">4</div>
+                            <div class="step-content">
+                                <div class="step-title">Check Package Dependencies</div>
+                                <div class="step-description">See what other packages will be installed as dependencies.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('dnf deplist nmap')">dnf deplist nmap</span>
+                                        <button class="copy-btn" onclick="copyCommand('dnf deplist nmap')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Show what dependencies nmap needs</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('dnf repoquery --requires nmap')">dnf repoquery --requires nmap</span>
+                                        <button class="copy-btn" onclick="copyCommand('dnf repoquery --requires nmap')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">List what packages nmap requires to work</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tips-section">
+                        <div class="tips-title">💡 What You Just Did</div>
+                        <ul class="tip-list">
+                            <li>Used "dnf search" to find packages by name or description</li>
+                            <li>Used "dnf list" to see available and installed packages</li>
+                            <li>Used "dnf info" to get detailed package information before installing</li>
+                            <li>Used "dnf deplist" to check what dependencies are required</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Install Software Packages -->
+            <div class="scenario-card package-install" data-category="package-install">
+                <div class="scenario-header">
+                    <div class="scenario-title">
+                        <span class="scenario-icon">⬇️</span>
+                        Install Software Packages
+                    </div>
+                    <div class="scenario-description">
+                        Install security tools, text editors, and other software your server needs for administration and security operations.
+                    </div>
+                </div>
+                <div class="scenario-content">
+                    <div class="command-workflow">
+                        <div class="workflow-step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <div class="step-title">Install Individual Packages</div>
+                                <div class="step-description">Install specific software packages and their dependencies.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('sudo dnf install nmap')">sudo dnf install nmap</span>
+                                        <button class="copy-btn" onclick="copyCommand('sudo dnf install nmap')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Install nmap network scanning tool</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('sudo dnf install vim-enhanced')">sudo dnf install vim-enhanced</span>
+                                        <button class="copy-btn" onclick="copyCommand('sudo dnf install vim-enhanced')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Install the full version of vim text editor</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <div class="step-title">Install Multiple Packages</div>
+                                <div class="step-description">Install several packages in one command to save time.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('sudo dnf install git wget curl')">sudo dnf install git wget curl</span>
+                                        <button class="copy-btn" onclick="copyCommand('sudo dnf install git wget curl')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Install git, wget, and curl tools together</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('sudo dnf install tcpdump wireshark-cli')">sudo dnf install tcpdump wireshark-cli</span>
+                                        <button class="copy-btn" onclick="copyCommand('sudo dnf install tcpdump wireshark-cli')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Install network monitoring tools</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <div class="step-title">Install with Automatic Yes</div>
+                                <div class="step-description">Skip confirmation prompts for automation and scripts.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('sudo dnf install -y htop')">sudo dnf install -y htop</span>
+                                        <button class="copy-btn" onclick="copyCommand('sudo dnf install -y htop')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Install htop without asking for confirmation</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('sudo dnf install -y tree unzip')">sudo dnf install -y tree unzip</span>
+                                        <button class="copy-btn" onclick="copyCommand('sudo dnf install -y tree unzip')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Install utility tools automatically</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">4</div>
+                            <div class="step-content">
+                                <div class="step-title">Verify Installation</div>
+                                <div class="step-description">Check that software was installed correctly and is working.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('which nmap')">which nmap</span>
+                                        <button class="copy-btn" onclick="copyCommand('which nmap')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Check if nmap command is available</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('rpm -q nmap')">rpm -q nmap</span>
+                                        <button class="copy-btn" onclick="copyCommand('rpm -q nmap')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Verify nmap package is installed with version</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tips-section">
+                        <div class="tips-title">💡 What You Just Did</div>
+                        <ul class="tip-list">
+                            <li>Used "sudo dnf install" to install packages with admin privileges</li>
+                            <li>Installed multiple packages in one command to save time</li>
+                            <li>Used "-y" flag to automatically answer "yes" to prompts</li>
+                            <li>Verified installation with "which" and "rpm -q" commands</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Update System and Packages -->
+            <div class="scenario-card package-update" data-category="package-update">
+                <div class="scenario-header">
+                    <div class="scenario-title">
+                        <span class="scenario-icon">🔄</span>
+                        Update System and Packages
+                    </div>
+                    <div class="scenario-description">
+                        Keep your system secure by regularly updating packages and installing security patches. This is critical for cybersecurity.
+                    </div>
+                </div>
+                <div class="scenario-content">
+                    <div class="command-workflow">
+                        <div class="workflow-step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <div class="step-title">Check Available Updates</div>
+                                <div class="step-description">See what updates are available before installing them.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('dnf check-update')">dnf check-update</span>
+                                        <button class="copy-btn" onclick="copyCommand('dnf check-update')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">List all packages that have updates available</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('dnf check-update --security')">dnf check-update --security</span>
+                                        <button class="copy-btn" onclick="copyCommand('dnf check-update --security')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Check only for security updates (critical for cybersecurity)</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <div class="step-title">Install Security Updates</div>
+                                <div class="step-description">Install critical security patches first to protect your system.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('sudo dnf update --security')">sudo dnf update --security</span>
+                                        <button class="copy-btn" onclick="copyCommand('sudo dnf update --security')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Install only security updates (recommended for production)</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('sudo dnf update --security -y')">sudo dnf update --security -y</span>
+                                        <button class="copy-btn" onclick="copyCommand('sudo dnf update --security -y')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Install security updates automatically</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <div class="step-title">Update All Packages</div>
+                                <div class="step-description">Update all installed packages to their latest versions.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('sudo dnf update')">sudo dnf update</span>
+                                        <button class="copy-btn" onclick="copyCommand('sudo dnf update')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Update all packages on the system</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('sudo dnf update vim')">sudo dnf update vim</span>
+                                        <button class="copy-btn" onclick="copyCommand('sudo dnf update vim')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Update only a specific package (vim)</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">4</div>
+                            <div class="step-content">
+                                <div class="step-title">Clean Package Cache</div>
+                                <div class="step-description">Clean up downloaded package files to save disk space.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('sudo dnf clean packages')">sudo dnf clean packages</span>
+                                        <button class="copy-btn" onclick="copyCommand('sudo dnf clean packages')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Remove cached package files</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('sudo dnf clean all')">sudo dnf clean all</span>
+                                        <button class="copy-btn" onclick="copyCommand('sudo dnf clean all')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Clean all cache data (packages, metadata, etc.)</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tips-section">
+                        <div class="tips-title">💡 What You Just Did</div>
+                        <ul class="tip-list">
+                            <li>Used "dnf check-update" to see available updates before installing</li>
+                            <li>Used "--security" flag to focus on critical security patches</li>
+                            <li>Updated all packages with "dnf update" for system maintenance</li>
+                            <li>Cleaned package cache to free up disk space after updates</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Remove Software Packages -->
+            <div class="scenario-card package-remove" data-category="package-remove">
+                <div class="scenario-header">
+                    <div class="scenario-title">
+                        <span class="scenario-icon">🗑️</span>
+                        Remove Software Packages
+                    </div>
+                    <div class="scenario-description">
+                        Remove unnecessary software and packages you no longer need to keep your system clean and reduce attack surface.
+                    </div>
+                </div>
+                <div class="scenario-content">
+                    <div class="command-workflow">
+                        <div class="workflow-step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <div class="step-title">Remove Individual Packages</div>
+                                <div class="step-description">Remove specific packages you no longer need.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('sudo dnf remove telnet')">sudo dnf remove telnet</span>
+                                        <button class="copy-btn" onclick="copyCommand('sudo dnf remove telnet')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Remove insecure telnet package</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('sudo dnf remove -y old-package')">sudo dnf remove -y old-package</span>
+                                        <button class="copy-btn" onclick="copyCommand('sudo dnf remove -y old-package')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Remove package without confirmation prompt</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <div class="step-title">Check Dependencies Before Removing</div>
+                                <div class="step-description">See what other packages depend on the one you want to remove.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('dnf repoquery --whatrequires httpd')">dnf repoquery --whatrequires httpd</span>
+                                        <button class="copy-btn" onclick="copyCommand('dnf repoquery --whatrequires httpd')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Check what packages need httpd before removing</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('rpm -q --whatrequires httpd')">rpm -q --whatrequires httpd</span>
+                                        <button class="copy-btn" onclick="copyCommand('rpm -q --whatrequires httpd')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Alternative way to check dependencies</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <div class="step-title">Remove Orphaned Packages</div>
+                                <div class="step-description">Clean up packages that were dependencies but are no longer needed.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('dnf autoremove')">dnf autoremove</span>
+                                        <button class="copy-btn" onclick="copyCommand('dnf autoremove')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Show orphaned packages that can be removed</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('sudo dnf autoremove -y')">sudo dnf autoremove -y</span>
+                                        <button class="copy-btn" onclick="copyCommand('sudo dnf autoremove -y')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Automatically remove all orphaned packages</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">4</div>
+                            <div class="step-content">
+                                <div class="step-title">Verify Removal</div>
+                                <div class="step-description">Confirm that packages were removed successfully.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('rpm -q telnet')">rpm -q telnet</span>
+                                        <button class="copy-btn" onclick="copyCommand('rpm -q telnet')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Check if telnet package is still installed</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('which telnet')">which telnet</span>
+                                        <button class="copy-btn" onclick="copyCommand('which telnet')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Check if telnet command is still available</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tips-section">
+                        <div class="tips-title">💡 What You Just Did</div>
+                        <ul class="tip-list">
+                            <li>Used "dnf remove" to uninstall unwanted packages</li>
+                            <li>Checked dependencies before removing critical packages</li>
+                            <li>Used "dnf autoremove" to clean up orphaned dependencies</li>
+                            <li>Verified removal with "rpm -q" and "which" commands</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Manage Package Groups -->
+            <div class="scenario-card package-groups" data-category="package-groups">
+                <div class="scenario-header">
+                    <div class="scenario-title">
+                        <span class="scenario-icon">📦</span>
+                        Manage Package Groups
+                    </div>
+                    <div class="scenario-description">
+                        Install collections of related software as groups. This is useful for setting up development environments or security tool suites.
+                    </div>
+                </div>
+                <div class="scenario-content">
+                    <div class="command-workflow">
+                        <div class="workflow-step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <div class="step-title">List Available Groups</div>
+                                <div class="step-description">See what package groups are available to install.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('dnf group list')">dnf group list</span>
+                                        <button class="copy-btn" onclick="copyCommand('dnf group list')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">List all available package groups</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('dnf group list | grep -i development')">dnf group list | grep -i development</span>
+                                        <button class="copy-btn" onclick="copyCommand('dnf group list | grep -i development')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Find development-related package groups</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <div class="step-title">Get Group Information</div>
+                                <div class="step-description">See what packages are included in a group before installing.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('dnf group info \"Development Tools\"')">dnf group info "Development Tools"</span>
+                                        <button class="copy-btn" onclick="copyCommand('dnf group info \"Development Tools\"')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Show packages in Development Tools group</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('dnf group info \"Security Tools\"')">dnf group info "Security Tools"</span>
+                                        <button class="copy-btn" onclick="copyCommand('dnf group info \"Security Tools\"')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Show packages in Security Tools group (if available)</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <div class="step-title">Install Package Groups</div>
+                                <div class="step-description">Install entire groups of related software packages.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('sudo dnf group install \"Development Tools\"')">sudo dnf group install "Development Tools"</span>
+                                        <button class="copy-btn" onclick="copyCommand('sudo dnf group install \"Development Tools\"')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Install all development tools and compilers</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('sudo dnf group install -y \"System Tools\"')">sudo dnf group install -y "System Tools"</span>
+                                        <button class="copy-btn" onclick="copyCommand('sudo dnf group install -y \"System Tools\"')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Install system administration tools automatically</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">4</div>
+                            <div class="step-content">
+                                <div class="step-title">Manage Installed Groups</div>
+                                <div class="step-description">Remove groups or check which groups are installed.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('dnf group list --installed')">dnf group list --installed</span>
+                                        <button class="copy-btn" onclick="copyCommand('dnf group list --installed')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">List currently installed package groups</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('sudo dnf group remove \"Development Tools\"')">sudo dnf group remove "Development Tools"</span>
+                                        <button class="copy-btn" onclick="copyCommand('sudo dnf group remove \"Development Tools\"')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Remove an entire package group</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tips-section">
+                        <div class="tips-title">💡 What You Just Did</div>
+                        <ul class="tip-list">
+                            <li>Used "dnf group list" to find available software collections</li>
+                            <li>Used "dnf group info" to see what's included in a group</li>
+                            <li>Installed complete tool suites with "dnf group install"</li>
+                            <li>Managed installed groups and removed unwanted collections</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Package Installation History -->
+            <div class="scenario-card package-history" data-category="package-history">
+                <div class="scenario-header">
+                    <div class="scenario-title">
+                        <span class="scenario-icon">📜</span>
+                        Package Installation History
+                    </div>
+                    <div class="scenario-description">
+                        Track what software has been installed, updated, or removed on your system. This is important for security auditing and troubleshooting.
+                    </div>
+                </div>
+                <div class="scenario-content">
+                    <div class="command-workflow">
+                        <div class="workflow-step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <div class="step-title">View Transaction History</div>
+                                <div class="step-description">See a history of all package management operations.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('dnf history')">dnf history</span>
+                                        <button class="copy-btn" onclick="copyCommand('dnf history')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Show summary of recent package transactions</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('dnf history | head -10')">dnf history | head -10</span>
+                                        <button class="copy-btn" onclick="copyCommand('dnf history | head -10')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Show last 10 package operations</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <div class="step-title">Get Detailed Transaction Info</div>
+                                <div class="step-description">See detailed information about specific transactions.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('dnf history info 5')">dnf history info 5</span>
+                                        <button class="copy-btn" onclick="copyCommand('dnf history info 5')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Show details of transaction #5</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('dnf history info last')">dnf history info last</span>
+                                        <button class="copy-btn" onclick="copyCommand('dnf history info last')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Show details of the most recent transaction</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <div class="step-title">Check Installation Logs</div>
+                                <div class="step-description">View low-level package installation logs for troubleshooting.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('tail /var/log/dnf.rpm.log')">tail /var/log/dnf.rpm.log</span>
+                                        <button class="copy-btn" onclick="copyCommand('tail /var/log/dnf.rpm.log')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">View recent package installation log entries</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('grep \"$(date +%Y-%m-%d)\" /var/log/dnf.rpm.log')">grep "$(date +%Y-%m-%d)" /var/log/dnf.rpm.log</span>
+                                        <button class="copy-btn" onclick="copyCommand('grep \"$(date +%Y-%m-%d)\" /var/log/dnf.rpm.log')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Show today's package installation activity</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">4</div>
+                            <div class="step-content">
+                                <div class="step-title">Undo Transactions (Advanced)</div>
+                                <div class="step-description">Roll back package installations if something goes wrong.</div>
+                                <div class="command-block">
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('dnf history undo last')">dnf history undo last</span>
+                                        <button class="copy-btn" onclick="copyCommand('dnf history undo last')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Undo the most recent transaction (BE CAREFUL!)</div>
+                                    <div class="command-line">
+                                        <span class="prompt">[admin@server ~]$</span>
+                                        <span class="command" onclick="copyCommand('dnf history undo 5')">dnf history undo 5</span>
+                                        <button class="copy-btn" onclick="copyCommand('dnf history undo 5')" title="Copy command">📋</button>
+                                    </div>
+                                    <div class="command-explanation">Undo transaction #5 (USE WITH EXTREME CAUTION!)</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tips-section">
+                        <div class="tips-title">💡 What You Just Did</div>
+                        <ul class="tip-list">
+                            <li>Used "dnf history" to track all package management operations</li>
+                            <li>Used "dnf history info" to get detailed transaction information</li>
+                            <li>Checked log files to see low-level installation details</li>
+                            <li>Learned about "dnf history undo" for emergency rollbacks</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>© 2025 <span class="college-brand">College of DuPage</span> - Computer Information Technology Department</p>
+            <p>CIT 1450 Linux/Unix Systems | AI Cybersecurity Program</p>
+            <p><em>Making package management simple and practical for system administrators</em></p>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // Initialize variables
+        const searchInput = document.getElementById('searchInput');
+        const filterTags = document.querySelectorAll('.filter-tag');
+        const scenarioCards = document.querySelectorAll('.scenario-card');
+        let currentFilter = 'all';
+
+        // Search functionality
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            filterScenarios(searchTerm, currentFilter);
+        });
+
+        // Filter tag functionality
+        filterTags.forEach(tag => {
+            tag.addEventListener('click', function() {
+                // Update active tag
+                filterTags.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                
+                currentFilter = this.dataset.category;
+                const searchTerm = searchInput.value.toLowerCase();
+                filterScenarios(searchTerm, currentFilter);
+            });
+        });
+
+        // Filter scenarios based on search and category
+        function filterScenarios(searchTerm, category) {
+            scenarioCards.forEach(card => {
+                const cardCategory = card.dataset.category;
+                const cardText = card.textContent.toLowerCase();
+                
+                const matchesCategory = category === 'all' || category === cardCategory;
+                const matchesSearch = !searchTerm || cardText.includes(searchTerm);
+                
+                if (matchesCategory && matchesSearch) {
+                    card.classList.remove('hidden');
+                } else {
+                    card.classList.add('hidden');
+                }
+            });
+        }
+
+        // Copy command to clipboard
+        function copyCommand(command) {
+            navigator.clipboard.writeText(command).then(() => {
+                showToast(`Copied: ${command}`);
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+                showToast('Copy failed - try selecting manually');
+            });
+        }
+
+        // Show toast notification
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2500);
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl/Cmd + K to focus search
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                searchInput.focus();
+                searchInput.select();
+            }
+            
+            // Escape to clear search
+            if (e.key === 'Escape') {
+                searchInput.value = '';
+                filterScenarios('', currentFilter);
+                searchInput.blur();
+            }
+        });
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add click to copy for all commands
+            document.querySelectorAll('.command').forEach(cmd => {
+                cmd.addEventListener('click', function() {
+                    copyCommand(this.textContent.trim());
+                });
+            });
+
+            // Focus search on page load
+            setTimeout(() => {
+                searchInput.focus();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
