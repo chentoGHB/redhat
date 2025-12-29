@@ -1210,8 +1210,8 @@
                                 <div class="command-block">
                                     <div class="command-line">
                                         <span class="prompt">[admin@local ~]$</span>
-                                        <span class="command" onclick="copyCommand('for server in $(cat servers.txt); do echo \"=== $server SSH users ===\"; ssh $server \"who\"; done > security_report.txt')">for server in $(cat servers.txt); do echo "=== $server SSH users ==="; ssh $server "who"; done > security_report.txt</span>
-                                        <button class="copy-btn" onclick="copyCommand('for server in $(cat servers.txt); do echo \"=== $server SSH users ===\"; ssh $server \"who\"; done > security_report.txt')" title="Copy command">📋</button>
+                                        <span class="command" onclick="copyCommand('for server in $(cat servers.txt); do echo === $server SSH users ===; ssh $server who; done > security_report.txt')">for server in $(cat servers.txt); do echo "=== $server SSH users ==="; ssh $server "who"; done > security_report.txt</span>
+                                        <button class="copy-btn" onclick="copyCommand('for server in $(cat servers.txt); do echo === $server SSH users ===; ssh $server who; done > security_report.txt')" title="Copy command">📋</button>
                                     </div>
                                     <div class="command-explanation">Collect logged-in users from all servers</div>
                                     <div class="command-line">
