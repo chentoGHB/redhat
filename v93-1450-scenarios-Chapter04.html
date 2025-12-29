@@ -1,0 +1,1552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chapter 04 Beginner's Guide - Get Help in Red Hat Enterprise Linux</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;500;700&family=Source+Code+Pro:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --terminal-bg: #0c0c0c;
+            --terminal-secondary: #1a1a1a;
+            --terminal-accent: #2a2a2a;
+            --terminal-border: #404040;
+            --terminal-green: #00ff41;
+            --terminal-blue: #00bfff;
+            --terminal-yellow: #ffff00;
+            --terminal-orange: #ff8c00;
+            --terminal-red: #ff4444;
+            --terminal-purple: #cc99ff;
+            --terminal-cyan: #00ffff;
+            --terminal-white: #f0f0f0;
+            --terminal-gray: #808080;
+            --terminal-dark-gray: #404040;
+            --man-green: #00ff41;
+            --help-blue: #00bfff;
+            --search-orange: #ff8c00;
+            --nav-purple: #cc99ff;
+            --section-cyan: #00ffff;
+            --docs-red: #ff4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto Mono', 'Source Code Pro', monospace;
+            background: var(--terminal-bg);
+            color: var(--terminal-white);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .terminal-window {
+            background: var(--terminal-secondary);
+            margin: 1rem;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 255, 65, 0.1);
+            border: 1px solid var(--terminal-border);
+            overflow: hidden;
+        }
+
+        .terminal-header {
+            background: linear-gradient(135deg, #333, #444);
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            border-bottom: 1px solid var(--terminal-border);
+        }
+
+        .terminal-button {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .close { background: #ff5f56; }
+        .minimize { background: #ffbd2e; }
+        .maximize { background: #27ca3f; }
+
+        .terminal-title {
+            color: var(--terminal-white);
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-left: 1rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background: var(--terminal-secondary);
+            border-radius: 12px;
+            border: 1px solid var(--terminal-border);
+        }
+
+        .title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--man-green);
+            margin-bottom: 0.5rem;
+            text-shadow: 0 0 20px rgba(0, 255, 65, 0.3);
+        }
+
+        .subtitle {
+            color: var(--help-blue);
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+        }
+
+        .course-info {
+            color: var(--terminal-gray);
+            font-size: 0.95rem;
+        }
+
+        .beginner-notice {
+            background: linear-gradient(135deg, #2a4a2a, #1a3a1a);
+            border: 1px solid var(--man-green);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            text-align: center;
+        }
+
+        .beginner-notice h3 {
+            color: var(--terminal-yellow);
+            margin-bottom: 0.5rem;
+            font-size: 1.3rem;
+        }
+
+        .beginner-notice p {
+            color: var(--terminal-white);
+        }
+
+        .search-terminal {
+            background: var(--terminal-secondary);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            position: sticky;
+            top: 1rem;
+            z-index: 100;
+        }
+
+        .search-input {
+            width: 100%;
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 6px;
+            padding: 0.75rem 1rem;
+            color: var(--man-green);
+            font-family: inherit;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--man-green);
+            box-shadow: 0 0 10px rgba(0, 255, 65, 0.2);
+        }
+
+        .search-input::placeholder {
+            color: var(--terminal-gray);
+        }
+
+        .filter-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-tab {
+            background: var(--terminal-accent);
+            border: 1px solid var(--terminal-border);
+            border-radius: 6px;
+            padding: 0.5rem 1rem;
+            color: var(--terminal-gray);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            font-size: 0.9rem;
+        }
+
+        .filter-tab:hover {
+            background: var(--terminal-border);
+            color: var(--terminal-white);
+        }
+
+        .filter-tab.active {
+            background: var(--man-green);
+            color: var(--terminal-bg);
+            border-color: var(--man-green);
+        }
+
+        .scenario-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 2rem;
+        }
+
+        .scenario-card {
+            background: var(--terminal-secondary);
+            border: 1px solid var(--terminal-border);
+            border-radius: 12px;
+            padding: 0;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .scenario-card:hover {
+            border-color: var(--section-color);
+            box-shadow: 0 10px 30px rgba(0, 255, 65, 0.1);
+        }
+
+        .scenario-card.hidden {
+            display: none;
+        }
+
+        .scenario-header {
+            background: var(--terminal-accent);
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--terminal-border);
+        }
+
+        .scenario-title {
+            color: var(--section-color);
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .scenario-description {
+            color: var(--terminal-gray);
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .scenario-body {
+            padding: 1.5rem;
+        }
+
+        .command-section {
+            margin-bottom: 2rem;
+        }
+
+        .command-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .command-title {
+            color: var(--section-color);
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .command-tag {
+            background: var(--section-color);
+            color: var(--terminal-bg);
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .command-block {
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            position: relative;
+            overflow-x: auto;
+        }
+
+        .command-prompt {
+            color: var(--section-color);
+            font-weight: 500;
+        }
+
+        .command-text {
+            color: var(--terminal-cyan);
+            font-family: 'Source Code Pro', monospace;
+            white-space: pre-wrap;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: var(--terminal-accent);
+            border: 1px solid var(--terminal-border);
+            color: var(--terminal-gray);
+            padding: 0.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .copy-btn:hover {
+            background: var(--section-color);
+            color: var(--terminal-bg);
+            border-color: var(--section-color);
+        }
+
+        .explanation-box {
+            background: rgba(0, 191, 255, 0.1);
+            border: 1px solid var(--help-blue);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .explanation-title {
+            color: var(--help-blue);
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .explanation-text {
+            color: var(--terminal-white);
+            line-height: 1.6;
+        }
+
+        .tip-box {
+            background: rgba(255, 140, 0, 0.1);
+            border: 1px solid var(--search-orange);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .tip-title {
+            color: var(--search-orange);
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .use-case-box {
+            background: rgba(0, 255, 255, 0.1);
+            border: 1px solid var(--section-cyan);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .use-case-title {
+            color: var(--section-cyan);
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .workflow-container {
+            background: rgba(204, 153, 255, 0.1);
+            border: 1px solid var(--nav-purple);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .workflow-title {
+            color: var(--nav-purple);
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .workflow-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .workflow-step {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem;
+            background: var(--terminal-accent);
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .workflow-step:hover {
+            background: var(--terminal-border);
+        }
+
+        .step-number {
+            background: var(--nav-purple);
+            color: var(--terminal-bg);
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .help-flow {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .help-step {
+            background: var(--terminal-accent);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .help-step:hover {
+            border-color: var(--section-color);
+            box-shadow: 0 5px 15px rgba(0, 255, 65, 0.1);
+        }
+
+        .step-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .step-title {
+            color: var(--section-color);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .step-value {
+            color: var(--terminal-gray);
+            font-size: 0.9rem;
+        }
+
+        .section-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .section-card {
+            background: var(--terminal-accent);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .section-card:hover {
+            border-color: var(--section-cyan);
+            box-shadow: 0 5px 15px rgba(0, 255, 255, 0.1);
+        }
+
+        .section-number {
+            color: var(--section-cyan);
+            font-weight: 600;
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            font-family: 'Source Code Pro', monospace;
+        }
+
+        .section-desc {
+            color: var(--terminal-gray);
+            font-size: 0.9rem;
+        }
+
+        .nav-keys-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .nav-key {
+            background: var(--terminal-accent);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .nav-key:hover {
+            border-color: var(--nav-purple);
+            box-shadow: 0 5px 15px rgba(204, 153, 255, 0.1);
+        }
+
+        .key-command {
+            color: var(--nav-purple);
+            font-weight: 600;
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+            font-family: 'Source Code Pro', monospace;
+        }
+
+        .key-description {
+            color: var(--terminal-gray);
+            font-size: 0.9rem;
+        }
+
+        .example-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .example-box {
+            background: var(--terminal-accent);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .example-box:hover {
+            border-color: var(--section-color);
+            box-shadow: 0 5px 15px rgba(0, 255, 65, 0.1);
+        }
+
+        .example-title {
+            color: var(--section-color);
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .example-code {
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 6px;
+            padding: 1rem;
+            margin: 0.75rem 0;
+            font-family: 'Source Code Pro', monospace;
+            color: var(--terminal-cyan);
+            position: relative;
+        }
+
+        .toast {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            background: var(--man-green);
+            color: var(--terminal-bg);
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 500;
+            transform: translateX(400px);
+            transition: all 0.3s ease;
+            z-index: 1000;
+            max-width: 400px;
+            font-family: inherit;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 4rem;
+            padding: 2rem;
+            border-top: 1px solid var(--terminal-border);
+            color: var(--terminal-gray);
+        }
+
+        /* Section-specific colors */
+        .scenario-card[data-category="manual"] {
+            --section-color: var(--man-green);
+        }
+
+        .scenario-card[data-category="help"] {
+            --section-color: var(--help-blue);
+        }
+
+        .scenario-card[data-category="search"] {
+            --section-color: var(--search-orange);
+        }
+
+        .scenario-card[data-category="navigation"] {
+            --section-color: var(--nav-purple);
+        }
+
+        .scenario-card[data-category="sections"] {
+            --section-color: var(--section-cyan);
+        }
+
+        .scenario-card[data-category="documentation"] {
+            --section-color: var(--docs-red);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .scenario-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .help-flow {
+                grid-template-columns: 1fr;
+            }
+            
+            .example-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .section-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .nav-keys-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="terminal-window">
+        <div class="terminal-header">
+            <div class="terminal-button close"></div>
+            <div class="terminal-button minimize"></div>
+            <div class="terminal-button maximize"></div>
+            <span class="terminal-title">student@cod-cybersec:~/chapter04$ ./get_help_guide.sh</span>
+        </div>
+        
+        <div class="container">
+            <div class="header">
+                <h1 class="title">📚 Chapter 04: Get Help in Red Hat Enterprise Linux</h1>
+                <p class="subtitle">Master Documentation & Help Systems</p>
+                <p class="course-info">College of DuPage | CIT 1450 Linux/Unix Systems | AI Cybersecurity Program</p>
+            </div>
+
+            <div class="beginner-notice">
+                <h3>💡 Essential Help Skills</h3>
+                <p>Learning to find help and documentation is crucial for system administrators. Master these tools to become self-sufficient and solve problems efficiently.</p>
+            </div>
+
+            <div class="search-terminal">
+                <input type="text" id="searchInput" class="search-input" placeholder="">
+                <div class="filter-tabs">
+                    <button class="filter-tab active" data-category="all">All Help Tools</button>
+                    <button class="filter-tab" data-category="manual">Manual Pages</button>
+                    <button class="filter-tab" data-category="help">Quick Help</button>
+                    <button class="filter-tab" data-category="search">Search & Discovery</button>
+                    <button class="filter-tab" data-category="navigation">Navigation Keys</button>
+                    <button class="filter-tab" data-category="sections">Manual Sections</button>
+                    <button class="filter-tab" data-category="documentation">Documentation</button>
+                </div>
+            </div>
+
+            <div class="scenario-grid">
+                <!-- Manual Pages -->
+                <div class="scenario-card" data-category="manual">
+                    <div class="scenario-header">
+                        <h3 class="scenario-title">
+                            📖 Manual Pages (man)
+                        </h3>
+                        <p class="scenario-description">
+                            Access comprehensive documentation for commands, system calls, file formats, and more through the manual page system.
+                        </p>
+                    </div>
+                    <div class="scenario-body">
+                        <div class="command-section">
+                            <div class="command-header">
+                                <span class="command-title">Manual Page Commands</span>
+                                <span class="command-tag">Core Documentation</span>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">man command</span>
+                                <button class="copy-btn" onclick="copyCommand('man command')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">man 5 passwd</span>
+                                <button class="copy-btn" onclick="copyCommand('man 5 passwd')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">sudo mandb</span>
+                                <button class="copy-btn" onclick="copyCommand('sudo mandb')">📋</button>
+                            </div>
+                        </div>
+
+                        <div class="help-flow">
+                            <div class="help-step">
+                                <div class="step-icon">📚</div>
+                                <div class="step-title">man</div>
+                                <div class="step-value">View Manual Pages</div>
+                            </div>
+                            <div class="help-step">
+                                <div class="step-icon">🔢</div>
+                                <div class="step-title">Section</div>
+                                <div class="step-value">Specific Section</div>
+                            </div>
+                            <div class="help-step">
+                                <div class="step-icon">🔄</div>
+                                <div class="step-title">Update</div>
+                                <div class="step-value">Database Refresh</div>
+                            </div>
+                            <div class="help-step">
+                                <div class="step-icon">❌</div>
+                                <div class="step-title">q</div>
+                                <div class="step-value">Quit Page</div>
+                            </div>
+                        </div>
+
+                        <div class="explanation-box">
+                            <div class="explanation-title">📚 Manual Page Structure:</div>
+                            <div class="explanation-text">
+                                <strong>NAME:</strong> Command name and brief description<br>
+                                <strong>SYNOPSIS:</strong> Command syntax and options<br>
+                                <strong>DESCRIPTION:</strong> Detailed explanation of functionality<br>
+                                <strong>OPTIONS:</strong> Available flags and parameters<br>
+                                <strong>EXAMPLES:</strong> Usage examples and practical scenarios<br>
+                                <strong>SEE ALSO:</strong> Related commands and documentation
+                            </div>
+                        </div>
+
+                        <div class="use-case-box">
+                            <div class="use-case-title">🎯 Cybersecurity Applications:</div>
+                            <div class="explanation-text">
+                                <strong>Security Tool Documentation:</strong> Learn syntax for nmap, wireshark, tcpdump<br>
+                                <strong>Configuration Files:</strong> Understand /etc/passwd, /etc/shadow formats<br>
+                                <strong>System Administration:</strong> Master systemctl, iptables, ssh commands<br>
+                                <strong>Troubleshooting:</strong> Quick reference for debugging and problem solving<br>
+                                <strong>Compliance:</strong> Document command usage for audit trails
+                            </div>
+                        </div>
+
+                        <div class="example-grid">
+                            <div class="example-box">
+                                <div class="example-title">🔍 Security Command Reference</div>
+                                <div class="example-code">man nmap
+man iptables
+man ssh</div>
+                                <p style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                    Access documentation for security tools
+                                </p>
+                            </div>
+                            <div class="example-box">
+                                <div class="example-title">⚙️ Configuration File Format</div>
+                                <div class="example-code">man 5 passwd
+man 5 shadow
+man 5 hosts</div>
+                                <p style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                    Understand system file formats
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Help -->
+                <div class="scenario-card" data-category="help">
+                    <div class="scenario-header">
+                        <h3 class="scenario-title">
+                            ⚡ Quick Help & Command Info
+                        </h3>
+                        <p class="scenario-description">
+                            Get immediate help and brief descriptions without opening full manual pages for rapid command reference.
+                        </p>
+                    </div>
+                    <div class="scenario-body">
+                        <div class="command-section">
+                            <div class="command-header">
+                                <span class="command-title">Quick Help Commands</span>
+                                <span class="command-tag">Fast Reference</span>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">command --help</span>
+                                <button class="copy-btn" onclick="copyCommand('command --help')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">whatis command</span>
+                                <button class="copy-btn" onclick="copyCommand('whatis command')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">man -f command</span>
+                                <button class="copy-btn" onclick="copyCommand('man -f command')">📋</button>
+                            </div>
+                        </div>
+
+                        <div class="workflow-container">
+                            <div class="workflow-title">⚡ Quick Help Strategy:</div>
+                            <div class="workflow-steps">
+                                <div class="workflow-step">
+                                    <div class="step-number">1</div>
+                                    <div>Try --help flag for immediate command syntax</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">2</div>
+                                    <div>Use whatis for one-line command descriptions</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">3</div>
+                                    <div>Check apropos for related commands by keyword</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">4</div>
+                                    <div>Access full man pages when detailed info needed</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">5</div>
+                                    <div>Combine methods for comprehensive understanding</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="tip-box">
+                            <div class="tip-title">💡 Pro Tips for Quick Help:</div>
+                            <div class="explanation-text">
+                                <strong>--help vs -h:</strong> Most commands support --help, some use -h<br>
+                                <strong>whatis vs man -f:</strong> These commands are equivalent<br>
+                                <strong>Command -?:</strong> Some commands use -? instead of --help<br>
+                                <strong>Built-in help:</strong> Shell built-ins use help command (help cd)<br>
+                                <strong>Version info:</strong> --version often shows additional help options
+                            </div>
+                        </div>
+
+                        <div class="example-grid">
+                            <div class="example-box">
+                                <div class="example-title">🚀 Quick Command Syntax</div>
+                                <div class="example-code">ls --help
+cp --help
+find --help</div>
+                                <p style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                    Get immediate syntax help without man pages
+                                </p>
+                            </div>
+                            <div class="example-box">
+                                <div class="example-title">📋 Brief Descriptions</div>
+                                <div class="example-code">whatis grep
+whatis awk
+whatis netstat</div>
+                                <p style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                    One-line command descriptions
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Search & Discovery -->
+                <div class="scenario-card" data-category="search">
+                    <div class="scenario-header">
+                        <h3 class="scenario-title">
+                            🔍 Search & Discovery Tools
+                        </h3>
+                        <p class="scenario-description">
+                            Find commands and documentation by keywords and topics when you don't know exact command names.
+                        </p>
+                    </div>
+                    <div class="scenario-body">
+                        <div class="command-section">
+                            <div class="command-header">
+                                <span class="command-title">Search Commands</span>
+                                <span class="command-tag">Discovery Tools</span>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">apropos keyword</span>
+                                <button class="copy-btn" onclick="copyCommand('apropos keyword')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">man -k keyword</span>
+                                <button class="copy-btn" onclick="copyCommand('man -k keyword')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">apropos -a word1 word2</span>
+                                <button class="copy-btn" onclick="copyCommand('apropos -a word1 word2')">📋</button>
+                            </div>
+                        </div>
+
+                        <div class="help-flow">
+                            <div class="help-step">
+                                <div class="step-icon">🔍</div>
+                                <div class="step-title">apropos</div>
+                                <div class="step-value">Keyword Search</div>
+                            </div>
+                            <div class="help-step">
+                                <div class="step-icon">🎯</div>
+                                <div class="step-title">-k</div>
+                                <div class="step-value">man -k Equivalent</div>
+                            </div>
+                            <div class="help-step">
+                                <div class="step-icon">🔗</div>
+                                <div class="step-title">-a</div>
+                                <div class="step-value">AND Logic</div>
+                            </div>
+                            <div class="help-step">
+                                <div class="step-icon">📊</div>
+                                <div class="step-title">Results</div>
+                                <div class="step-value">Matching Commands</div>
+                            </div>
+                        </div>
+
+                        <div class="explanation-box">
+                            <div class="explanation-title">🎯 Search Techniques:</div>
+                            <div class="explanation-text">
+                                <strong>apropos network:</strong> Find all network-related commands<br>
+                                <strong>apropos -a file copy:</strong> Find commands related to both "file" AND "copy"<br>
+                                <strong>apropos security:</strong> Discover security-related tools and documentation<br>
+                                <strong>apropos password:</strong> Find password-related commands and utilities<br>
+                                <strong>apropos process:</strong> Locate process management commands
+                            </div>
+                        </div>
+
+                        <div class="use-case-box">
+                            <div class="use-case-title">🎯 Security Discovery Scenarios:</div>
+                            <div class="explanation-text">
+                                <strong>Network Analysis:</strong> apropos network, packet, traffic<br>
+                                <strong>System Monitoring:</strong> apropos monitor, watch, process<br>
+                                <strong>User Management:</strong> apropos user, group, permission<br>
+                                <strong>File Security:</strong> apropos encrypt, secure, permission<br>
+                                <strong>Log Analysis:</strong> apropos log, audit, journal
+                            </div>
+                        </div>
+
+                        <div class="example-grid">
+                            <div class="example-box">
+                                <div class="example-title">🌐 Network Security Discovery</div>
+                                <div class="example-code">apropos network
+apropos firewall
+apropos -a network monitor</div>
+                                <p style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                    Find network security tools and commands
+                                </p>
+                            </div>
+                            <div class="example-box">
+                                <div class="example-title">🔐 Security Tool Discovery</div>
+                                <div class="example-code">apropos encrypt
+apropos password
+apropos permission</div>
+                                <p style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                    Discover security-related commands
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Navigation Keys -->
+                <div class="scenario-card" data-category="navigation">
+                    <div class="scenario-header">
+                        <h3 class="scenario-title">
+                            ⌨️ Manual Page Navigation
+                        </h3>
+                        <p class="scenario-description">
+                            Master keyboard shortcuts for efficiently navigating through manual pages and finding specific information quickly.
+                        </p>
+                    </div>
+                    <div class="scenario-body">
+                        <div class="command-section">
+                            <div class="command-header">
+                                <span class="command-title">Navigation Keys</span>
+                                <span class="command-tag">Keyboard Shortcuts</span>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">/ </span><span class="command-text">search_term</span>
+                                <button class="copy-btn" onclick="copyCommand('/search_term')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">? </span><span class="command-text">search_backward</span>
+                                <button class="copy-btn" onclick="copyCommand('?search_backward')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">Press: </span><span class="command-text">n (next) / N (previous)</span>
+                                <button class="copy-btn" onclick="copyCommand('n')">📋</button>
+                            </div>
+                        </div>
+
+                        <div class="nav-keys-grid">
+                            <div class="nav-key">
+                                <div class="key-command">q</div>
+                                <div class="key-description">Quit manual page</div>
+                            </div>
+                            <div class="nav-key">
+                                <div class="key-command">Space</div>
+                                <div class="key-description">Forward one page</div>
+                            </div>
+                            <div class="nav-key">
+                                <div class="key-command">b</div>
+                                <div class="key-description">Backward one page</div>
+                            </div>
+                            <div class="nav-key">
+                                <div class="key-command">g</div>
+                                <div class="key-description">Go to beginning</div>
+                            </div>
+                            <div class="nav-key">
+                                <div class="key-command">G</div>
+                                <div class="key-description">Go to end</div>
+                            </div>
+                            <div class="nav-key">
+                                <div class="key-command">h</div>
+                                <div class="key-description">Show help</div>
+                            </div>
+                            <div class="nav-key">
+                                <div class="key-command">j / ↓</div>
+                                <div class="key-description">Down one line</div>
+                            </div>
+                            <div class="nav-key">
+                                <div class="key-command">k / ↑</div>
+                                <div class="key-description">Up one line</div>
+                            </div>
+                        </div>
+
+                        <div class="workflow-container">
+                            <div class="workflow-title">🔍 Efficient Manual Page Reading:</div>
+                            <div class="workflow-steps">
+                                <div class="workflow-step">
+                                    <div class="step-number">1</div>
+                                    <div>Open man page and scan NAME and SYNOPSIS sections</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">2</div>
+                                    <div>Use / to search for specific options or keywords</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">3</div>
+                                    <div>Press n to find next occurrence of search term</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">4</div>
+                                    <div>Jump to EXAMPLES section for practical usage</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">5</div>
+                                    <div>Check SEE ALSO for related commands</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="example-grid">
+                            <div class="example-box">
+                                <div class="example-title">🔍 Search Within Man Pages</div>
+                                <div class="example-code">/recursive
+n (next match)
+N (previous match)</div>
+                                <p style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                    Find specific information quickly
+                                </p>
+                            </div>
+                            <div class="example-box">
+                                <div class="example-title">🎯 Quick Navigation</div>
+                                <div class="example-code">g (go to top)
+G (go to bottom)
+/EXAMPLES (find examples)</div>
+                                <p style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                    Jump to specific sections efficiently
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Manual Sections -->
+                <div class="scenario-card" data-category="sections">
+                    <div class="scenario-header">
+                        <h3 class="scenario-title">
+                            📑 Manual Sections & Organization
+                        </h3>
+                        <p class="scenario-description">
+                            Understand the manual page section system to find the right documentation for commands, system calls, file formats, and more.
+                        </p>
+                    </div>
+                    <div class="scenario-body">
+                        <div class="command-section">
+                            <div class="command-header">
+                                <span class="command-title">Section Commands</span>
+                                <span class="command-tag">Documentation Structure</span>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">man section command</span>
+                                <button class="copy-btn" onclick="copyCommand('man section command')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">man -a passwd</span>
+                                <button class="copy-btn" onclick="copyCommand('man -a passwd')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">man -s 5 passwd</span>
+                                <button class="copy-btn" onclick="copyCommand('man -s 5 passwd')">📋</button>
+                            </div>
+                        </div>
+
+                        <div class="section-grid">
+                            <div class="section-card">
+                                <div class="section-number">1</div>
+                                <div class="section-desc">User Commands</div>
+                            </div>
+                            <div class="section-card">
+                                <div class="section-number">2</div>
+                                <div class="section-desc">System Calls</div>
+                            </div>
+                            <div class="section-card">
+                                <div class="section-number">3</div>
+                                <div class="section-desc">Library Functions</div>
+                            </div>
+                            <div class="section-card">
+                                <div class="section-number">4</div>
+                                <div class="section-desc">Device Files</div>
+                            </div>
+                            <div class="section-card">
+                                <div class="section-number">5</div>
+                                <div class="section-desc">File Formats</div>
+                            </div>
+                            <div class="section-card">
+                                <div class="section-number">6</div>
+                                <div class="section-desc">Games</div>
+                            </div>
+                            <div class="section-card">
+                                <div class="section-number">7</div>
+                                <div class="section-desc">Miscellaneous</div>
+                            </div>
+                            <div class="section-card">
+                                <div class="section-number">8</div>
+                                <div class="section-desc">Admin Commands</div>
+                            </div>
+                        </div>
+
+                        <div class="explanation-box">
+                            <div class="explanation-title">📑 Section Examples:</div>
+                            <div class="explanation-text">
+                                <strong>man 1 passwd:</strong> passwd command (change password)<br>
+                                <strong>man 5 passwd:</strong> /etc/passwd file format<br>
+                                <strong>man 8 systemctl:</strong> system administration command<br>
+                                <strong>man 5 hosts:</strong> /etc/hosts file format<br>
+                                <strong>man 2 open:</strong> open() system call documentation
+                            </div>
+                        </div>
+
+                        <div class="use-case-box">
+                            <div class="use-case-title">🎯 Security Administrator Sections:</div>
+                            <div class="explanation-text">
+                                <strong>Section 1:</strong> Security tools like nmap, grep, find<br>
+                                <strong>Section 5:</strong> Config files like /etc/shadow, /etc/sudoers<br>
+                                <strong>Section 8:</strong> Admin commands like iptables, systemctl<br>
+                                <strong>Section 7:</strong> Security protocols and concepts<br>
+                                <strong>Multiple Sections:</strong> Use man -a to see all available sections
+                            </div>
+                        </div>
+
+                        <div class="example-grid">
+                            <div class="example-box">
+                                <div class="example-title">🔐 Security Configuration Files</div>
+                                <div class="example-code">man 5 passwd
+man 5 shadow
+man 5 sudoers</div>
+                                <p style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                    Understand security-related file formats
+                                </p>
+                            </div>
+                            <div class="example-box">
+                                <div class="example-title">⚙️ Administration Commands</div>
+                                <div class="example-code">man 8 iptables
+man 8 systemctl
+man 8 useradd</div>
+                                <p style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                    Access system administration documentation
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Documentation Resources -->
+                <div class="scenario-card" data-category="documentation">
+                    <div class="scenario-header">
+                        <h3 class="scenario-title">
+                            📄 Additional Documentation Resources
+                        </h3>
+                        <p class="scenario-description">
+                            Explore additional documentation sources beyond manual pages for comprehensive system and software documentation.
+                        </p>
+                    </div>
+                    <div class="scenario-body">
+                        <div class="command-section">
+                            <div class="command-header">
+                                <span class="command-title">Documentation Commands</span>
+                                <span class="command-tag">Extended Resources</span>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">info command</span>
+                                <button class="copy-btn" onclick="copyCommand('info command')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">locate "*.txt" | grep doc</span>
+                                <button class="copy-btn" onclick="copyCommand('locate \"*.txt\" | grep doc')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">ls /usr/share/doc/</span>
+                                <button class="copy-btn" onclick="copyCommand('ls /usr/share/doc/')">📋</button>
+                            </div>
+                        </div>
+
+                        <div class="help-flow">
+                            <div class="help-step">
+                                <div class="step-icon">ℹ️</div>
+                                <div class="step-title">info</div>
+                                <div class="step-value">GNU Info Pages</div>
+                            </div>
+                            <div class="help-step">
+                                <div class="step-icon">📂</div>
+                                <div class="step-title">/usr/share/doc/</div>
+                                <div class="step-value">Package Documentation</div>
+                            </div>
+                            <div class="help-step">
+                                <div class="step-icon">🌐</div>
+                                <div class="step-title">Online</div>
+                                <div class="step-value">Web Resources</div>
+                            </div>
+                            <div class="help-step">
+                                <div class="step-icon">📚</div>
+                                <div class="step-title">README</div>
+                                <div class="step-value">Package Files</div>
+                            </div>
+                        </div>
+
+                        <div class="tip-box">
+                            <div class="tip-title">💡 Documentation Best Practices:</div>
+                            <div class="explanation-text">
+                                <strong>Multiple Sources:</strong> Combine man pages, info pages, and online docs<br>
+                                <strong>Package Docs:</strong> Check /usr/share/doc/package-name/ for detailed info<br>
+                                <strong>Version-Specific:</strong> Ensure documentation matches your software version<br>
+                                <strong>Community Resources:</strong> Use official websites, forums, and wikis<br>
+                                <strong>Local Documentation:</strong> Keep local copies for offline reference
+                            </div>
+                        </div>
+
+                        <div class="workflow-container">
+                            <div class="workflow-title">📚 Documentation Research Strategy:</div>
+                            <div class="workflow-steps">
+                                <div class="workflow-step">
+                                    <div class="step-number">1</div>
+                                    <div>Start with quick help (--help, whatis) for overview</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">2</div>
+                                    <div>Use man pages for detailed command documentation</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">3</div>
+                                    <div>Check info pages for GNU tools and extended documentation</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">4</div>
+                                    <div>Browse /usr/share/doc/ for package-specific guides</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">5</div>
+                                    <div>Consult online resources for complex scenarios</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="example-grid">
+                            <div class="example-box">
+                                <div class="example-title">📖 Extended Documentation</div>
+                                <div class="example-code">info bash
+info gcc
+ls /usr/share/doc/openssh-server/</div>
+                                <p style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                    Access comprehensive documentation resources
+                                </p>
+                            </div>
+                            <div class="example-box">
+                                <div class="example-title">🔍 Documentation Discovery</div>
+                                <div class="example-code">find /usr/share/doc -name "*security*"
+locate README | head -10</div>
+                                <p style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                    Find security-related documentation files
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer">
+                <p>© 2025 College of DuPage - Computer Information Technology Department</p>
+                <p>CIT 1450 Linux/Unix Systems | AI Cybersecurity Program</p>
+                <p><em>"Master the help system, master Linux!" 📚⚡</em></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // Initialize variables
+        const searchInput = document.getElementById('searchInput');
+        const filterTabs = document.querySelectorAll('.filter-tab');
+        const scenarioCards = document.querySelectorAll('.scenario-card');
+        let currentFilter = 'all';
+
+        // Search functionality
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            filterScenarios(searchTerm, currentFilter);
+        });
+
+        // Filter tab functionality
+        filterTabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                // Update active tab
+                filterTabs.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                
+                currentFilter = this.dataset.category;
+                const searchTerm = searchInput.value.toLowerCase();
+                filterScenarios(searchTerm, currentFilter);
+            });
+        });
+
+        // Filter scenarios based on search and category
+        function filterScenarios(searchTerm, category) {
+            scenarioCards.forEach(card => {
+                const cardCategory = card.dataset.category;
+                const cardText = card.textContent.toLowerCase();
+                
+                const matchesCategory = category === 'all' || category === cardCategory;
+                const matchesSearch = !searchTerm || cardText.includes(searchTerm);
+                
+                if (matchesCategory && matchesSearch) {
+                    card.classList.remove('hidden');
+                } else {
+                    card.classList.add('hidden');
+                }
+            });
+        }
+
+        // Copy command to clipboard
+        function copyCommand(command) {
+            // Clean up command text (remove HTML and extra whitespace)
+            const cleanCommand = command.replace(/<[^>]*>/g, '').trim();
+            
+            navigator.clipboard.writeText(cleanCommand).then(() => {
+                showToast(`Copied: ${cleanCommand.substring(0, 60)}${cleanCommand.length > 60 ? '...' : ''}`);
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+                showToast('Copy failed - try selecting manually');
+            });
+        }
+
+        // Show toast notification
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2500);
+        }
+
+        // Interactive help flow steps
+        const helpSteps = document.querySelectorAll('.help-step');
+        helpSteps.forEach((step, index) => {
+            step.addEventListener('click', function() {
+                const stepValue = this.querySelector('.step-value').textContent;
+                showToast(`Help Tool ${index + 1}: ${stepValue}`);
+                
+                // Animate step
+                const icon = this.querySelector('.step-icon');
+                icon.style.transform = 'scale(1.1) rotate(5deg)';
+                setTimeout(() => {
+                    icon.style.transform = 'scale(1) rotate(0deg)';
+                }, 300);
+            });
+        });
+
+        // Interactive section cards
+        const sectionCards = document.querySelectorAll('.section-card');
+        sectionCards.forEach(card => {
+            card.addEventListener('click', function() {
+                const sectionNumber = this.querySelector('.section-number').textContent;
+                const sectionDesc = this.querySelector('.section-desc').textContent;
+                showToast(`Manual Section ${sectionNumber}: ${sectionDesc}`);
+                
+                // Animate selection
+                this.style.transform = 'scale(1.05)';
+                setTimeout(() => {
+                    this.style.transform = 'scale(1)';
+                }, 300);
+            });
+        });
+
+        // Interactive navigation keys
+        const navKeys = document.querySelectorAll('.nav-key');
+        navKeys.forEach(key => {
+            key.addEventListener('click', function() {
+                const keyCommand = this.querySelector('.key-command').textContent;
+                const keyDescription = this.querySelector('.key-description').textContent;
+                showToast(`Navigation Key: ${keyCommand} - ${keyDescription}`);
+                
+                // Animate selection
+                this.style.transform = 'scale(1.05)';
+                setTimeout(() => {
+                    this.style.transform = 'scale(1)';
+                }, 300);
+            });
+        });
+
+        // Interactive workflow steps
+        const workflowSteps = document.querySelectorAll('.workflow-step');
+        workflowSteps.forEach(step => {
+            step.addEventListener('click', function() {
+                const stepText = this.textContent.trim();
+                showToast(`Workflow: ${stepText}`);
+                
+                // Animate selection
+                this.style.transform = 'scale(1.02)';
+                setTimeout(() => {
+                    this.style.transform = 'scale(1)';
+                }, 300);
+            });
+        });
+
+        // Interactive example boxes
+        const exampleBoxes = document.querySelectorAll('.example-box');
+        exampleBoxes.forEach(box => {
+            box.addEventListener('click', function() {
+                const exampleTitle = this.querySelector('.example-title').textContent;
+                showToast(`Example: ${exampleTitle}`);
+                
+                // Animate example
+                this.style.boxShadow = '0 0 20px rgba(0, 255, 65, 0.3)';
+                setTimeout(() => {
+                    this.style.boxShadow = '';
+                }, 500);
+            });
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl/Cmd + K to focus search
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                searchInput.focus();
+                searchInput.select();
+            }
+            
+            // Escape to clear search
+            if (e.key === 'Escape') {
+                searchInput.value = '';
+                filterScenarios('', currentFilter);
+                searchInput.blur();
+            }
+        });
+
+        // Initialize page with help system themed animations
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animated search placeholder
+            const searchPlaceholder = "$ search man, apropos, whatis, help, info...";
+            let i = 0;
+            const typeInterval = setInterval(() => {
+                if (i < searchPlaceholder.length) {
+                    searchInput.placeholder = searchPlaceholder.substring(0, i + 1);
+                    i++;
+                } else {
+                    clearInterval(typeInterval);
+                }
+            }, 50);
+
+            // Setup cards for animation
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, observerOptions);
+
+            scenarioCards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                card.style.transition = `opacity 0.6s ease ${index * 0.1}s, transform 0.6s ease ${index * 0.1}s`;
+                observer.observe(card);
+            });
+
+            // Animate help flow
+            helpSteps.forEach((step, index) => {
+                setTimeout(() => {
+                    const icon = step.querySelector('.step-icon');
+                    icon.style.transform = 'scale(1.1) rotate(5deg)';
+                    setTimeout(() => {
+                        icon.style.transform = 'scale(1) rotate(0deg)';
+                    }, 300);
+                }, index * 400 + 1000);
+            });
+
+            // Animate section cards
+            sectionCards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.style.transform = 'scale(1.02)';
+                    setTimeout(() => {
+                        card.style.transform = 'scale(1)';
+                    }, 200);
+                }, index * 150 + 2000);
+            });
+
+            // Animate navigation keys
+            navKeys.forEach((key, index) => {
+                setTimeout(() => {
+                    key.style.transform = 'scale(1.02)';
+                    setTimeout(() => {
+                        key.style.transform = 'scale(1)';
+                    }, 200);
+                }, index * 100 + 3000);
+            });
+        });
+    </script>
+</body>
+</html>

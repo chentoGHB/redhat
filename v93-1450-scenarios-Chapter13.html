@@ -1,0 +1,1254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chapter 13 Beginner's Guide - File System Access for Cybersecurity Operations</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;500;700&family=Source+Code+Pro:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --terminal-bg: #0c0c0c;
+            --terminal-secondary: #1a1a1a;
+            --terminal-accent: #2a2a2a;
+            --terminal-border: #404040;
+            --terminal-green: #00ff41;
+            --terminal-blue: #00bfff;
+            --terminal-yellow: #ffff00;
+            --terminal-orange: #ff8c00;
+            --terminal-red: #ff4444;
+            --terminal-purple: #cc99ff;
+            --terminal-cyan: #00ffff;
+            --terminal-white: #f0f0f0;
+            --terminal-gray: #808080;
+            --terminal-dark-gray: #404040;
+            --filesystem-green: #00ff41;
+            --device-blue: #00bfff;
+            --mount-orange: #ff8c00;
+            --search-purple: #cc99ff;
+            --locate-cyan: #00ffff;
+            --security-red: #ff4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto Mono', 'Source Code Pro', monospace;
+            background: var(--terminal-bg);
+            color: var(--terminal-white);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .terminal-window {
+            background: var(--terminal-secondary);
+            margin: 1rem;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 255, 65, 0.1);
+            border: 1px solid var(--terminal-border);
+            overflow: hidden;
+        }
+
+        .terminal-header {
+            background: var(--terminal-accent);
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--terminal-border);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .terminal-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .terminal-button {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .terminal-button.close {
+            background: var(--security-red);
+        }
+
+        .terminal-button.minimize {
+            background: var(--terminal-yellow);
+        }
+
+        .terminal-button.maximize {
+            background: var(--filesystem-green);
+        }
+
+        .terminal-title {
+            color: var(--terminal-white);
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        .header-section {
+            padding: 2rem 1.5rem;
+            text-align: center;
+            background: linear-gradient(135deg, var(--terminal-secondary), var(--terminal-accent));
+        }
+
+        .main-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--filesystem-green);
+            margin-bottom: 1rem;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: var(--terminal-gray);
+            margin-bottom: 2rem;
+        }
+
+        .college-branding {
+            background: var(--terminal-accent);
+            border: 1px solid var(--filesystem-green);
+            border-radius: 8px;
+            padding: 1rem;
+            display: inline-block;
+            margin-bottom: 2rem;
+        }
+
+        .college-name {
+            color: var(--filesystem-green);
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .course-info {
+            color: var(--terminal-gray);
+            font-size: 0.9rem;
+        }
+
+        .search-section {
+            padding: 1.5rem;
+            background: var(--terminal-accent);
+            border-bottom: 1px solid var(--terminal-border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .search-container {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .search-input {
+            flex: 1;
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            color: var(--terminal-white);
+            font-family: 'Source Code Pro', monospace;
+            font-size: 1rem;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--filesystem-green);
+            box-shadow: 0 0 0 2px rgba(0, 255, 65, 0.2);
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 6px;
+            padding: 0.5rem 1rem;
+            color: var(--terminal-gray);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.8rem;
+        }
+
+        .filter-btn:hover {
+            border-color: var(--filesystem-green);
+            color: var(--filesystem-green);
+        }
+
+        .filter-btn.active {
+            background: var(--filesystem-green);
+            color: var(--terminal-bg);
+            border-color: var(--filesystem-green);
+        }
+
+        .scenarios-grid {
+            padding: 2rem 1.5rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 2rem;
+        }
+
+        .scenario-card {
+            background: var(--terminal-secondary);
+            border: 1px solid var(--terminal-border);
+            border-radius: 12px;
+            padding: 0;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .scenario-card:hover {
+            border-color: var(--section-color);
+            box-shadow: 0 10px 30px rgba(0, 255, 65, 0.1);
+        }
+
+        .scenario-header {
+            background: var(--terminal-accent);
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--terminal-border);
+        }
+
+        .scenario-title {
+            color: var(--section-color);
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .scenario-icon {
+            font-size: 1.2rem;
+        }
+
+        .scenario-description {
+            color: var(--terminal-gray);
+            font-size: 0.95rem;
+            margin-bottom: 1rem;
+        }
+
+        .difficulty-level {
+            background: var(--terminal-bg);
+            border: 1px solid var(--section-color);
+            border-radius: 4px;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.8rem;
+            color: var(--section-color);
+            display: inline-block;
+        }
+
+        .scenario-content {
+            padding: 1.5rem;
+        }
+
+        .real-world-example {
+            background: linear-gradient(135deg, #2a1a1a, #3a2a2a);
+            border: 1px solid var(--security-red);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .real-world-title {
+            color: var(--security-red);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .real-world-text {
+            color: var(--terminal-white);
+            font-size: 0.9rem;
+        }
+
+        .command-example {
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--terminal-dark-gray);
+        }
+
+        .command-example:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .command-syntax {
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .command-syntax:hover {
+            border-color: var(--section-color);
+            background: rgba(0, 191, 255, 0.05);
+        }
+
+        .command-text {
+            font-family: 'Source Code Pro', monospace;
+            font-size: 1rem;
+            color: var(--terminal-cyan);
+            word-break: break-word;
+        }
+
+        .command-prompt {
+            color: var(--filesystem-green);
+            margin-right: 0.5rem;
+        }
+
+        .copy-indicator {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: var(--terminal-accent);
+            color: var(--terminal-gray);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .command-syntax:hover .copy-indicator {
+            opacity: 1;
+        }
+
+        .command-description {
+            color: var(--terminal-white);
+            font-size: 0.95rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .command-notes {
+            color: var(--terminal-yellow);
+            font-size: 0.85rem;
+            font-style: italic;
+        }
+
+        .explanation-box {
+            background: var(--terminal-accent);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .explanation-title {
+            color: var(--filesystem-green);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .explanation-text {
+            color: var(--terminal-gray);
+            font-size: 0.9rem;
+        }
+
+        /* Category-specific colors */
+        .category-filesystem .scenario-card {
+            --section-color: var(--filesystem-green);
+        }
+
+        .category-devices .scenario-card {
+            --section-color: var(--device-blue);
+        }
+
+        .category-mount .scenario-card {
+            --section-color: var(--mount-orange);
+        }
+
+        .category-locate .scenario-card {
+            --section-color: var(--locate-cyan);
+        }
+
+        .category-find .scenario-card {
+            --section-color: var(--search-purple);
+        }
+
+        .category-advanced .scenario-card {
+            --section-color: var(--security-red);
+        }
+
+        /* Syntax highlighting */
+        .cmd { color: var(--terminal-cyan); }
+        .option { color: var(--terminal-yellow); }
+        .path { color: var(--terminal-purple); }
+        .device { color: var(--device-blue); }
+        .mount-point { color: var(--mount-orange); }
+        .pattern { color: var(--locate-cyan); }
+        .size { color: var(--search-purple); }
+        .user { color: var(--filesystem-green); }
+
+        /* Toast notification */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--filesystem-green);
+            color: var(--terminal-bg);
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 500;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Chapter Quote Section */
+        .chapter-quote {
+            margin: 3rem 1.5rem;
+            padding: 2rem;
+            background: linear-gradient(135deg, var(--terminal-accent), var(--terminal-secondary));
+            border: 1px solid var(--filesystem-green);
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .quote-text {
+            font-size: 1.3rem;
+            color: var(--terminal-white);
+            font-style: italic;
+            margin-bottom: 1rem;
+            line-height: 1.8;
+        }
+
+        .quote-author {
+            color: var(--filesystem-green);
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .scenarios-grid {
+                grid-template-columns: 1fr;
+                padding: 1rem;
+            }
+            
+            .search-container {
+                flex-direction: column;
+            }
+            
+            .filter-buttons {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="terminal-window">
+        <div class="terminal-header">
+            <div class="terminal-buttons">
+                <div class="terminal-button close"></div>
+                <div class="terminal-button minimize"></div>
+                <div class="terminal-button maximize"></div>
+            </div>
+            <div class="terminal-title">student@cybersec-lab:~/file-systems$</div>
+        </div>
+
+        <div class="header-section">
+            <h1 class="main-title">💾 File System Access</h1>
+            <p class="subtitle">Comprehensive Command Reference for Linux File System Operations</p>
+            
+            <div class="college-branding">
+                <div class="college-name">College of DuPage</div>
+                <div class="course-info">CIT 1450 - Linux/Unix Systems • AI Cybersecurity Program</div>
+            </div>
+        </div>
+
+        <div class="search-section">
+            <div class="search-container">
+                <input type="text" class="search-input" id="searchInput" 
+                       placeholder="$ search filesystem, devices, mount, locate, find, or advanced...">
+                <div class="filter-buttons">
+                    <button class="filter-btn active" data-filter="all">All</button>
+                    <button class="filter-btn" data-filter="filesystem">Analysis</button>
+                    <button class="filter-btn" data-filter="devices">Devices</button>
+                    <button class="filter-btn" data-filter="mount">Mount</button>
+                    <button class="filter-btn" data-filter="locate">Locate</button>
+                    <button class="filter-btn" data-filter="find">Find</button>
+                    <button class="filter-btn" data-filter="advanced">Advanced</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="scenarios-grid" id="scenariosGrid">
+            <!-- File System Analysis -->
+            <div class="scenario-card category-filesystem" data-category="filesystem" 
+                 data-keywords="df du disk usage space filesystem analysis storage report">
+                <div class="scenario-header">
+                    <h3 class="scenario-title">
+                        <span class="scenario-icon">📊</span>
+                        File System Analysis & Monitoring
+                    </h3>
+                    <p class="scenario-description">Analyze disk usage, free space, and file system health</p>
+                    <span class="difficulty-level">Beginner Level</span>
+                </div>
+                <div class="scenario-content">
+                    <div class="real-world-example">
+                        <div class="real-world-title">
+                            🔍 System Monitoring Scenario
+                        </div>
+                        <div class="real-world-text">
+                            Security administrator monitoring system resources for capacity planning and detecting unusual disk usage patterns that might indicate security incidents or system compromise
+                        </div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">df</span> <span class="option">-h</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Display file system disk space in human-readable format</div>
+                        <div class="command-notes">Shows total, used, available space and mount points for all file systems</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">df</span> <span class="option">-i</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Display inode usage statistics</div>
+                        <div class="command-notes">Shows available and used inodes - critical for systems with many small files</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">du</span> <span class="option">-h</span> <span class="path">/var/log</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Display directory disk usage in human-readable format</div>
+                        <div class="command-notes">Recursively shows size of all subdirectories and files</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">du</span> <span class="option">-sh</span> <span class="path">/home/*</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Show summarized disk usage for each home directory</div>
+                        <div class="command-notes">-s provides summary totals only, useful for user quota analysis</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">du</span> <span class="option">-ah</span> <span class="path">/tmp</span> <span class="option">| sort -rh | head -10</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Find 10 largest files/directories in /tmp</div>
+                        <div class="command-notes">-a includes files, sort -rh sorts by human-readable size descending</div>
+                    </div>
+
+                    <div class="explanation-box">
+                        <div class="explanation-title">File System Health Monitoring</div>
+                        <div class="explanation-text">
+                            <strong>Capacity Planning:</strong> Monitor for >80% usage • <strong>Inode Exhaustion:</strong> Check inode availability • 
+                            <strong>Growth Patterns:</strong> Track directory size changes • <strong>Security:</strong> Unusual space consumption
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Device Identification -->
+            <div class="scenario-card category-devices" data-category="devices" 
+                 data-keywords="lsblk fdisk blkid device identification UUID block devices partitions">
+                <div class="scenario-header">
+                    <h3 class="scenario-title">
+                        <span class="scenario-icon">💽</span>
+                        Device Identification & Discovery
+                    </h3>
+                    <p class="scenario-description">Identify block devices, partitions, and file system information</p>
+                    <span class="difficulty-level">Beginner Level</span>
+                </div>
+                <div class="scenario-content">
+                    <div class="real-world-example">
+                        <div class="real-world-title">
+                            🔧 Hardware Forensics Scenario
+                        </div>
+                        <div class="real-world-text">
+                            Digital forensics investigator examining storage devices, identifying partitions, and documenting system configuration for evidence collection and analysis
+                        </div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">lsblk</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">List all block devices in tree format</div>
+                        <div class="command-notes">Shows device hierarchy including partitions and mount points</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">lsblk</span> <span class="option">-f</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">List devices with file system information</div>
+                        <div class="command-notes">Displays file system type, UUID, and labels</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">lsblk</span> <span class="option">-fp</span> <span class="device">/dev/sda</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Show file system details for specific device</div>
+                        <div class="command-notes">Focused view with full device paths and file system data</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">blkid</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Display UUIDs and labels for all devices</div>
+                        <div class="command-notes">Shows filesystem type, UUID, and labels for identification</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">blkid</span> <span class="device">/dev/sda1</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Show UUID and details for specific partition</div>
+                        <div class="command-notes">Get specific device identifiers for mounting operations</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">#</span><span class="cmd">fdisk</span> <span class="option">-l</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">List all disk partitions and their details</div>
+                        <div class="command-notes">Shows partition table, sizes, types, and bootable flags</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">ls</span> <span class="option">-l</span> <span class="device">/dev/sd*</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">List SATA/SCSI block device files</div>
+                        <div class="command-notes">Shows device permissions and block device file type (b)</div>
+                    </div>
+
+                    <div class="explanation-box">
+                        <div class="explanation-title">Device Naming Conventions</div>
+                        <div class="explanation-text">
+                            <strong>SATA/SCSI:</strong> /dev/sda, /dev/sdb • <strong>NVMe:</strong> /dev/nvme0n1 • 
+                            <strong>Virtio:</strong> /dev/vda • <strong>MMC/SD:</strong> /dev/mmcblk0 • <strong>LVM:</strong> /dev/mapper/
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mount Operations -->
+            <div class="scenario-card category-mount" data-category="mount" 
+                 data-keywords="mount umount filesystem mounting unmounting mount-point UUID fstab">
+                <div class="scenario-header">
+                    <h3 class="scenario-title">
+                        <span class="scenario-icon">🔗</span>
+                        Mount & Unmount Operations
+                    </h3>
+                    <p class="scenario-description">Mount and unmount file systems for access and maintenance</p>
+                    <span class="difficulty-level">Intermediate Level</span>
+                </div>
+                <div class="scenario-content">
+                    <div class="real-world-example">
+                        <div class="real-world-title">
+                            💾 Storage Management Scenario
+                        </div>
+                        <div class="real-world-text">
+                            System administrator adding new storage to production servers, temporarily mounting external drives for data recovery, or maintaining backup storage systems
+                        </div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">#</span><span class="cmd">mount</span> <span class="device">/dev/sdb1</span> <span class="mount-point">/mnt/backup</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Mount device to specific mount point</div>
+                        <div class="command-notes">Create mount point directory first if it doesn't exist</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">#</span><span class="cmd">mount</span> <span class="option">UUID="a04c511a-b805-4ec2-981f-42d190fc9a65"</span> <span class="mount-point">/mnt/data</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Mount using UUID for reliable identification</div>
+                        <div class="command-notes">Preferred method - UUID doesn't change with device enumeration</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">#</span><span class="cmd">mount</span> <span class="option">-o ro</span> <span class="device">/dev/sdc1</span> <span class="mount-point">/mnt/readonly</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Mount file system read-only</div>
+                        <div class="command-notes">Safety measure for data recovery or forensics</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">#</span><span class="cmd">mount</span> <span class="option">-o remount,rw</span> <span class="mount-point">/mnt/readonly</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Remount file system with different options</div>
+                        <div class="command-notes">Change from read-only to read-write without unmounting</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">mount</span> <span class="option">| column -t</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Display all currently mounted file systems</div>
+                        <div class="command-notes">Formatted output showing device, mount point, and options</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">#</span><span class="cmd">umount</span> <span class="mount-point">/mnt/backup</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Unmount file system by mount point</div>
+                        <div class="command-notes">Ensure no processes are using the mount point</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">#</span><span class="cmd">umount</span> <span class="option">-f</span> <span class="mount-point">/mnt/nfs</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Force unmount (for unresponsive network mounts)</div>
+                        <div class="command-notes">Use cautiously - can cause data loss if processes are accessing files</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">lsof</span> <span class="mount-point">/mnt/backup</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">List processes using mount point</div>
+                        <div class="command-notes">Identify what's preventing unmount operation</div>
+                    </div>
+
+                    <div class="explanation-box">
+                        <div class="explanation-title">Mount Options & Security</div>
+                        <div class="explanation-text">
+                            <strong>ro/rw:</strong> Read-only/read-write • <strong>noexec:</strong> Prevent execution • 
+                            <strong>nosuid:</strong> Ignore setuid bits • <strong>nodev:</strong> No device files • <strong>UUID:</strong> Persistent device identification
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Locate Command -->
+            <div class="scenario-card category-locate" data-category="locate" 
+                 data-keywords="locate updatedb database search files fast filename path case-insensitive">
+                <div class="scenario-header">
+                    <h3 class="scenario-title">
+                        <span class="scenario-icon">⚡</span>
+                        Fast File Location (locate)
+                    </h3>
+                    <p class="scenario-description">Quick file searches using pre-generated database index</p>
+                    <span class="difficulty-level">Beginner Level</span>
+                </div>
+                <div class="scenario-content">
+                    <div class="real-world-example">
+                        <div class="real-world-title">
+                            🔍 Rapid File Discovery
+                        </div>
+                        <div class="real-world-text">
+                            Security analyst quickly locating configuration files, logs, or potential malware across entire system for incident response and compliance audits
+                        </div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">locate</span> <span class="pattern">passwd</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Find files containing "passwd" in name or path</div>
+                        <div class="command-notes">Searches pre-indexed database for instant results</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">locate</span> <span class="option">-i</span> <span class="pattern">CONFIG</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Case-insensitive search for configuration files</div>
+                        <div class="command-notes">Finds CONFIG, config, Config, etc. variations</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">locate</span> <span class="option">-n 5</span> <span class="pattern">'*.conf'</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Limit results to first 5 matches</div>
+                        <div class="command-notes">Useful for large result sets, quotes protect wildcard</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">locate</span> <span class="option">-c</span> <span class="pattern">'*.log'</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Count matching files instead of listing them</div>
+                        <div class="command-notes">Quick way to assess how many log files exist</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">#</span><span class="cmd">updatedb</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Manually update locate database</div>
+                        <div class="command-notes">Database normally updates daily via cron</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">locate</span> <span class="option">-S</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Display locate database statistics</div>
+                        <div class="command-notes">Shows database size, file count, and last update time</div>
+                    </div>
+
+                    <div class="explanation-box">
+                        <div class="explanation-title">Locate Database Management</div>
+                        <div class="explanation-text">
+                            <strong>Speed:</strong> Instant searches from index • <strong>Limitations:</strong> Only finds existing files when DB updated • 
+                            <strong>Privacy:</strong> Results filtered by user permissions • <strong>Freshness:</strong> Daily updates via cron
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Find Command -->
+            <div class="scenario-card category-find" data-category="find" 
+                 data-keywords="find real-time search name size permissions user group type modification time">
+                <div class="scenario-header">
+                    <h3 class="scenario-title">
+                        <span class="scenario-icon">🔎</span>
+                        Real-time File Search (find)
+                    </h3>
+                    <p class="scenario-description">Advanced file searching with multiple criteria and real-time results</p>
+                    <span class="difficulty-level">Intermediate Level</span>
+                </div>
+                <div class="scenario-content">
+                    <div class="real-world-example">
+                        <div class="real-world-title">
+                            🛡️ Security Investigation Scenario
+                        </div>
+                        <div class="real-world-text">
+                            Cybersecurity team investigating potential security breach - searching for recently modified files, suspicious permissions, large files, or files owned by specific users
+                        </div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">find</span> <span class="path">/etc</span> <span class="option">-name</span> <span class="pattern">"*.conf"</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Find files with specific name pattern</div>
+                        <div class="command-notes">Real-time search in /etc for configuration files</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">find</span> <span class="path">/home</span> <span class="option">-user</span> <span class="user">root</span> <span class="option">-type f</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Find files owned by specific user</div>
+                        <div class="command-notes">Security check: root-owned files in user directories</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">find</span> <span class="path">/tmp</span> <span class="option">-perm -002</span> <span class="option">-type f</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Find files with world-writable permissions</div>
+                        <div class="command-notes">Security risk: files writable by everyone</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">find</span> <span class="path">/var</span> <span class="option">-size +100M</span> <span class="option">-type f</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Find files larger than 100 megabytes</div>
+                        <div class="command-notes">Identify large files consuming disk space</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">find</span> <span class="path">/etc</span> <span class="option">-mmin -60</span> <span class="option">-type f</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Find files modified in last 60 minutes</div>
+                        <div class="command-notes">Incident response: recently changed configuration files</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">find</span> <span class="path">/</span> <span class="option">-type f</span> <span class="option">-perm -4000</span> <span class="option">-ls</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Find all setuid files with detailed listing</div>
+                        <div class="command-notes">Security audit: files with elevated privileges</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">find</span> <span class="path">/home</span> <span class="option">-name "*.sh"</span> <span class="option">-executable</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Find executable shell scripts</div>
+                        <div class="command-notes">Potential security risk: user-created executables</div>
+                    </div>
+
+                    <div class="explanation-box">
+                        <div class="explanation-title">Find Command Security Applications</div>
+                        <div class="explanation-text">
+                            <strong>SUID/SGID:</strong> -perm -4000/-2000 • <strong>World-writable:</strong> -perm -002 • 
+                            <strong>Recent changes:</strong> -mmin/-mtime • <strong>Large files:</strong> -size +100M • <strong>Ownership:</strong> -user/-group
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Advanced Search Operations -->
+            <div class="scenario-card category-advanced" data-category="advanced" 
+                 data-keywords="find advanced exec xargs complex search criteria logical operators">
+                <div class="scenario-header">
+                    <h3 class="scenario-title">
+                        <span class="scenario-icon">🚀</span>
+                        Advanced Search & Actions
+                    </h3>
+                    <p class="scenario-description">Complex searches with logical operators and automated actions</p>
+                    <span class="difficulty-level">Expert Level</span>
+                </div>
+                <div class="scenario-content">
+                    <div class="real-world-example">
+                        <div class="real-world-title">
+                            ⚡ Automated Security Operations
+                        </div>
+                        <div class="real-world-text">
+                            Advanced security automation - finding files matching complex criteria and performing actions like permission fixes, log analysis, or automated cleanup operations
+                        </div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">find</span> <span class="path">/tmp</span> <span class="option">-user nobody</span> <span class="option">-o -perm -002</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Find files owned by nobody OR world-writable</div>
+                        <div class="command-notes">Logical OR operator: multiple security conditions</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">find</span> <span class="path">/var/log</span> <span class="option">-name "*.log"</span> <span class="option">-size +10M</span> <span class="option">-mtime +30</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Find large, old log files (AND logic)</div>
+                        <div class="command-notes">Multiple criteria: log files > 10M AND older than 30 days</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">find</span> <span class="path">/home</span> <span class="option">-type f</span> <span class="option">-perm -002</span> <span class="option">-exec chmod 644 {} \;</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Find and fix world-writable files</div>
+                        <div class="command-notes">-exec runs command on each found file, {} is placeholder</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">find</span> <span class="path">/tmp</span> <span class="option">-type f</span> <span class="option">-atime +7</span> <span class="option">-delete</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Delete files not accessed in 7 days</div>
+                        <div class="command-notes">-delete is safer than -exec rm, tests first</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">find</span> <span class="path">/var/www</span> <span class="option">-name "*.php"</span> <span class="option">-exec grep -l "eval(" {} \;</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Find PHP files containing potentially malicious code</div>
+                        <div class="command-notes">Security scan: eval() function often used in web attacks</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">find</span> <span class="path">/etc</span> <span class="option">-type f</span> <span class="option">-print0</span> <span class="option">| xargs -0 grep -l "password"</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Find configuration files containing "password"</div>
+                        <div class="command-notes">-print0 and -0 handle filenames with spaces safely</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">find</span> <span class="path">/</span> <span class="option">-type f</span> <span class="option">-perm -4000</span> <span class="option">-printf "%p %u %g %m\n"</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Custom format output for setuid files</div>
+                        <div class="command-notes">%p=path, %u=user, %g=group, %m=permissions in octal</div>
+                    </div>
+
+                    <div class="explanation-box">
+                        <div class="explanation-title">Advanced Find Operations</div>
+                        <div class="explanation-text">
+                            <strong>Logical operators:</strong> -o (OR), -a (AND), ! (NOT) • <strong>Actions:</strong> -exec, -delete, -print0 • 
+                            <strong>Time:</strong> -atime, -mtime, -ctime • <strong>Safety:</strong> Test with -ls before -delete
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chapter Quote -->
+        <div class="chapter-quote">
+            <div class="quote-text">
+                "In cybersecurity, mastering file system access is like having the keys to every room in the digital fortress. Every file located, every device mounted, every permission examined—these operations form the foundation of system understanding and security analysis. The file system is the map of your digital territory; learn to navigate it expertly, and no security investigation will be beyond your reach."
+            </div>
+            <div class="quote-author">— Chapter 13: Access Linux File Systems</div>
+        </div>
+    </div>
+
+    <!-- Toast notification -->
+    <div id="toast" class="toast"></div>
+
+    <script>
+        const searchInput = document.getElementById('searchInput');
+        const scenariosGrid = document.getElementById('scenariosGrid');
+        const filterButtons = document.querySelectorAll('.filter-btn');
+        
+        let currentFilter = 'all';
+
+        // Search and filter functionality
+        function filterCommands(searchTerm, category) {
+            const cards = scenariosGrid.querySelectorAll('.scenario-card');
+            searchTerm = searchTerm.toLowerCase();
+
+            cards.forEach(card => {
+                const keywords = card.getAttribute('data-keywords').toLowerCase();
+                const cardCategory = card.getAttribute('data-category');
+                const title = card.querySelector('.scenario-title').textContent.toLowerCase();
+                const description = card.querySelector('.scenario-description').textContent.toLowerCase();
+
+                const matchesSearch = keywords.includes(searchTerm) || 
+                                    title.includes(searchTerm) || 
+                                    description.includes(searchTerm);
+                const matchesCategory = category === 'all' || cardCategory === category;
+
+                if (matchesSearch && matchesCategory) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        // Search input handler
+        searchInput.addEventListener('input', (e) => {
+            filterCommands(e.target.value, currentFilter);
+        });
+
+        // Filter button handlers
+        filterButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                // Update active button
+                filterButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                
+                // Update current filter
+                currentFilter = button.getAttribute('data-filter');
+                
+                // Apply filter
+                filterCommands(searchInput.value, currentFilter);
+            });
+        });
+
+        // Copy command functionality
+        function copyCommand(element) {
+            const commandText = element.querySelector('.command-text').textContent;
+            
+            // Remove the prompt symbol for cleaner copying
+            const cleanCommand = commandText.replace(/^\$\s*/, '').replace(/^#\s*/, '');
+            
+            navigator.clipboard.writeText(cleanCommand).then(() => {
+                showToast('Command copied to clipboard!');
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+                showToast('Copy failed - try selecting manually');
+            });
+        }
+
+        // Show toast notification
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2500);
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl/Cmd + K to focus search
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                searchInput.focus();
+                searchInput.select();
+            }
+            
+            // Escape to clear search
+            if (e.key === 'Escape') {
+                searchInput.value = '';
+                filterCommands('', currentFilter);
+                searchInput.blur();
+            }
+        });
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Focus search on page load
+            setTimeout(() => {
+                searchInput.focus();
+            }, 1000);
+
+            // Show typing animation in search
+            const searchPlaceholder = "$ search filesystem, devices, mount, locate, find, or advanced...";
+            let i = 0;
+            const typeInterval = setInterval(() => {
+                if (i < searchPlaceholder.length) {
+                    searchInput.placeholder = searchPlaceholder.substring(0, i + 1);
+                    i++;
+                } else {
+                    clearInterval(typeInterval);
+                }
+            }, 50);
+        });
+    </script>
+</body>
+</html>

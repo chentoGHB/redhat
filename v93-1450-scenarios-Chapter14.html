@@ -1,0 +1,1254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chapter 14 Beginner's Guide - Server Analysis & Support for Cybersecurity Operations</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;500;700&family=Source+Code+Pro:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --terminal-bg: #0c0c0c;
+            --terminal-secondary: #1a1a1a;
+            --terminal-accent: #2a2a2a;
+            --terminal-border: #404040;
+            --terminal-green: #00ff41;
+            --terminal-blue: #00bfff;
+            --terminal-yellow: #ffff00;
+            --terminal-orange: #ff8c00;
+            --terminal-red: #ff4444;
+            --terminal-purple: #cc99ff;
+            --terminal-cyan: #00ffff;
+            --terminal-white: #f0f0f0;
+            --terminal-gray: #808080;
+            --terminal-dark-gray: #404040;
+            --analysis-green: #00ff41;
+            --console-blue: #00bfff;
+            --diagnostic-orange: #ff8c00;
+            --monitoring-purple: #cc99ff;
+            --support-cyan: #00ffff;
+            --security-red: #ff4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto Mono', 'Source Code Pro', monospace;
+            background: var(--terminal-bg);
+            color: var(--terminal-white);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .terminal-window {
+            background: var(--terminal-secondary);
+            margin: 1rem;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 255, 65, 0.1);
+            border: 1px solid var(--terminal-border);
+            overflow: hidden;
+        }
+
+        .terminal-header {
+            background: var(--terminal-accent);
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--terminal-border);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .terminal-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .terminal-button {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .terminal-button.close {
+            background: var(--security-red);
+        }
+
+        .terminal-button.minimize {
+            background: var(--terminal-yellow);
+        }
+
+        .terminal-button.maximize {
+            background: var(--analysis-green);
+        }
+
+        .terminal-title {
+            color: var(--terminal-white);
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        .header-section {
+            padding: 2rem 1.5rem;
+            text-align: center;
+            background: linear-gradient(135deg, var(--terminal-secondary), var(--terminal-accent));
+        }
+
+        .main-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--analysis-green);
+            margin-bottom: 1rem;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: var(--terminal-gray);
+            margin-bottom: 2rem;
+        }
+
+        .college-branding {
+            background: var(--terminal-accent);
+            border: 1px solid var(--analysis-green);
+            border-radius: 8px;
+            padding: 1rem;
+            display: inline-block;
+            margin-bottom: 2rem;
+        }
+
+        .college-name {
+            color: var(--analysis-green);
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .course-info {
+            color: var(--terminal-gray);
+            font-size: 0.9rem;
+        }
+
+        .search-section {
+            padding: 1.5rem;
+            background: var(--terminal-accent);
+            border-bottom: 1px solid var(--terminal-border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .search-container {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .search-input {
+            flex: 1;
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            color: var(--terminal-white);
+            font-family: 'Source Code Pro', monospace;
+            font-size: 1rem;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--analysis-green);
+            box-shadow: 0 0 0 2px rgba(0, 255, 65, 0.2);
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 6px;
+            padding: 0.5rem 1rem;
+            color: var(--terminal-gray);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.8rem;
+        }
+
+        .filter-btn:hover {
+            border-color: var(--analysis-green);
+            color: var(--analysis-green);
+        }
+
+        .filter-btn.active {
+            background: var(--analysis-green);
+            color: var(--terminal-bg);
+            border-color: var(--analysis-green);
+        }
+
+        .scenarios-grid {
+            padding: 2rem 1.5rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 2rem;
+        }
+
+        .scenario-card {
+            background: var(--terminal-secondary);
+            border: 1px solid var(--terminal-border);
+            border-radius: 12px;
+            padding: 0;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .scenario-card:hover {
+            border-color: var(--section-color);
+            box-shadow: 0 10px 30px rgba(0, 255, 65, 0.1);
+        }
+
+        .scenario-header {
+            background: var(--terminal-accent);
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--terminal-border);
+        }
+
+        .scenario-title {
+            color: var(--section-color);
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .scenario-icon {
+            font-size: 1.2rem;
+        }
+
+        .scenario-description {
+            color: var(--terminal-gray);
+            font-size: 0.95rem;
+            margin-bottom: 1rem;
+        }
+
+        .difficulty-level {
+            background: var(--terminal-bg);
+            border: 1px solid var(--section-color);
+            border-radius: 4px;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.8rem;
+            color: var(--section-color);
+            display: inline-block;
+        }
+
+        .scenario-content {
+            padding: 1.5rem;
+        }
+
+        .real-world-example {
+            background: linear-gradient(135deg, #2a1a1a, #3a2a2a);
+            border: 1px solid var(--security-red);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .real-world-title {
+            color: var(--security-red);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .real-world-text {
+            color: var(--terminal-white);
+            font-size: 0.9rem;
+        }
+
+        .command-example {
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--terminal-dark-gray);
+        }
+
+        .command-example:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .command-syntax {
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .command-syntax:hover {
+            border-color: var(--section-color);
+            background: rgba(0, 191, 255, 0.05);
+        }
+
+        .command-text {
+            font-family: 'Source Code Pro', monospace;
+            font-size: 1rem;
+            color: var(--terminal-cyan);
+            word-break: break-word;
+        }
+
+        .command-prompt {
+            color: var(--analysis-green);
+            margin-right: 0.5rem;
+        }
+
+        .copy-indicator {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: var(--terminal-accent);
+            color: var(--terminal-gray);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .command-syntax:hover .copy-indicator {
+            opacity: 1;
+        }
+
+        .command-description {
+            color: var(--terminal-white);
+            font-size: 0.95rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .command-notes {
+            color: var(--terminal-yellow);
+            font-size: 0.85rem;
+            font-style: italic;
+        }
+
+        .explanation-box {
+            background: var(--terminal-accent);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .explanation-title {
+            color: var(--analysis-green);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .explanation-text {
+            color: var(--terminal-gray);
+            font-size: 0.9rem;
+        }
+
+        /* Category-specific colors */
+        .category-console .scenario-card {
+            --section-color: var(--console-blue);
+        }
+
+        .category-monitoring .scenario-card {
+            --section-color: var(--monitoring-purple);
+        }
+
+        .category-diagnostics .scenario-card {
+            --section-color: var(--diagnostic-orange);
+        }
+
+        .category-support .scenario-card {
+            --section-color: var(--support-cyan);
+        }
+
+        .category-services .scenario-card {
+            --section-color: var(--analysis-green);
+        }
+
+        .category-automation .scenario-card {
+            --section-color: var(--security-red);
+        }
+
+        /* Syntax highlighting */
+        .cmd { color: var(--terminal-cyan); }
+        .option { color: var(--terminal-yellow); }
+        .service { color: var(--terminal-purple); }
+        .port { color: var(--console-blue); }
+        .path { color: var(--diagnostic-orange); }
+        .url { color: var(--support-cyan); }
+        .config { color: var(--monitoring-purple); }
+        .user { color: var(--analysis-green); }
+
+        /* Toast notification */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--analysis-green);
+            color: var(--terminal-bg);
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 500;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Chapter Quote Section */
+        .chapter-quote {
+            margin: 3rem 1.5rem;
+            padding: 2rem;
+            background: linear-gradient(135deg, var(--terminal-accent), var(--terminal-secondary));
+            border: 1px solid var(--analysis-green);
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .quote-text {
+            font-size: 1.3rem;
+            color: var(--terminal-white);
+            font-style: italic;
+            margin-bottom: 1rem;
+            line-height: 1.8;
+        }
+
+        .quote-author {
+            color: var(--analysis-green);
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .scenarios-grid {
+                grid-template-columns: 1fr;
+                padding: 1rem;
+            }
+            
+            .search-container {
+                flex-direction: column;
+            }
+            
+            .filter-buttons {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="terminal-window">
+        <div class="terminal-header">
+            <div class="terminal-buttons">
+                <div class="terminal-button close"></div>
+                <div class="terminal-button minimize"></div>
+                <div class="terminal-button maximize"></div>
+            </div>
+            <div class="terminal-title">student@cybersec-lab:~/server-analysis$</div>
+        </div>
+
+        <div class="header-section">
+            <h1 class="main-title">📊 Server Analysis & Support</h1>
+            <p class="subtitle">Comprehensive Command Reference for Remote Management & Diagnostics</p>
+            
+            <div class="college-branding">
+                <div class="college-name">College of DuPage</div>
+                <div class="course-info">CIT 1450 - Linux/Unix Systems • AI Cybersecurity Program</div>
+            </div>
+        </div>
+
+        <div class="search-section">
+            <div class="search-container">
+                <input type="text" class="search-input" id="searchInput" 
+                       placeholder="$ search console, monitoring, diagnostics, support, services, or automation...">
+                <div class="filter-buttons">
+                    <button class="filter-btn active" data-filter="all">All</button>
+                    <button class="filter-btn" data-filter="console">Console</button>
+                    <button class="filter-btn" data-filter="monitoring">Monitor</button>
+                    <button class="filter-btn" data-filter="diagnostics">Reports</button>
+                    <button class="filter-btn" data-filter="support">Support</button>
+                    <button class="filter-btn" data-filter="services">Services</button>
+                    <button class="filter-btn" data-filter="automation">Auto</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="scenarios-grid" id="scenariosGrid">
+            <!-- Web Console Setup & Access -->
+            <div class="scenario-card category-console" data-category="console" 
+                 data-keywords="cockpit web console install enable firewall remote access https port 9090">
+                <div class="scenario-header">
+                    <h3 class="scenario-title">
+                        <span class="scenario-icon">🌐</span>
+                        Web Console Setup & Access
+                    </h3>
+                    <p class="scenario-description">Install and configure Cockpit web console for remote management</p>
+                    <span class="difficulty-level">Beginner Level</span>
+                </div>
+                <div class="scenario-content">
+                    <div class="real-world-example">
+                        <div class="real-world-title">
+                            🏢 Remote Server Management
+                        </div>
+                        <div class="real-world-text">
+                            System administrator setting up secure remote access to production servers for monitoring and management without direct SSH access, enabling web-based administration for operations team
+                        </div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">#</span><span class="cmd">dnf</span> <span class="option">install</span> <span class="service">cockpit</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Install Cockpit web console package</div>
+                        <div class="command-notes">Required for minimal installations, included by default on standard installations</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">#</span><span class="cmd">systemctl</span> <span class="option">enable --now</span> <span class="service">cockpit.socket</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Enable and start Cockpit web server</div>
+                        <div class="command-notes">Activates web interface on port 9090 with TLS encryption</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">#</span><span class="cmd">firewall-cmd</span> <span class="option">--add-service=cockpit --permanent</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Add Cockpit service to firewall permanently</div>
+                        <div class="command-notes">Opens port 9090 through firewall for remote access</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">#</span><span class="cmd">firewall-cmd</span> <span class="option">--reload</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Reload firewall configuration</div>
+                        <div class="command-notes">Apply the new firewall rule immediately</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">systemctl</span> <span class="option">status</span> <span class="service">cockpit.socket</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Check Cockpit service status</div>
+                        <div class="command-notes">Verify service is active and listening on port 9090</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">ss</span> <span class="option">-tlnp | grep</span> <span class="port">:9090</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Verify Cockpit is listening on port 9090</div>
+                        <div class="command-notes">Confirm network service is properly bound to port</div>
+                    </div>
+
+                    <div class="explanation-box">
+                        <div class="explanation-title">Web Console Access</div>
+                        <div class="explanation-text">
+                            <strong>URL:</strong> https://servername:9090 • <strong>Authentication:</strong> Local system accounts • 
+                            <strong>Security:</strong> Self-signed TLS certificate • <strong>Privileges:</strong> Administrative access requires sudo
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Monitoring & Performance -->
+            <div class="scenario-card category-monitoring" data-category="monitoring" 
+                 data-keywords="monitoring performance cpu memory disk network logs systemd journal analysis real-time">
+                <div class="scenario-header">
+                    <h3 class="scenario-title">
+                        <span class="scenario-icon">📈</span>
+                        System Monitoring & Performance Analysis
+                    </h3>
+                    <p class="scenario-description">Real-time monitoring and log analysis through web interface</p>
+                    <span class="difficulty-level">Beginner Level</span>
+                </div>
+                <div class="scenario-content">
+                    <div class="real-world-example">
+                        <div class="real-world-title">
+                            🔍 Performance Investigation
+                        </div>
+                        <div class="real-world-text">
+                            Security operations team investigating suspicious system behavior - monitoring CPU spikes, memory usage, network traffic, and analyzing system logs for evidence of compromise
+                        </div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">journalctl</span> <span class="option">-f</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Follow system logs in real-time</div>
+                        <div class="command-notes">Monitor live system events and service messages</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">journalctl</span> <span class="option">-p err</span> <span class="option">--since today</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Show error-level logs from today</div>
+                        <div class="command-notes">Filter for critical issues and error conditions</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">journalctl</span> <span class="option">-u</span> <span class="service">sshd</span> <span class="option">--since "1 hour ago"</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Show SSH service logs from last hour</div>
+                        <div class="command-notes">Security investigation: SSH login attempts and failures</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">top</span> <span class="option">-n 1</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Display current system resource usage</div>
+                        <div class="command-notes">Single snapshot of CPU, memory, and process information</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">iostat</span> <span class="option">-x 1 5</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Monitor disk I/O statistics</div>
+                        <div class="command-notes">Extended stats every second for 5 iterations</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">sar</span> <span class="option">-n DEV 1 5</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Monitor network interface statistics</div>
+                        <div class="command-notes">Network device activity every second for 5 iterations</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">free</span> <span class="option">-h</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Display memory usage in human-readable format</div>
+                        <div class="command-notes">Shows total, used, free, and available memory</div>
+                    </div>
+
+                    <div class="explanation-box">
+                        <div class="explanation-title">Performance Monitoring Tools</div>
+                        <div class="explanation-text">
+                            <strong>Real-time:</strong> Web console graphs and terminal commands • <strong>Historical:</strong> sar and system logs • 
+                            <strong>Alerts:</strong> Journal priority filtering • <strong>Analysis:</strong> Performance trends and anomalies
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Diagnostic Report Generation -->
+            <div class="scenario-card category-diagnostics" data-category="diagnostics" 
+                 data-keywords="sos report diagnostic troubleshooting debug information collect support case obfuscate">
+                <div class="scenario-header">
+                    <h3 class="scenario-title">
+                        <span class="scenario-icon">📋</span>
+                        Diagnostic Report Generation
+                    </h3>
+                    <p class="scenario-description">Generate comprehensive diagnostic reports for troubleshooting</p>
+                    <span class="difficulty-level">Intermediate Level</span>
+                </div>
+                <div class="scenario-content">
+                    <div class="real-world-example">
+                        <div class="real-world-title">
+                            🛠️ Technical Support Scenario
+                        </div>
+                        <div class="real-world-text">
+                            System administrator preparing detailed diagnostic information for Red Hat support case - collecting system configuration, logs, and debug data while protecting sensitive information
+                        </div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">#</span><span class="cmd">dnf</span> <span class="option">install</span> <span class="service">sos</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Install SOS diagnostic utility</div>
+                        <div class="command-notes">Required package for generating comprehensive diagnostic reports</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">#</span><span class="cmd">sos</span> <span class="option">report</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Generate comprehensive diagnostic report</div>
+                        <div class="command-notes">Collects system info, configs, logs, and command output</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">#</span><span class="cmd">sos</span> <span class="option">report --case-id</span> <span class="config">01234567</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Generate report linked to support case ID</div>
+                        <div class="command-notes">Associates diagnostic data with existing support ticket</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">#</span><span class="cmd">sos</span> <span class="option">report --batch</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Generate report in non-interactive mode</div>
+                        <div class="command-notes">Automated execution for scripting and scheduled collection</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">#</span><span class="cmd">sos</span> <span class="option">clean</span> <span class="path">/var/tmp/sosreport-*.tar.xz</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Obfuscate sensitive information in report</div>
+                        <div class="command-notes">Protects hostnames, IP addresses, and personal data</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">ls</span> <span class="option">-lh</span> <span class="path">/var/tmp/sosreport-*</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">List generated diagnostic reports</div>
+                        <div class="command-notes">View report files and their sizes for transfer</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">#</span><span class="cmd">sos</span> <span class="option">report --upload</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Generate and upload report directly to Red Hat</div>
+                        <div class="command-notes">Streamlined process for support case submission</div>
+                    </div>
+
+                    <div class="explanation-box">
+                        <div class="explanation-title">Diagnostic Report Contents</div>
+                        <div class="explanation-text">
+                            <strong>System Info:</strong> Hardware, kernel, packages • <strong>Configurations:</strong> Service configs, network settings • 
+                            <strong>Logs:</strong> System and service logs • <strong>Commands:</strong> Output from diagnostic commands
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Red Hat Support Integration -->
+            <div class="scenario-card category-support" data-category="support" 
+                 data-keywords="red hat support customer portal case management knowledge base documentation severity">
+                <div class="scenario-header">
+                    <h3 class="scenario-title">
+                        <span class="scenario-icon">🎫</span>
+                        Red Hat Support Integration
+                    </h3>
+                    <p class="scenario-description">Access support resources and manage technical cases</p>
+                    <span class="difficulty-level">Beginner Level</span>
+                </div>
+                <div class="scenario-content">
+                    <div class="real-world-example">
+                        <div class="real-world-title">
+                            📞 Enterprise Support Process
+                        </div>
+                        <div class="real-world-text">
+                            IT operations team managing critical production issue - escalating through proper support channels, understanding severity levels, and leveraging Red Hat knowledge base for resolution
+                        </div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">curl</span> <span class="url">https://access.redhat.com/solutions</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Access Red Hat Knowledge Base solutions</div>
+                        <div class="command-notes">Web access to solutions, articles, and documentation</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">subscription-manager</span> <span class="option">status</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Check system subscription status</div>
+                        <div class="command-notes">Verify entitlement for support services</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">subscription-manager</span> <span class="option">list --consumed</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Display consumed subscriptions</div>
+                        <div class="command-notes">View active support entitlements and levels</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">insights-client</span> <span class="option">--register</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Register system with Red Hat Insights</div>
+                        <div class="command-notes">Enable proactive issue detection and recommendations</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">insights-client</span> <span class="option">--status</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Check Insights client status</div>
+                        <div class="command-notes">Verify system reporting and analysis configuration</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">man</span> <span class="option">sos</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Read SOS utility documentation</div>
+                        <div class="command-notes">Local documentation for diagnostic report generation</div>
+                    </div>
+
+                    <div class="explanation-box">
+                        <div class="explanation-title">Support Severity Levels</div>
+                        <div class="explanation-text">
+                            <strong>Urgent (1):</strong> Production down, no workaround • <strong>High (2):</strong> Major impact, no workaround • 
+                            <strong>Medium (3):</strong> Partial impact, workaround exists • <strong>Low (4):</strong> Enhancement requests, docs
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Services Management -->
+            <div class="scenario-card category-services" data-category="services" 
+                 data-keywords="systemctl services start stop enable disable restart status user management firewall network">
+                <div class="scenario-header">
+                    <h3 class="scenario-title">
+                        <span class="scenario-icon">⚙️</span>
+                        System Services Management
+                    </h3>
+                    <p class="scenario-description">Manage system services and configuration through web console</p>
+                    <span class="difficulty-level">Intermediate Level</span>
+                </div>
+                <div class="scenario-content">
+                    <div class="real-world-example">
+                        <div class="real-world-title">
+                            🔧 Service Administration
+                        </div>
+                        <div class="real-world-text">
+                            System administrator managing critical services during maintenance window - starting/stopping services, configuring network interfaces, managing user accounts, and firewall rules
+                        </div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">#</span><span class="cmd">systemctl</span> <span class="option">start</span> <span class="service">httpd</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Start Apache web server service</div>
+                        <div class="command-notes">Immediately activate service without enabling persistence</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">#</span><span class="cmd">systemctl</span> <span class="option">enable --now</span> <span class="service">httpd</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Enable and start service permanently</div>
+                        <div class="command-notes">Service will start automatically on system boot</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">#</span><span class="cmd">systemctl</span> <span class="option">disable --now</span> <span class="service">psacct</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Stop and disable service</div>
+                        <div class="command-notes">Prevent service from starting on boot</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">systemctl</span> <span class="option">list-units --failed</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">List failed services</div>
+                        <div class="command-notes">Identify services that failed to start or crashed</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">#</span><span class="cmd">useradd</span> <span class="option">-c "Manager User"</span> <span class="user">manager1</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Create new user account with description</div>
+                        <div class="command-notes">Add system user for administration purposes</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">#</span><span class="cmd">usermod</span> <span class="option">-aG wheel</span> <span class="user">manager1</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Add user to wheel group for sudo access</div>
+                        <div class="command-notes">Grant administrative privileges to user account</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">id</span> <span class="user">manager1</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Display user ID and group membership</div>
+                        <div class="command-notes">Verify user account configuration and group assignments</div>
+                    </div>
+
+                    <div class="explanation-box">
+                        <div class="explanation-title">Service Management Best Practices</div>
+                        <div class="explanation-text">
+                            <strong>Enable/Disable:</strong> Controls automatic startup • <strong>Start/Stop:</strong> Immediate state changes • 
+                            <strong>Reload:</strong> Configuration refresh • <strong>Restart:</strong> Full service cycle
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Automation & Scripting -->
+            <div class="scenario-card category-automation" data-category="automation" 
+                 data-keywords="automation scripts cron scheduled tasks remote execution ssh keys batch operations">
+                <div class="scenario-header">
+                    <h3 class="scenario-title">
+                        <span class="scenario-icon">🤖</span>
+                        Automation & Remote Operations
+                    </h3>
+                    <p class="scenario-description">Automate system administration and enable remote operations</p>
+                    <span class="difficulty-level">Expert Level</span>
+                </div>
+                <div class="scenario-content">
+                    <div class="real-world-example">
+                        <div class="real-world-title">
+                            ⚡ Operations Automation
+                        </div>
+                        <div class="real-world-text">
+                            DevOps engineer implementing automated health checks, scheduled diagnostic reporting, and remote administration capabilities for enterprise server fleet management
+                        </div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">ssh-keygen</span> <span class="option">-t rsa -b 4096</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Generate SSH key pair for passwordless authentication</div>
+                        <div class="command-notes">Create secure keys for automated remote access</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">ssh-copy-id</span> <span class="user">admin@server.example.com</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Copy public key to remote server</div>
+                        <div class="command-notes">Enable passwordless SSH authentication</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">crontab</span> <span class="option">-e</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Edit cron schedule for automated tasks</div>
+                        <div class="command-notes">Configure scheduled diagnostic reports and health checks</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="config">0 2 * * 0</span> <span class="cmd">sos report --batch</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Weekly automated diagnostic report (cron entry)</div>
+                        <div class="command-notes">Generate reports every Sunday at 2 AM</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">ansible</span> <span class="option">all -m</span> <span class="service">service</span> <span class="option">-a "name=cockpit.socket state=started enabled=yes"</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Deploy Cockpit across multiple servers with Ansible</div>
+                        <div class="command-notes">Mass deployment and configuration automation</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">parallel-ssh</span> <span class="option">-h hosts.txt</span> <span class="option">"systemctl status cockpit.socket"</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Check Cockpit status across multiple servers</div>
+                        <div class="command-notes">Parallel execution for fleet monitoring</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">watch</span> <span class="option">-n 30</span> <span class="cmd">"systemctl is-failed '*'"</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Monitor for failed services every 30 seconds</div>
+                        <div class="command-notes">Continuous health monitoring automation</div>
+                    </div>
+
+                    <div class="explanation-box">
+                        <div class="explanation-title">Automation Security Considerations</div>
+                        <div class="explanation-text">
+                            <strong>SSH Keys:</strong> Secure passwordless authentication • <strong>Cron Security:</strong> Limited user privileges • 
+                            <strong>Logging:</strong> Audit automated operations • <strong>Access Control:</strong> Restrict automation accounts
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chapter Quote -->
+        <div class="chapter-quote">
+            <div class="quote-text">
+                "In the realm of cybersecurity, effective server analysis and support infrastructure is the nerve center of operational excellence. Every diagnostic report generated, every monitoring alert investigated, every support case properly documented—these activities form the backbone of resilient system management. Master these tools, and you transform from a reactive administrator into a proactive guardian of digital infrastructure."
+            </div>
+            <div class="quote-author">— Chapter 14: Analyze Servers and Get Support</div>
+        </div>
+    </div>
+
+    <!-- Toast notification -->
+    <div id="toast" class="toast"></div>
+
+    <script>
+        const searchInput = document.getElementById('searchInput');
+        const scenariosGrid = document.getElementById('scenariosGrid');
+        const filterButtons = document.querySelectorAll('.filter-btn');
+        
+        let currentFilter = 'all';
+
+        // Search and filter functionality
+        function filterCommands(searchTerm, category) {
+            const cards = scenariosGrid.querySelectorAll('.scenario-card');
+            searchTerm = searchTerm.toLowerCase();
+
+            cards.forEach(card => {
+                const keywords = card.getAttribute('data-keywords').toLowerCase();
+                const cardCategory = card.getAttribute('data-category');
+                const title = card.querySelector('.scenario-title').textContent.toLowerCase();
+                const description = card.querySelector('.scenario-description').textContent.toLowerCase();
+
+                const matchesSearch = keywords.includes(searchTerm) || 
+                                    title.includes(searchTerm) || 
+                                    description.includes(searchTerm);
+                const matchesCategory = category === 'all' || cardCategory === category;
+
+                if (matchesSearch && matchesCategory) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        // Search input handler
+        searchInput.addEventListener('input', (e) => {
+            filterCommands(e.target.value, currentFilter);
+        });
+
+        // Filter button handlers
+        filterButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                // Update active button
+                filterButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                
+                // Update current filter
+                currentFilter = button.getAttribute('data-filter');
+                
+                // Apply filter
+                filterCommands(searchInput.value, currentFilter);
+            });
+        });
+
+        // Copy command functionality
+        function copyCommand(element) {
+            const commandText = element.querySelector('.command-text').textContent;
+            
+            // Remove the prompt symbol for cleaner copying
+            const cleanCommand = commandText.replace(/^\$\s*/, '').replace(/^#\s*/, '');
+            
+            navigator.clipboard.writeText(cleanCommand).then(() => {
+                showToast('Command copied to clipboard!');
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+                showToast('Copy failed - try selecting manually');
+            });
+        }
+
+        // Show toast notification
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2500);
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl/Cmd + K to focus search
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                searchInput.focus();
+                searchInput.select();
+            }
+            
+            // Escape to clear search
+            if (e.key === 'Escape') {
+                searchInput.value = '';
+                filterCommands('', currentFilter);
+                searchInput.blur();
+            }
+        });
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Focus search on page load
+            setTimeout(() => {
+                searchInput.focus();
+            }, 1000);
+
+            // Show typing animation in search
+            const searchPlaceholder = "$ search console, monitoring, diagnostics, support, services, or automation...";
+            let i = 0;
+            const typeInterval = setInterval(() => {
+                if (i < searchPlaceholder.length) {
+                    searchInput.placeholder = searchPlaceholder.substring(0, i + 1);
+                    i++;
+                } else {
+                    clearInterval(typeInterval);
+                }
+            }, 50);
+        });
+    </script>
+</body>
+</html>

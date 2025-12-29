@@ -1,0 +1,1392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chapter 02 Beginner's Guide - Essential Linux Commands</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;500;700&family=Source+Code+Pro:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --terminal-bg: #0c0c0c;
+            --terminal-secondary: #1a1a1a;
+            --terminal-accent: #2a2a2a;
+            --terminal-border: #404040;
+            --terminal-green: #00ff41;
+            --terminal-blue: #00bfff;
+            --terminal-yellow: #ffff00;
+            --terminal-orange: #ff8c00;
+            --terminal-red: #ff4444;
+            --terminal-purple: #cc99ff;
+            --terminal-cyan: #00ffff;
+            --terminal-white: #f0f0f0;
+            --terminal-gray: #808080;
+            --terminal-dark-gray: #404040;
+            --nav-green: #00ff41;
+            --file-blue: #00bfff;
+            --system-orange: #ff8c00;
+            --history-purple: #cc99ff;
+            --search-cyan: #00ffff;
+            --admin-red: #ff4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto Mono', 'Source Code Pro', monospace;
+            background: var(--terminal-bg);
+            color: var(--terminal-white);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .terminal-window {
+            background: var(--terminal-secondary);
+            margin: 1rem;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 255, 65, 0.1);
+            border: 1px solid var(--terminal-border);
+            overflow: hidden;
+        }
+
+        .terminal-header {
+            background: linear-gradient(135deg, #333, #444);
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            border-bottom: 1px solid var(--terminal-border);
+        }
+
+        .terminal-button {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .close { background: #ff5f56; }
+        .minimize { background: #ffbd2e; }
+        .maximize { background: #27ca3f; }
+
+        .terminal-title {
+            color: var(--terminal-white);
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-left: 1rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background: var(--terminal-secondary);
+            border-radius: 12px;
+            border: 1px solid var(--terminal-border);
+        }
+
+        .title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--nav-green);
+            margin-bottom: 0.5rem;
+            text-shadow: 0 0 20px rgba(0, 255, 65, 0.3);
+        }
+
+        .subtitle {
+            color: var(--file-blue);
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+        }
+
+        .course-info {
+            color: var(--terminal-gray);
+            font-size: 0.95rem;
+        }
+
+        .beginner-notice {
+            background: linear-gradient(135deg, #2a4a2a, #1a3a1a);
+            border: 1px solid var(--nav-green);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            text-align: center;
+        }
+
+        .beginner-notice h3 {
+            color: var(--terminal-yellow);
+            margin-bottom: 0.5rem;
+            font-size: 1.3rem;
+        }
+
+        .beginner-notice p {
+            color: var(--terminal-white);
+        }
+
+        .search-terminal {
+            background: var(--terminal-secondary);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            position: sticky;
+            top: 1rem;
+            z-index: 100;
+        }
+
+        .search-input {
+            width: 100%;
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 6px;
+            padding: 0.75rem 1rem;
+            color: var(--nav-green);
+            font-family: inherit;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--nav-green);
+            box-shadow: 0 0 10px rgba(0, 255, 65, 0.2);
+        }
+
+        .search-input::placeholder {
+            color: var(--terminal-gray);
+        }
+
+        .filter-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-tab {
+            background: var(--terminal-accent);
+            border: 1px solid var(--terminal-border);
+            border-radius: 6px;
+            padding: 0.5rem 1rem;
+            color: var(--terminal-gray);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            font-size: 0.9rem;
+        }
+
+        .filter-tab:hover {
+            background: var(--terminal-border);
+            color: var(--terminal-white);
+        }
+
+        .filter-tab.active {
+            background: var(--nav-green);
+            color: var(--terminal-bg);
+            border-color: var(--nav-green);
+        }
+
+        .scenario-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 2rem;
+        }
+
+        .scenario-card {
+            background: var(--terminal-secondary);
+            border: 1px solid var(--terminal-border);
+            border-radius: 12px;
+            padding: 0;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .scenario-card:hover {
+            border-color: var(--section-color);
+            box-shadow: 0 10px 30px rgba(0, 255, 65, 0.1);
+        }
+
+        .scenario-card.hidden {
+            display: none;
+        }
+
+        .scenario-header {
+            background: var(--terminal-accent);
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--terminal-border);
+        }
+
+        .scenario-title {
+            color: var(--section-color);
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .scenario-description {
+            color: var(--terminal-gray);
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .scenario-body {
+            padding: 1.5rem;
+        }
+
+        .command-section {
+            margin-bottom: 2rem;
+        }
+
+        .command-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .command-title {
+            color: var(--section-color);
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .command-tag {
+            background: var(--section-color);
+            color: var(--terminal-bg);
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .command-block {
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            position: relative;
+            overflow-x: auto;
+        }
+
+        .command-prompt {
+            color: var(--section-color);
+            font-weight: 500;
+        }
+
+        .command-text {
+            color: var(--terminal-cyan);
+            font-family: 'Source Code Pro', monospace;
+            white-space: pre-wrap;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: var(--terminal-accent);
+            border: 1px solid var(--terminal-border);
+            color: var(--terminal-gray);
+            padding: 0.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .copy-btn:hover {
+            background: var(--section-color);
+            color: var(--terminal-bg);
+            border-color: var(--section-color);
+        }
+
+        .explanation-box {
+            background: rgba(0, 191, 255, 0.1);
+            border: 1px solid var(--file-blue);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .explanation-title {
+            color: var(--file-blue);
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .explanation-text {
+            color: var(--terminal-white);
+            line-height: 1.6;
+        }
+
+        .security-box {
+            background: rgba(255, 68, 68, 0.1);
+            border: 1px solid var(--admin-red);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .security-title {
+            color: var(--admin-red);
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .use-case-box {
+            background: rgba(255, 140, 0, 0.1);
+            border: 1px solid var(--system-orange);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .use-case-title {
+            color: var(--system-orange);
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .workflow-container {
+            background: rgba(204, 153, 255, 0.1);
+            border: 1px solid var(--history-purple);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .workflow-title {
+            color: var(--history-purple);
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .workflow-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .workflow-step {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem;
+            background: var(--terminal-accent);
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .workflow-step:hover {
+            background: var(--terminal-border);
+        }
+
+        .step-number {
+            background: var(--history-purple);
+            color: var(--terminal-bg);
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .command-flow {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .command-step {
+            background: var(--terminal-accent);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .command-step:hover {
+            border-color: var(--section-color);
+            box-shadow: 0 5px 15px rgba(0, 255, 65, 0.1);
+        }
+
+        .step-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .step-title {
+            color: var(--section-color);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .step-value {
+            color: var(--terminal-gray);
+            font-size: 0.9rem;
+        }
+
+        .passwd-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .passwd-field {
+            background: var(--terminal-accent);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .passwd-field:hover {
+            border-color: var(--system-orange);
+            box-shadow: 0 5px 15px rgba(255, 140, 0, 0.1);
+        }
+
+        .field-name {
+            color: var(--system-orange);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .field-desc {
+            color: var(--terminal-gray);
+            font-size: 0.8rem;
+        }
+
+        .example-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .example-box {
+            background: var(--terminal-accent);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .example-box:hover {
+            border-color: var(--section-color);
+            box-shadow: 0 5px 15px rgba(0, 255, 65, 0.1);
+        }
+
+        .example-title {
+            color: var(--section-color);
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .example-code {
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 6px;
+            padding: 1rem;
+            margin: 0.75rem 0;
+            font-family: 'Source Code Pro', monospace;
+            color: var(--terminal-cyan);
+            position: relative;
+        }
+
+        .toast {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            background: var(--nav-green);
+            color: var(--terminal-bg);
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 500;
+            transform: translateX(400px);
+            transition: all 0.3s ease;
+            z-index: 1000;
+            max-width: 400px;
+            font-family: inherit;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 4rem;
+            padding: 2rem;
+            border-top: 1px solid var(--terminal-border);
+            color: var(--terminal-gray);
+        }
+
+        /* Section-specific colors */
+        .scenario-card[data-category="navigation"] {
+            --section-color: var(--nav-green);
+        }
+
+        .scenario-card[data-category="files"] {
+            --section-color: var(--file-blue);
+        }
+
+        .scenario-card[data-category="system"] {
+            --section-color: var(--system-orange);
+        }
+
+        .scenario-card[data-category="history"] {
+            --section-color: var(--history-purple);
+        }
+
+        .scenario-card[data-category="search"] {
+            --section-color: var(--search-cyan);
+        }
+
+        .scenario-card[data-category="admin"] {
+            --section-color: var(--admin-red);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .scenario-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .command-flow {
+                grid-template-columns: 1fr;
+            }
+            
+            .example-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .passwd-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="terminal-window">
+        <div class="terminal-header">
+            <div class="terminal-button close"></div>
+            <div class="terminal-button minimize"></div>
+            <div class="terminal-button maximize"></div>
+            <span class="terminal-title">student@cod-cybersec:~/chapter02$ ./essential_commands_guide.sh</span>
+        </div>
+        
+        <div class="container">
+            <div class="header">
+                <h1 class="title">🚀 Chapter 02: Essential Linux Commands</h1>
+                <p class="subtitle">Fundamental Skills for System Administration</p>
+                <p class="course-info">College of DuPage | CIT 1450 Linux/Unix Systems | AI Cybersecurity Program</p>
+            </div>
+
+            <div class="beginner-notice">
+                <h3>⚡ Foundation Commands</h3>
+                <p>Master these essential Linux commands to navigate, view, and manage your system effectively. These are the building blocks every cybersecurity professional needs.</p>
+            </div>
+
+            <div class="search-terminal">
+                <input type="text" id="searchInput" class="search-input" placeholder="">
+                <div class="filter-tabs">
+                    <button class="filter-tab active" data-category="all">All Commands</button>
+                    <button class="filter-tab" data-category="navigation">Navigation & Listing</button>
+                    <button class="filter-tab" data-category="files">File Viewing & Processing</button>
+                    <button class="filter-tab" data-category="system">System Information</button>
+                    <button class="filter-tab" data-category="history">Command History</button>
+                    <button class="filter-tab" data-category="search">Search & Filtering</button>
+                    <button class="filter-tab" data-category="admin">User Administration</button>
+                </div>
+            </div>
+
+            <div class="scenario-grid">
+                <!-- Navigation & Listing -->
+                <div class="scenario-card" data-category="navigation">
+                    <div class="scenario-header">
+                        <h3 class="scenario-title">
+                            🧭 Navigation & Directory Listing
+                        </h3>
+                        <p class="scenario-description">
+                            Master basic navigation and file listing commands essential for moving around the Linux file system and viewing directory contents.
+                        </p>
+                    </div>
+                    <div class="scenario-body">
+                        <div class="command-section">
+                            <div class="command-header">
+                                <span class="command-title">Navigation Commands</span>
+                                <span class="command-tag">File System</span>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">ls -la</span>
+                                <button class="copy-btn" onclick="copyCommand('ls -la')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">ls -lh</span>
+                                <button class="copy-btn" onclick="copyCommand('ls -lh')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">pwd</span>
+                                <button class="copy-btn" onclick="copyCommand('pwd')">📋</button>
+                            </div>
+                        </div>
+
+                        <div class="command-flow">
+                            <div class="command-step">
+                                <div class="step-icon">📂</div>
+                                <div class="step-title">ls</div>
+                                <div class="step-value">List Directory</div>
+                            </div>
+                            <div class="command-step">
+                                <div class="step-icon">👁️</div>
+                                <div class="step-title">-l</div>
+                                <div class="step-value">Long Format</div>
+                            </div>
+                            <div class="command-step">
+                                <div class="step-icon">🔍</div>
+                                <div class="step-title">-a</div>
+                                <div class="step-value">Show Hidden</div>
+                            </div>
+                            <div class="command-step">
+                                <div class="step-icon">📊</div>
+                                <div class="step-title">-h</div>
+                                <div class="step-value">Human Readable</div>
+                            </div>
+                        </div>
+
+                        <div class="explanation-box">
+                            <div class="explanation-title">🎯 Command Options Explained:</div>
+                            <div class="explanation-text">
+                                <strong>ls -la:</strong> Shows detailed listing including hidden files (starting with .)<br>
+                                <strong>ls -lh:</strong> Displays file sizes in human-readable format (K, M, G)<br>
+                                <strong>pwd:</strong> Print Working Directory - shows your current location<br>
+                                <strong>cd:</strong> Change Directory - navigate between folders<br>
+                                <strong>ls -lt:</strong> Sort files by modification time (newest first)
+                            </div>
+                        </div>
+
+                        <div class="security-box">
+                            <div class="security-title">🛡️ Security Applications:</div>
+                            <div class="explanation-text">
+                                <strong>Hidden File Detection:</strong> Use -a to find configuration files and potential malware<br>
+                                <strong>Permission Analysis:</strong> Long format reveals file permissions and ownership<br>
+                                <strong>Timeline Analysis:</strong> Use -lt to identify recently modified files during incident response<br>
+                                <strong>Space Analysis:</strong> Human-readable sizes help identify unusually large files
+                            </div>
+                        </div>
+
+                        <div class="example-grid">
+                            <div class="example-box">
+                                <div class="example-title">🔍 Security Investigation</div>
+                                <div class="example-code">ls -la /tmp/
+ls -lt /var/log/</div>
+                                <p style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                    Check for suspicious files in /tmp and recent log activity
+                                </p>
+                            </div>
+                            <div class="example-box">
+                                <div class="example-title">📊 Home Directory Audit</div>
+                                <div class="example-code">ls -lh ~</div>
+                                <p style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                    View home directory with readable file sizes
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- File Viewing & Processing -->
+                <div class="scenario-card" data-category="files">
+                    <div class="scenario-header">
+                        <h3 class="scenario-title">
+                            📄 File Viewing & Content Analysis
+                        </h3>
+                        <p class="scenario-description">
+                            View and analyze file contents using essential commands for reading logs, configuration files, and system data.
+                        </p>
+                    </div>
+                    <div class="scenario-body">
+                        <div class="command-section">
+                            <div class="command-header">
+                                <span class="command-title">File Content Commands</span>
+                                <span class="command-tag">Text Processing</span>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">head -n 5 data.txt</span>
+                                <button class="copy-btn" onclick="copyCommand('head -n 5 data.txt')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">tail -f /var/log/messages</span>
+                                <button class="copy-btn" onclick="copyCommand('tail -f /var/log/messages')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">cat -n filename</span>
+                                <button class="copy-btn" onclick="copyCommand('cat -n filename')">📋</button>
+                            </div>
+                        </div>
+
+                        <div class="workflow-container">
+                            <div class="workflow-title">📊 Log Analysis Workflow:</div>
+                            <div class="workflow-steps">
+                                <div class="workflow-step">
+                                    <div class="step-number">1</div>
+                                    <div>Use head to quickly preview file structure and format</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">2</div>
+                                    <div>Check tail for most recent events and activity</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">3</div>
+                                    <div>Use tail -f for real-time monitoring of active logs</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">4</div>
+                                    <div>Add line numbers with cat -n for precise referencing</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">5</div>
+                                    <div>Combine with grep for targeted pattern searching</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="use-case-box">
+                            <div class="use-case-title">🎯 Cybersecurity Applications:</div>
+                            <div class="explanation-text">
+                                <strong>Log Monitoring:</strong> Use tail -f to watch security logs in real-time<br>
+                                <strong>Configuration Review:</strong> head/cat to examine system configuration files<br>
+                                <strong>Incident Analysis:</strong> View specific log entries with line numbers for documentation<br>
+                                <strong>File Sampling:</strong> Preview large files before processing with other tools<br>
+                                <strong>Error Detection:</strong> Quickly check end of log files for recent errors
+                            </div>
+                        </div>
+
+                        <div class="example-grid">
+                            <div class="example-box">
+                                <div class="example-title">🚨 Real-time Security Monitoring</div>
+                                <div class="example-code">tail -f /var/log/auth.log</div>
+                                <p style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                    Monitor authentication attempts in real-time
+                                </p>
+                            </div>
+                            <div class="example-box">
+                                <div class="example-title">📋 Configuration Verification</div>
+                                <div class="example-code">head -20 /etc/ssh/sshd_config</div>
+                                <p style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                    Review SSH configuration settings
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- System Information -->
+                <div class="scenario-card" data-category="system">
+                    <div class="scenario-header">
+                        <h3 class="scenario-title">
+                            🖥️ System Information & User Management
+                        </h3>
+                        <p class="scenario-description">
+                            Gather critical system information and understand user account structure for security assessment and system administration.
+                        </p>
+                    </div>
+                    <div class="scenario-body">
+                        <div class="command-section">
+                            <div class="command-header">
+                                <span class="command-title">System Information Commands</span>
+                                <span class="command-tag">User Database</span>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">wc -l /etc/passwd</span>
+                                <button class="copy-btn" onclick="copyCommand('wc -l /etc/passwd')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">cat /etc/passwd</span>
+                                <button class="copy-btn" onclick="copyCommand('cat /etc/passwd')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">whoami</span>
+                                <button class="copy-btn" onclick="copyCommand('whoami')">📋</button>
+                            </div>
+                        </div>
+
+                        <div class="passwd-grid">
+                            <div class="passwd-field">
+                                <div class="field-name">1. Username</div>
+                                <div class="field-desc">Login name</div>
+                            </div>
+                            <div class="passwd-field">
+                                <div class="field-name">2. Password</div>
+                                <div class="field-desc">Encrypted or 'x'</div>
+                            </div>
+                            <div class="passwd-field">
+                                <div class="field-name">3. UID</div>
+                                <div class="field-desc">User ID number</div>
+                            </div>
+                            <div class="passwd-field">
+                                <div class="field-name">4. GID</div>
+                                <div class="field-desc">Group ID number</div>
+                            </div>
+                            <div class="passwd-field">
+                                <div class="field-name">5. Comment</div>
+                                <div class="field-desc">Full name/description</div>
+                            </div>
+                            <div class="passwd-field">
+                                <div class="field-name">6. Home Dir</div>
+                                <div class="field-desc">User's home directory</div>
+                            </div>
+                            <div class="passwd-field">
+                                <div class="field-name">7. Shell</div>
+                                <div class="field-desc">Default shell program</div>
+                            </div>
+                        </div>
+
+                        <div class="explanation-box">
+                            <div class="explanation-title">🔍 /etc/passwd Structure Analysis:</div>
+                            <div class="explanation-text">
+                                <strong>Format:</strong> username:password:UID:GID:comment:home_directory:shell<br>
+                                <strong>Security Focus:</strong> Look for unusual UIDs, shell access, and service accounts<br>
+                                <strong>User Counting:</strong> wc -l counts total number of user accounts<br>
+                                <strong>Privilege Analysis:</strong> UID 0 = root, UIDs < 1000 = system accounts<br>
+                                <strong>Shell Assessment:</strong> /bin/bash vs /sbin/nologin for security review
+                            </div>
+                        </div>
+
+                        <div class="example-grid">
+                            <div class="example-box">
+                                <div class="example-title">👥 User Account Audit</div>
+                                <div class="example-code">grep "/bin/bash" /etc/passwd</div>
+                                <p style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                    Find users with shell access
+                                </p>
+                            </div>
+                            <div class="example-box">
+                                <div class="example-title">📊 System Account Analysis</div>
+                                <div class="example-code">awk -F: '$3 < 1000 {print $1}' /etc/passwd</div>
+                                <p style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                    List system accounts (UID < 1000)
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Command History -->
+                <div class="scenario-card" data-category="history">
+                    <div class="scenario-header">
+                        <h3 class="scenario-title">
+                            📜 Command History & Session Management
+                        </h3>
+                        <p class="scenario-description">
+                            Track and analyze command history for security auditing, troubleshooting, and understanding user activity patterns.
+                        </p>
+                    </div>
+                    <div class="scenario-body">
+                        <div class="command-section">
+                            <div class="command-header">
+                                <span class="command-title">History Management</span>
+                                <span class="command-tag">Session Tracking</span>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">history</span>
+                                <button class="copy-btn" onclick="copyCommand('history')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">history 20</span>
+                                <button class="copy-btn" onclick="copyCommand('history 20')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">history | grep sudo</span>
+                                <button class="copy-btn" onclick="copyCommand('history | grep sudo')">📋</button>
+                            </div>
+                        </div>
+
+                        <div class="use-case-box">
+                            <div class="use-case-title">🎯 Security & Forensic Applications:</div>
+                            <div class="explanation-text">
+                                <strong>Command Auditing:</strong> Review commands executed by users for security analysis<br>
+                                <strong>Incident Investigation:</strong> Track suspicious command patterns during security incidents<br>
+                                <strong>Privilege Escalation Detection:</strong> Monitor sudo usage and privilege changes<br>
+                                <strong>User Behavior Analysis:</strong> Understand normal vs. abnormal user activity<br>
+                                <strong>Troubleshooting:</strong> Retrace steps to identify configuration changes
+                            </div>
+                        </div>
+
+                        <div class="workflow-container">
+                            <div class="workflow-title">🔍 Security Analysis Workflow:</div>
+                            <div class="workflow-steps">
+                                <div class="workflow-step">
+                                    <div class="step-number">1</div>
+                                    <div>Review recent command history for unusual activity</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">2</div>
+                                    <div>Search for specific patterns (sudo, rm, chmod, etc.)</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">3</div>
+                                    <div>Analyze timing and sequence of commands</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">4</div>
+                                    <div>Document findings for security reporting</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">5</div>
+                                    <div>Cross-reference with system logs for correlation</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="example-grid">
+                            <div class="example-box">
+                                <div class="example-title">🔍 Privilege Analysis</div>
+                                <div class="example-code">history | grep -E "(sudo|su |chmod|chown)"</div>
+                                <p style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                    Find commands involving privilege changes
+                                </p>
+                            </div>
+                            <div class="example-box">
+                                <div class="example-title">📅 Recent Activity Review</div>
+                                <div class="example-code">history 15</div>
+                                <p style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                    Show last 15 commands for quick review
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Search & Filtering -->
+                <div class="scenario-card" data-category="search">
+                    <div class="scenario-header">
+                        <h3 class="scenario-title">
+                            🔍 Search & Pattern Filtering
+                        </h3>
+                        <p class="scenario-description">
+                            Use powerful search and filtering commands to find specific information in files and command output for security analysis.
+                        </p>
+                    </div>
+                    <div class="scenario-body">
+                        <div class="command-section">
+                            <div class="command-header">
+                                <span class="command-title">Search Commands</span>
+                                <span class="command-tag">Pattern Matching</span>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">grep username /etc/passwd</span>
+                                <button class="copy-btn" onclick="copyCommand('grep username /etc/passwd')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">wc -w essay.txt</span>
+                                <button class="copy-btn" onclick="copyCommand('wc -w essay.txt')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">grep -i error /var/log/syslog</span>
+                                <button class="copy-btn" onclick="copyCommand('grep -i error /var/log/syslog')">📋</button>
+                            </div>
+                        </div>
+
+                        <div class="command-flow">
+                            <div class="command-step">
+                                <div class="step-icon">🔍</div>
+                                <div class="step-title">grep</div>
+                                <div class="step-value">Pattern Search</div>
+                            </div>
+                            <div class="command-step">
+                                <div class="step-icon">📊</div>
+                                <div class="step-title">wc</div>
+                                <div class="step-value">Count Statistics</div>
+                            </div>
+                            <div class="command-step">
+                                <div class="step-icon">🔄</div>
+                                <div class="step-title">-i</div>
+                                <div class="step-value">Case Insensitive</div>
+                            </div>
+                            <div class="command-step">
+                                <div class="step-icon">📈</div>
+                                <div class="step-title">-v</div>
+                                <div class="step-value">Inverse Match</div>
+                            </div>
+                        </div>
+
+                        <div class="explanation-box">
+                            <div class="explanation-title">🎯 Search Command Options:</div>
+                            <div class="explanation-text">
+                                <strong>grep:</strong> Search for patterns in files and output<br>
+                                <strong>wc -l:</strong> Count lines in files<br>
+                                <strong>wc -w:</strong> Count words in files<br>
+                                <strong>grep -i:</strong> Case-insensitive pattern matching<br>
+                                <strong>grep -v:</strong> Show lines that do NOT match pattern<br>
+                                <strong>grep -n:</strong> Show line numbers with matches
+                            </div>
+                        </div>
+
+                        <div class="example-grid">
+                            <div class="example-box">
+                                <div class="example-title">🚨 Security Event Detection</div>
+                                <div class="example-code">grep -i "failed\|error\|denied" /var/log/auth.log</div>
+                                <p style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                    Search for security-related events in auth logs
+                                </p>
+                            </div>
+                            <div class="example-box">
+                                <div class="example-title">👤 User Activity Analysis</div>
+                                <div class="example-code">grep "student" /etc/passwd</div>
+                                <p style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                    Find specific user account information
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- User Administration -->
+                <div class="scenario-card" data-category="admin">
+                    <div class="scenario-header">
+                        <h3 class="scenario-title">
+                            🔐 User Administration & Security
+                        </h3>
+                        <p class="scenario-description">
+                            Manage user accounts and passwords, essential skills for system security and user access control.
+                        </p>
+                    </div>
+                    <div class="scenario-body">
+                        <div class="command-section">
+                            <div class="command-header">
+                                <span class="command-title">User Management</span>
+                                <span class="command-tag">Security Control</span>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">passwd</span>
+                                <button class="copy-btn" onclick="copyCommand('passwd')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">id</span>
+                                <button class="copy-btn" onclick="copyCommand('id')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">groups</span>
+                                <button class="copy-btn" onclick="copyCommand('groups')">📋</button>
+                            </div>
+                        </div>
+
+                        <div class="security-box">
+                            <div class="security-title">🛡️ Password Security Best Practices:</div>
+                            <div class="explanation-text">
+                                <strong>Strong Passwords:</strong> Use complex passwords with mixed characters<br>
+                                <strong>Regular Changes:</strong> Update passwords according to security policy<br>
+                                <strong>Unique Credentials:</strong> Different passwords for different systems<br>
+                                <strong>Password Managers:</strong> Consider using password management tools<br>
+                                <strong>Account Monitoring:</strong> Regularly review user accounts and permissions
+                            </div>
+                        </div>
+
+                        <div class="workflow-container">
+                            <div class="workflow-title">🔐 User Security Workflow:</div>
+                            <div class="workflow-steps">
+                                <div class="workflow-step">
+                                    <div class="step-number">1</div>
+                                    <div>Verify current user identity with whoami and id commands</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">2</div>
+                                    <div>Check group memberships for proper access control</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">3</div>
+                                    <div>Change passwords regularly using passwd command</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">4</div>
+                                    <div>Monitor user account activities in system logs</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">5</div>
+                                    <div>Document user changes for security compliance</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="example-grid">
+                            <div class="example-box">
+                                <div class="example-title">👤 Identity Verification</div>
+                                <div class="example-code">whoami
+id
+groups</div>
+                                <p style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                    Verify user identity and group memberships
+                                </p>
+                            </div>
+                            <div class="example-box">
+                                <div class="example-title">🔒 Password Management</div>
+                                <div class="example-code">passwd</div>
+                                <p style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                    Change user password securely
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer">
+                <p>© 2025 College of DuPage - Computer Information Technology Department</p>
+                <p>CIT 1450 Linux/Unix Systems | AI Cybersecurity Program</p>
+                <p><em>"Master the fundamentals, master the system!" 🚀🔐</em></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // Initialize variables
+        const searchInput = document.getElementById('searchInput');
+        const filterTabs = document.querySelectorAll('.filter-tab');
+        const scenarioCards = document.querySelectorAll('.scenario-card');
+        let currentFilter = 'all';
+
+        // Search functionality
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            filterScenarios(searchTerm, currentFilter);
+        });
+
+        // Filter tab functionality
+        filterTabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                // Update active tab
+                filterTabs.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                
+                currentFilter = this.dataset.category;
+                const searchTerm = searchInput.value.toLowerCase();
+                filterScenarios(searchTerm, currentFilter);
+            });
+        });
+
+        // Filter scenarios based on search and category
+        function filterScenarios(searchTerm, category) {
+            scenarioCards.forEach(card => {
+                const cardCategory = card.dataset.category;
+                const cardText = card.textContent.toLowerCase();
+                
+                const matchesCategory = category === 'all' || category === cardCategory;
+                const matchesSearch = !searchTerm || cardText.includes(searchTerm);
+                
+                if (matchesCategory && matchesSearch) {
+                    card.classList.remove('hidden');
+                } else {
+                    card.classList.add('hidden');
+                }
+            });
+        }
+
+        // Copy command to clipboard
+        function copyCommand(command) {
+            // Clean up command text (remove HTML and extra whitespace)
+            const cleanCommand = command.replace(/<[^>]*>/g, '').trim();
+            
+            navigator.clipboard.writeText(cleanCommand).then(() => {
+                showToast(`Copied: ${cleanCommand.substring(0, 60)}${cleanCommand.length > 60 ? '...' : ''}`);
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+                showToast('Copy failed - try selecting manually');
+            });
+        }
+
+        // Show toast notification
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2500);
+        }
+
+        // Interactive command flow steps
+        const commandSteps = document.querySelectorAll('.command-step');
+        commandSteps.forEach((step, index) => {
+            step.addEventListener('click', function() {
+                const stepValue = this.querySelector('.step-value').textContent;
+                showToast(`Command Feature ${index + 1}: ${stepValue}`);
+                
+                // Animate step
+                const icon = this.querySelector('.step-icon');
+                icon.style.transform = 'scale(1.1) rotate(5deg)';
+                setTimeout(() => {
+                    icon.style.transform = 'scale(1) rotate(0deg)';
+                }, 300);
+            });
+        });
+
+        // Interactive passwd fields
+        const passwdFields = document.querySelectorAll('.passwd-field');
+        passwdFields.forEach(field => {
+            field.addEventListener('click', function() {
+                const fieldName = this.querySelector('.field-name').textContent;
+                const fieldDesc = this.querySelector('.field-desc').textContent;
+                showToast(`/etc/passwd Field: ${fieldName} - ${fieldDesc}`);
+                
+                // Animate selection
+                this.style.transform = 'scale(1.05)';
+                setTimeout(() => {
+                    this.style.transform = 'scale(1)';
+                }, 300);
+            });
+        });
+
+        // Interactive workflow steps
+        const workflowSteps = document.querySelectorAll('.workflow-step');
+        workflowSteps.forEach(step => {
+            step.addEventListener('click', function() {
+                const stepText = this.textContent.trim();
+                showToast(`Workflow: ${stepText}`);
+                
+                // Animate selection
+                this.style.transform = 'scale(1.02)';
+                setTimeout(() => {
+                    this.style.transform = 'scale(1)';
+                }, 300);
+            });
+        });
+
+        // Interactive example boxes
+        const exampleBoxes = document.querySelectorAll('.example-box');
+        exampleBoxes.forEach(box => {
+            box.addEventListener('click', function() {
+                const exampleTitle = this.querySelector('.example-title').textContent;
+                showToast(`Example: ${exampleTitle}`);
+                
+                // Animate example
+                this.style.boxShadow = '0 0 20px rgba(0, 255, 65, 0.3)';
+                setTimeout(() => {
+                    this.style.boxShadow = '';
+                }, 500);
+            });
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl/Cmd + K to focus search
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                searchInput.focus();
+                searchInput.select();
+            }
+            
+            // Escape to clear search
+            if (e.key === 'Escape') {
+                searchInput.value = '';
+                filterScenarios('', currentFilter);
+                searchInput.blur();
+            }
+        });
+
+        // Initialize page with Linux command themed animations
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animated search placeholder
+            const searchPlaceholder = "$ search ls, cat, grep, passwd, history, wc...";
+            let i = 0;
+            const typeInterval = setInterval(() => {
+                if (i < searchPlaceholder.length) {
+                    searchInput.placeholder = searchPlaceholder.substring(0, i + 1);
+                    i++;
+                } else {
+                    clearInterval(typeInterval);
+                }
+            }, 50);
+
+            // Setup cards for animation
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, observerOptions);
+
+            scenarioCards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                card.style.transition = `opacity 0.6s ease ${index * 0.1}s, transform 0.6s ease ${index * 0.1}s`;
+                observer.observe(card);
+            });
+
+            // Animate command flow
+            commandSteps.forEach((step, index) => {
+                setTimeout(() => {
+                    const icon = step.querySelector('.step-icon');
+                    icon.style.transform = 'scale(1.1) rotate(5deg)';
+                    setTimeout(() => {
+                        icon.style.transform = 'scale(1) rotate(0deg)';
+                    }, 300);
+                }, index * 400 + 1000);
+            });
+
+            // Animate passwd fields
+            passwdFields.forEach((field, index) => {
+                setTimeout(() => {
+                    field.style.transform = 'scale(1.02)';
+                    setTimeout(() => {
+                        field.style.transform = 'scale(1)';
+                    }, 200);
+                }, index * 200 + 2000);
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chapter 03 Beginner's Guide - Manage Files from Command Line</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;500;700&family=Source+Code+Pro:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --terminal-bg: #0c0c0c;
+            --terminal-secondary: #1a1a1a;
+            --terminal-accent: #2a2a2a;
+            --terminal-border: #404040;
+            --terminal-green: #00ff41;
+            --terminal-blue: #00bfff;
+            --terminal-yellow: #ffff00;
+            --terminal-orange: #ff8c00;
+            --terminal-red: #ff4444;
+            --terminal-purple: #cc99ff;
+            --terminal-cyan: #00ffff;
+            --terminal-white: #f0f0f0;
+            --terminal-gray: #808080;
+            --terminal-dark-gray: #404040;
+            --create-green: #00ff41;
+            --copy-blue: #00bfff;
+            --move-orange: #ff8c00;
+            --remove-red: #ff4444;
+            --link-purple: #cc99ff;
+            --expand-cyan: #00ffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto Mono', 'Source Code Pro', monospace;
+            background: var(--terminal-bg);
+            color: var(--terminal-white);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .terminal-window {
+            background: var(--terminal-secondary);
+            margin: 1rem;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 255, 65, 0.1);
+            border: 1px solid var(--terminal-border);
+            overflow: hidden;
+        }
+
+        .terminal-header {
+            background: linear-gradient(135deg, #333, #444);
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            border-bottom: 1px solid var(--terminal-border);
+        }
+
+        .terminal-button {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .close { background: #ff5f56; }
+        .minimize { background: #ffbd2e; }
+        .maximize { background: #27ca3f; }
+
+        .terminal-title {
+            color: var(--terminal-white);
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-left: 1rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background: var(--terminal-secondary);
+            border-radius: 12px;
+            border: 1px solid var(--terminal-border);
+        }
+
+        .title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--create-green);
+            margin-bottom: 0.5rem;
+            text-shadow: 0 0 20px rgba(0, 255, 65, 0.3);
+        }
+
+        .subtitle {
+            color: var(--copy-blue);
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+        }
+
+        .course-info {
+            color: var(--terminal-gray);
+            font-size: 0.95rem;
+        }
+
+        .beginner-notice {
+            background: linear-gradient(135deg, #2a4a2a, #1a3a1a);
+            border: 1px solid var(--create-green);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            text-align: center;
+        }
+
+        .beginner-notice h3 {
+            color: var(--terminal-yellow);
+            margin-bottom: 0.5rem;
+            font-size: 1.3rem;
+        }
+
+        .beginner-notice p {
+            color: var(--terminal-white);
+        }
+
+        .search-terminal {
+            background: var(--terminal-secondary);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            position: sticky;
+            top: 1rem;
+            z-index: 100;
+        }
+
+        .search-input {
+            width: 100%;
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 6px;
+            padding: 0.75rem 1rem;
+            color: var(--create-green);
+            font-family: inherit;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--create-green);
+            box-shadow: 0 0 10px rgba(0, 255, 65, 0.2);
+        }
+
+        .search-input::placeholder {
+            color: var(--terminal-gray);
+        }
+
+        .filter-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-tab {
+            background: var(--terminal-accent);
+            border: 1px solid var(--terminal-border);
+            border-radius: 6px;
+            padding: 0.5rem 1rem;
+            color: var(--terminal-gray);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            font-size: 0.9rem;
+        }
+
+        .filter-tab:hover {
+            background: var(--terminal-border);
+            color: var(--terminal-white);
+        }
+
+        .filter-tab.active {
+            background: var(--create-green);
+            color: var(--terminal-bg);
+            border-color: var(--create-green);
+        }
+
+        .scenario-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 2rem;
+        }
+
+        .scenario-card {
+            background: var(--terminal-secondary);
+            border: 1px solid var(--terminal-border);
+            border-radius: 12px;
+            padding: 0;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .scenario-card:hover {
+            border-color: var(--section-color);
+            box-shadow: 0 10px 30px rgba(0, 255, 65, 0.1);
+        }
+
+        .scenario-card.hidden {
+            display: none;
+        }
+
+        .scenario-header {
+            background: var(--terminal-accent);
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--terminal-border);
+        }
+
+        .scenario-title {
+            color: var(--section-color);
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .scenario-description {
+            color: var(--terminal-gray);
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .scenario-body {
+            padding: 1.5rem;
+        }
+
+        .command-section {
+            margin-bottom: 2rem;
+        }
+
+        .command-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .command-title {
+            color: var(--section-color);
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .command-tag {
+            background: var(--section-color);
+            color: var(--terminal-bg);
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .command-block {
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            position: relative;
+            overflow-x: auto;
+        }
+
+        .command-prompt {
+            color: var(--section-color);
+            font-weight: 500;
+        }
+
+        .command-text {
+            color: var(--terminal-cyan);
+            font-family: 'Source Code Pro', monospace;
+            white-space: pre-wrap;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: var(--terminal-accent);
+            border: 1px solid var(--terminal-border);
+            color: var(--terminal-gray);
+            padding: 0.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .copy-btn:hover {
+            background: var(--section-color);
+            color: var(--terminal-bg);
+            border-color: var(--section-color);
+        }
+
+        .explanation-box {
+            background: rgba(0, 191, 255, 0.1);
+            border: 1px solid var(--copy-blue);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .explanation-title {
+            color: var(--copy-blue);
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .explanation-text {
+            color: var(--terminal-white);
+            line-height: 1.6;
+        }
+
+        .danger-box {
+            background: rgba(255, 68, 68, 0.1);
+            border: 1px solid var(--remove-red);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .danger-title {
+            color: var(--remove-red);
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .use-case-box {
+            background: rgba(255, 140, 0, 0.1);
+            border: 1px solid var(--move-orange);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .use-case-title {
+            color: var(--move-orange);
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .workflow-container {
+            background: rgba(204, 153, 255, 0.1);
+            border: 1px solid var(--link-purple);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .workflow-title {
+            color: var(--link-purple);
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .workflow-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .workflow-step {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem;
+            background: var(--terminal-accent);
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .workflow-step:hover {
+            background: var(--terminal-border);
+        }
+
+        .step-number {
+            background: var(--link-purple);
+            color: var(--terminal-bg);
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .file-flow {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .file-step {
+            background: var(--terminal-accent);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .file-step:hover {
+            border-color: var(--section-color);
+            box-shadow: 0 5px 15px rgba(0, 255, 65, 0.1);
+        }
+
+        .step-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .step-title {
+            color: var(--section-color);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .step-value {
+            color: var(--terminal-gray);
+            font-size: 0.9rem;
+        }
+
+        .wildcard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .wildcard-card {
+            background: var(--terminal-accent);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .wildcard-card:hover {
+            border-color: var(--expand-cyan);
+            box-shadow: 0 5px 15px rgba(0, 255, 255, 0.1);
+        }
+
+        .wildcard-symbol {
+            color: var(--expand-cyan);
+            font-weight: 600;
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            font-family: 'Source Code Pro', monospace;
+        }
+
+        .wildcard-desc {
+            color: var(--terminal-gray);
+            font-size: 0.9rem;
+        }
+
+        .example-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .example-box {
+            background: var(--terminal-accent);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .example-box:hover {
+            border-color: var(--section-color);
+            box-shadow: 0 5px 15px rgba(0, 255, 65, 0.1);
+        }
+
+        .example-title {
+            color: var(--section-color);
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .example-code {
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 6px;
+            padding: 1rem;
+            margin: 0.75rem 0;
+            font-family: 'Source Code Pro', monospace;
+            color: var(--terminal-cyan);
+            position: relative;
+        }
+
+        .toast {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            background: var(--create-green);
+            color: var(--terminal-bg);
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 500;
+            transform: translateX(400px);
+            transition: all 0.3s ease;
+            z-index: 1000;
+            max-width: 400px;
+            font-family: inherit;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 4rem;
+            padding: 2rem;
+            border-top: 1px solid var(--terminal-border);
+            color: var(--terminal-gray);
+        }
+
+        /* Section-specific colors */
+        .scenario-card[data-category="create"] {
+            --section-color: var(--create-green);
+        }
+
+        .scenario-card[data-category="copy"] {
+            --section-color: var(--copy-blue);
+        }
+
+        .scenario-card[data-category="move"] {
+            --section-color: var(--move-orange);
+        }
+
+        .scenario-card[data-category="remove"] {
+            --section-color: var(--remove-red);
+        }
+
+        .scenario-card[data-category="links"] {
+            --section-color: var(--link-purple);
+        }
+
+        .scenario-card[data-category="expansions"] {
+            --section-color: var(--expand-cyan);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .scenario-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .file-flow {
+                grid-template-columns: 1fr;
+            }
+            
+            .example-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .wildcard-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="terminal-window">
+        <div class="terminal-header">
+            <div class="terminal-button close"></div>
+            <div class="terminal-button minimize"></div>
+            <div class="terminal-button maximize"></div>
+            <span class="terminal-title">student@cod-cybersec:~/chapter03$ ./file_management_guide.sh</span>
+        </div>
+        
+        <div class="container">
+            <div class="header">
+                <h1 class="title">📁 Chapter 03: Manage Files from Command Line</h1>
+                <p class="subtitle">Master File Operations for System Administration</p>
+                <p class="course-info">College of DuPage | CIT 1450 Linux/Unix Systems | AI Cybersecurity Program</p>
+            </div>
+
+            <div class="beginner-notice">
+                <h3>⚡ Essential File Management</h3>
+                <p>Learn to create, copy, move, and manage files and directories efficiently from the command line. These skills are fundamental for system administration and cybersecurity operations.</p>
+            </div>
+
+            <div class="search-terminal">
+                <input type="text" id="searchInput" class="search-input" placeholder="">
+                <div class="filter-tabs">
+                    <button class="filter-tab active" data-category="all">All Operations</button>
+                    <button class="filter-tab" data-category="create">Create Files & Directories</button>
+                    <button class="filter-tab" data-category="copy">Copy Operations</button>
+                    <button class="filter-tab" data-category="move">Move & Rename</button>
+                    <button class="filter-tab" data-category="remove">Remove & Delete</button>
+                    <button class="filter-tab" data-category="links">Links & References</button>
+                    <button class="filter-tab" data-category="expansions">Shell Expansions</button>
+                </div>
+            </div>
+
+            <div class="scenario-grid">
+                <!-- Create Files & Directories -->
+                <div class="scenario-card" data-category="create">
+                    <div class="scenario-header">
+                        <h3 class="scenario-title">
+                            📝 Creating Files & Directories
+                        </h3>
+                        <p class="scenario-description">
+                            Learn fundamental commands for creating files and directories, essential for organizing system data and establishing proper file structures.
+                        </p>
+                    </div>
+                    <div class="scenario-body">
+                        <div class="command-section">
+                            <div class="command-header">
+                                <span class="command-title">File & Directory Creation</span>
+                                <span class="command-tag">Foundation</span>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">touch filename.txt</span>
+                                <button class="copy-btn" onclick="copyCommand('touch filename.txt')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">mkdir directory_name</span>
+                                <button class="copy-btn" onclick="copyCommand('mkdir directory_name')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">mkdir -p path/to/nested/dirs</span>
+                                <button class="copy-btn" onclick="copyCommand('mkdir -p path/to/nested/dirs')">📋</button>
+                            </div>
+                        </div>
+
+                        <div class="file-flow">
+                            <div class="file-step">
+                                <div class="step-icon">📄</div>
+                                <div class="step-title">touch</div>
+                                <div class="step-value">Create Empty Files</div>
+                            </div>
+                            <div class="file-step">
+                                <div class="step-icon">📁</div>
+                                <div class="step-title">mkdir</div>
+                                <div class="step-value">Create Directories</div>
+                            </div>
+                            <div class="file-step">
+                                <div class="step-icon">🏗️</div>
+                                <div class="step-title">mkdir -p</div>
+                                <div class="step-value">Create Parent Dirs</div>
+                            </div>
+                            <div class="file-step">
+                                <div class="step-icon">📋</div>
+                                <div class="step-title">pwd</div>
+                                <div class="step-value">Current Location</div>
+                            </div>
+                        </div>
+
+                        <div class="explanation-box">
+                            <div class="explanation-title">🎯 File Creation Explained:</div>
+                            <div class="explanation-text">
+                                <strong>touch:</strong> Creates empty files or updates timestamps of existing files<br>
+                                <strong>mkdir:</strong> Creates directories in current or specified location<br>
+                                <strong>mkdir -p:</strong> Creates parent directories automatically if they don't exist<br>
+                                <strong>pwd:</strong> Displays current working directory to verify location<br>
+                                <strong>ls -la:</strong> Verify creation with detailed listing
+                            </div>
+                        </div>
+
+                        <div class="use-case-box">
+                            <div class="use-case-title">🎯 Cybersecurity Applications:</div>
+                            <div class="explanation-text">
+                                <strong>Log Organization:</strong> Create structured directories for security logs by date/type<br>
+                                <strong>Evidence Collection:</strong> Establish directory structure for forensic investigations<br>
+                                <strong>Script Development:</strong> Create files for automation scripts and tools<br>
+                                <strong>Configuration Management:</strong> Organize configuration backups and versions<br>
+                                <strong>Report Generation:</strong> Structure directories for security assessments
+                            </div>
+                        </div>
+
+                        <div class="example-grid">
+                            <div class="example-box">
+                                <div class="example-title">🛡️ Security Log Structure</div>
+                                <div class="example-code">mkdir -p /var/log/security/{auth,firewall,ids}
+touch /var/log/security/daily_summary.log</div>
+                                <p style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                    Create organized security logging structure
+                                </p>
+                            </div>
+                            <div class="example-box">
+                                <div class="example-title">📋 Investigation Setup</div>
+                                <div class="example-code">mkdir -p investigations/case001/{evidence,reports,logs}
+touch investigations/case001/incident_timeline.txt</div>
+                                <p style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                    Prepare forensic investigation workspace
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Copy Operations -->
+                <div class="scenario-card" data-category="copy">
+                    <div class="scenario-header">
+                        <h3 class="scenario-title">
+                            📋 Copy Operations & Duplication
+                        </h3>
+                        <p class="scenario-description">
+                            Master copying files and directories while preserving attributes, essential for backups, distribution, and data protection.
+                        </p>
+                    </div>
+                    <div class="scenario-body">
+                        <div class="command-section">
+                            <div class="command-header">
+                                <span class="command-title">Copy Commands</span>
+                                <span class="command-tag">Data Protection</span>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">cp source.txt destination.txt</span>
+                                <button class="copy-btn" onclick="copyCommand('cp source.txt destination.txt')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">cp -r source_dir/ dest_dir/</span>
+                                <button class="copy-btn" onclick="copyCommand('cp -r source_dir/ dest_dir/')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">cp -p file.txt backup/</span>
+                                <button class="copy-btn" onclick="copyCommand('cp -p file.txt backup/')">📋</button>
+                            </div>
+                        </div>
+
+                        <div class="workflow-container">
+                            <div class="workflow-title">💾 Backup Strategy Workflow:</div>
+                            <div class="workflow-steps">
+                                <div class="workflow-step">
+                                    <div class="step-number">1</div>
+                                    <div>Identify critical files and configurations to backup</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">2</div>
+                                    <div>Use cp -r for directory structures and cp -p for permissions</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">3</div>
+                                    <div>Verify copy integrity with checksums or diff commands</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">4</div>
+                                    <div>Organize backups with timestamp and version naming</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">5</div>
+                                    <div>Test restore procedures to ensure backup validity</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="explanation-box">
+                            <div class="explanation-title">⚙️ Copy Options & Flags:</div>
+                            <div class="explanation-text">
+                                <strong>cp file1 file2:</strong> Copy file1 to file2 (overwrites if exists)<br>
+                                <strong>cp -r dir1/ dir2/:</strong> Recursively copy directory and all contents<br>
+                                <strong>cp -p file dest:</strong> Preserve permissions, ownership, and timestamps<br>
+                                <strong>cp -i file dest:</strong> Interactive mode - prompts before overwriting<br>
+                                <strong>cp -u file dest:</strong> Update mode - copy only if source is newer
+                            </div>
+                        </div>
+
+                        <div class="example-grid">
+                            <div class="example-box">
+                                <div class="example-title">📦 Configuration Backup</div>
+                                <div class="example-code">cp -p /etc/ssh/sshd_config /backup/sshd_config.$(date +%Y%m%d)</div>
+                                <p style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                    Backup SSH config with timestamp preservation
+                                </p>
+                            </div>
+                            <div class="example-box">
+                                <div class="example-title">🔄 Recursive Directory Copy</div>
+                                <div class="example-code">cp -r /var/log/security/ /backup/logs/</div>
+                                <p style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                    Copy entire security log directory structure
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Move & Rename -->
+                <div class="scenario-card" data-category="move">
+                    <div class="scenario-header">
+                        <h3 class="scenario-title">
+                            🔄 Move & Rename Operations
+                        </h3>
+                        <p class="scenario-description">
+                            Relocate files and directories or change names efficiently, crucial for file organization and system maintenance.
+                        </p>
+                    </div>
+                    <div class="scenario-body">
+                        <div class="command-section">
+                            <div class="command-header">
+                                <span class="command-title">Move Operations</span>
+                                <span class="command-tag">File Organization</span>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">mv oldname.txt newname.txt</span>
+                                <button class="copy-btn" onclick="copyCommand('mv oldname.txt newname.txt')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">mv file.txt /target/directory/</span>
+                                <button class="copy-btn" onclick="copyCommand('mv file.txt /target/directory/')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">mv directory/ /new/location/</span>
+                                <button class="copy-btn" onclick="copyCommand('mv directory/ /new/location/')">📋</button>
+                            </div>
+                        </div>
+
+                        <div class="file-flow">
+                            <div class="file-step">
+                                <div class="step-icon">📝</div>
+                                <div class="step-title">Rename</div>
+                                <div class="step-value">Same Directory</div>
+                            </div>
+                            <div class="file-step">
+                                <div class="step-icon">📦</div>
+                                <div class="step-title">Move</div>
+                                <div class="step-value">Different Location</div>
+                            </div>
+                            <div class="file-step">
+                                <div class="step-icon">🔄</div>
+                                <div class="step-title">Relocate</div>
+                                <div class="step-value">Move + Rename</div>
+                            </div>
+                            <div class="file-step">
+                                <div class="step-icon">⚡</div>
+                                <div class="step-title">Atomic</div>
+                                <div class="step-value">Single Operation</div>
+                            </div>
+                        </div>
+
+                        <div class="use-case-box">
+                            <div class="use-case-title">🎯 System Administration Uses:</div>
+                            <div class="explanation-text">
+                                <strong>Log Rotation:</strong> Move old logs to archive directories for long-term storage<br>
+                                <strong>File Organization:</strong> Reorganize files by date, type, or security classification<br>
+                                <strong>Incident Response:</strong> Move suspicious files to quarantine directories<br>
+                                <strong>System Maintenance:</strong> Relocate temporary files and clean up directories<br>
+                                <strong>Configuration Management:</strong> Rename configs for testing and rollback procedures
+                            </div>
+                        </div>
+
+                        <div class="explanation-box">
+                            <div class="explanation-title">⚡ Move vs Copy:</div>
+                            <div class="explanation-text">
+                                <strong>Move (mv):</strong> Transfers file to new location, removes from original location<br>
+                                <strong>Copy (cp):</strong> Creates duplicate, original file remains unchanged<br>
+                                <strong>Efficiency:</strong> mv is faster for same filesystem (just updates directory entry)<br>
+                                <strong>Safety:</strong> mv is atomic operation - file is never duplicated<br>
+                                <strong>Cross-filesystem:</strong> mv automatically copies then deletes when crossing filesystems
+                            </div>
+                        </div>
+
+                        <div class="example-grid">
+                            <div class="example-box">
+                                <div class="example-title">📅 Log Archival</div>
+                                <div class="example-code">mv /var/log/security.log /archive/security_$(date +%Y%m%d).log</div>
+                                <p style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                    Archive security log with timestamp
+                                </p>
+                            </div>
+                            <div class="example-box">
+                                <div class="example-title">🔒 Quarantine Suspicious Files</div>
+                                <div class="example-code">mv /tmp/suspicious_file /quarantine/</div>
+                                <p style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                    Move potentially malicious files to isolation
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Remove & Delete -->
+                <div class="scenario-card" data-category="remove">
+                    <div class="scenario-header">
+                        <h3 class="scenario-title">
+                            🗑️ Remove & Delete Operations
+                        </h3>
+                        <p class="scenario-description">
+                            Safely remove files and directories with appropriate caution, essential for system cleanup and security maintenance.
+                        </p>
+                    </div>
+                    <div class="scenario-body">
+                        <div class="command-section">
+                            <div class="command-header">
+                                <span class="command-title">Deletion Commands</span>
+                                <span class="command-tag">Data Removal</span>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">rm filename.txt</span>
+                                <button class="copy-btn" onclick="copyCommand('rm filename.txt')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">rm -i important_file.txt</span>
+                                <button class="copy-btn" onclick="copyCommand('rm -i important_file.txt')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">rmdir empty_directory</span>
+                                <button class="copy-btn" onclick="copyCommand('rmdir empty_directory')">📋</button>
+                            </div>
+                        </div>
+
+                        <div class="danger-box">
+                            <div class="danger-title">⚠️ Critical Safety Warnings:</div>
+                            <div class="explanation-text">
+                                <strong>rm -rf /*:</strong> NEVER run this - will delete entire system!<br>
+                                <strong>Always use -i flag:</strong> Interactive mode prompts before deletion<br>
+                                <strong>Verify path twice:</strong> Double-check directory paths before rm -r<br>
+                                <strong>Backup first:</strong> Create backups before removing important data<br>
+                                <strong>Test with ls first:</strong> Use ls to verify what will be deleted
+                            </div>
+                        </div>
+
+                        <div class="file-flow">
+                            <div class="file-step">
+                                <div class="step-icon">📄</div>
+                                <div class="step-title">rm</div>
+                                <div class="step-value">Remove Files</div>
+                            </div>
+                            <div class="file-step">
+                                <div class="step-icon">❓</div>
+                                <div class="step-title">rm -i</div>
+                                <div class="step-value">Interactive Mode</div>
+                            </div>
+                            <div class="file-step">
+                                <div class="step-icon">📁</div>
+                                <div class="step-title">rmdir</div>
+                                <div class="step-value">Empty Directories</div>
+                            </div>
+                            <div class="file-step">
+                                <div class="step-icon">🔄</div>
+                                <div class="step-title">rm -r</div>
+                                <div class="step-value">Recursive Delete</div>
+                            </div>
+                        </div>
+
+                        <div class="workflow-container">
+                            <div class="workflow-title">🛡️ Safe Deletion Workflow:</div>
+                            <div class="workflow-steps">
+                                <div class="workflow-step">
+                                    <div class="step-number">1</div>
+                                    <div>Verify current directory with pwd command</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">2</div>
+                                    <div>List target files/directories with ls -la</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">3</div>
+                                    <div>Use rm -i for interactive confirmation on important data</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">4</div>
+                                    <div>Create backups before removing critical system files</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">5</div>
+                                    <div>Document deletion in system logs for audit trails</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="example-grid">
+                            <div class="example-box">
+                                <div class="example-title">🧹 Log Cleanup</div>
+                                <div class="example-code">find /var/log -name "*.log" -mtime +30 -exec rm -i {} \;</div>
+                                <p style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                    Safely remove log files older than 30 days
+                                </p>
+                            </div>
+                            <div class="example-box">
+                                <div class="example-title">💾 Secure Temp Cleanup</div>
+                                <div class="example-code">rm -i /tmp/temp_*
+rmdir /tmp/empty_dirs/</div>
+                                <p style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                    Clean temporary files and empty directories
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Links & References -->
+                <div class="scenario-card" data-category="links">
+                    <div class="scenario-header">
+                        <h3 class="scenario-title">
+                            🔗 Links & File References
+                        </h3>
+                        <p class="scenario-description">
+                            Create hard and symbolic links to optimize file access, create shortcuts, and manage file references efficiently.
+                        </p>
+                    </div>
+                    <div class="scenario-body">
+                        <div class="command-section">
+                            <div class="command-header">
+                                <span class="command-title">Link Operations</span>
+                                <span class="command-tag">File References</span>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">ln source.txt hardlink.txt</span>
+                                <button class="copy-btn" onclick="copyCommand('ln source.txt hardlink.txt')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">ln -s /path/to/file symlink</span>
+                                <button class="copy-btn" onclick="copyCommand('ln -s /path/to/file symlink')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">readlink symlink</span>
+                                <button class="copy-btn" onclick="copyCommand('readlink symlink')">📋</button>
+                            </div>
+                        </div>
+
+                        <div class="file-flow">
+                            <div class="file-step">
+                                <div class="step-icon">📄</div>
+                                <div class="step-title">Original File</div>
+                                <div class="step-value">Source Data</div>
+                            </div>
+                            <div class="file-step">
+                                <div class="step-icon">🔗</div>
+                                <div class="step-title">Hard Link</div>
+                                <div class="step-value">Same Inode</div>
+                            </div>
+                            <div class="file-step">
+                                <div class="step-icon">🔀</div>
+                                <div class="step-title">Symbolic Link</div>
+                                <div class="step-value">Path Reference</div>
+                            </div>
+                            <div class="file-step">
+                                <div class="step-icon">👁️</div>
+                                <div class="step-title">Access</div>
+                                <div class="step-value">Same Content</div>
+                            </div>
+                        </div>
+
+                        <div class="explanation-box">
+                            <div class="explanation-title">🎯 Link Types Explained:</div>
+                            <div class="explanation-text">
+                                <strong>Hard Links (ln):</strong> Multiple filenames pointing to same inode/data<br>
+                                <strong>Symbolic Links (ln -s):</strong> File containing path to another file<br>
+                                <strong>Inode Sharing:</strong> Hard links share storage, symbolic links are separate files<br>
+                                <strong>Cross-filesystem:</strong> Symbolic links work across filesystems, hard links don't<br>
+                                <strong>Directory Links:</strong> Only symbolic links can point to directories
+                            </div>
+                        </div>
+
+                        <div class="use-case-box">
+                            <div class="use-case-title">🎯 Security & Admin Applications:</div>
+                            <div class="explanation-text">
+                                <strong>Log Access:</strong> Create convenient links to frequently accessed log files<br>
+                                <strong>Tool Organization:</strong> Link security tools to standard PATH directories<br>
+                                <strong>Configuration Management:</strong> Link active configs to version-controlled copies<br>
+                                <strong>Backup Strategies:</strong> Hard links for space-efficient incremental backups<br>
+                                <strong>System Integration:</strong> Link custom scripts to system directories
+                            </div>
+                        </div>
+
+                        <div class="example-grid">
+                            <div class="example-box">
+                                <div class="example-title">📊 Log Access Shortcuts</div>
+                                <div class="example-code">ln -s /var/log/auth.log ~/auth.log
+ln -s /var/log/syslog ~/system.log</div>
+                                <p style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                    Create convenient access to important logs
+                                </p>
+                            </div>
+                            <div class="example-box">
+                                <div class="example-title">🔧 Tool Management</div>
+                                <div class="example-code">ln -s /opt/security-tools/nmap /usr/local/bin/nmap</div>
+                                <p style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                    Make security tools globally accessible
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Shell Expansions -->
+                <div class="scenario-card" data-category="expansions">
+                    <div class="scenario-header">
+                        <h3 class="scenario-title">
+                            🌟 Shell Expansions & Wildcards
+                        </h3>
+                        <p class="scenario-description">
+                            Master shell expansion patterns to work with multiple files efficiently and automate repetitive file operations.
+                        </p>
+                    </div>
+                    <div class="scenario-body">
+                        <div class="command-section">
+                            <div class="command-header">
+                                <span class="command-title">Expansion Patterns</span>
+                                <span class="command-tag">Pattern Matching</span>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">ls *.txt</span>
+                                <button class="copy-btn" onclick="copyCommand('ls *.txt')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">touch file{1,2,3}.log</span>
+                                <button class="copy-btn" onclick="copyCommand('touch file{1,2,3}.log')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">ls [0-9]*.conf</span>
+                                <button class="copy-btn" onclick="copyCommand('ls [0-9]*.conf')">📋</button>
+                            </div>
+                        </div>
+
+                        <div class="wildcard-grid">
+                            <div class="wildcard-card">
+                                <div class="wildcard-symbol">*</div>
+                                <div class="wildcard-desc">Matches any characters</div>
+                            </div>
+                            <div class="wildcard-card">
+                                <div class="wildcard-symbol">?</div>
+                                <div class="wildcard-desc">Matches single character</div>
+                            </div>
+                            <div class="wildcard-card">
+                                <div class="wildcard-symbol">[abc]</div>
+                                <div class="wildcard-desc">Matches a, b, or c</div>
+                            </div>
+                            <div class="wildcard-card">
+                                <div class="wildcard-symbol">[0-9]</div>
+                                <div class="wildcard-desc">Matches any digit</div>
+                            </div>
+                            <div class="wildcard-card">
+                                <div class="wildcard-symbol">{1,2,3}</div>
+                                <div class="wildcard-desc">Brace expansion</div>
+                            </div>
+                            <div class="wildcard-card">
+                                <div class="wildcard-symbol">{1..10}</div>
+                                <div class="wildcard-desc">Sequence expansion</div>
+                            </div>
+                        </div>
+
+                        <div class="workflow-container">
+                            <div class="workflow-title">⚡ Bulk Operations Workflow:</div>
+                            <div class="workflow-steps">
+                                <div class="workflow-step">
+                                    <div class="step-number">1</div>
+                                    <div>Identify pattern in filenames or create naming convention</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">2</div>
+                                    <div>Test pattern with ls command before applying operations</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">3</div>
+                                    <div>Use appropriate wildcard or expansion for the task</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">4</div>
+                                    <div>Apply operations (copy, move, remove) to matched files</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">5</div>
+                                    <div>Verify results and document changes for audit trail</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="explanation-box">
+                            <div class="explanation-title">🎯 Advanced Expansion Examples:</div>
+                            <div class="explanation-text">
+                                <strong>*.log:</strong> All files ending in .log<br>
+                                <strong>file?.txt:</strong> file1.txt, file2.txt, fileA.txt (single char)<br>
+                                <strong>[abc]*:</strong> Files starting with a, b, or c<br>
+                                <strong>{jan,feb,mar}:</strong> Expands to jan feb mar<br>
+                                <strong>{1..10}:</strong> Numbers 1 through 10<br>
+                                <strong>backup{1,2,3}.{tar,zip}:</strong> Creates backup1.tar backup1.zip backup2.tar etc.
+                            </div>
+                        </div>
+
+                        <div class="example-grid">
+                            <div class="example-box">
+                                <div class="example-title">📅 Bulk Log Processing</div>
+                                <div class="example-code">ls access_log_2024*.txt
+mv *.log /archive/</div>
+                                <p style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                    Process multiple log files by pattern
+                                </p>
+                            </div>
+                            <div class="example-box">
+                                <div class="example-title">🏗️ Batch Directory Creation</div>
+                                <div class="example-code">mkdir -p logs/{2024,2025}/{jan,feb,mar}</div>
+                                <p style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                    Create nested directory structure efficiently
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer">
+                <p>© 2025 College of DuPage - Computer Information Technology Department</p>
+                <p>CIT 1450 Linux/Unix Systems | AI Cybersecurity Program</p>
+                <p><em>"Master file management, master the system!" 📁⚡</em></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // Initialize variables
+        const searchInput = document.getElementById('searchInput');
+        const filterTabs = document.querySelectorAll('.filter-tab');
+        const scenarioCards = document.querySelectorAll('.scenario-card');
+        let currentFilter = 'all';
+
+        // Search functionality
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            filterScenarios(searchTerm, currentFilter);
+        });
+
+        // Filter tab functionality
+        filterTabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                // Update active tab
+                filterTabs.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                
+                currentFilter = this.dataset.category;
+                const searchTerm = searchInput.value.toLowerCase();
+                filterScenarios(searchTerm, currentFilter);
+            });
+        });
+
+        // Filter scenarios based on search and category
+        function filterScenarios(searchTerm, category) {
+            scenarioCards.forEach(card => {
+                const cardCategory = card.dataset.category;
+                const cardText = card.textContent.toLowerCase();
+                
+                const matchesCategory = category === 'all' || category === cardCategory;
+                const matchesSearch = !searchTerm || cardText.includes(searchTerm);
+                
+                if (matchesCategory && matchesSearch) {
+                    card.classList.remove('hidden');
+                } else {
+                    card.classList.add('hidden');
+                }
+            });
+        }
+
+        // Copy command to clipboard
+        function copyCommand(command) {
+            // Clean up command text (remove HTML and extra whitespace)
+            const cleanCommand = command.replace(/<[^>]*>/g, '').trim();
+            
+            navigator.clipboard.writeText(cleanCommand).then(() => {
+                showToast(`Copied: ${cleanCommand.substring(0, 60)}${cleanCommand.length > 60 ? '...' : ''}`);
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+                showToast('Copy failed - try selecting manually');
+            });
+        }
+
+        // Show toast notification
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2500);
+        }
+
+        // Interactive file flow steps
+        const fileSteps = document.querySelectorAll('.file-step');
+        fileSteps.forEach((step, index) => {
+            step.addEventListener('click', function() {
+                const stepValue = this.querySelector('.step-value').textContent;
+                showToast(`File Operation ${index + 1}: ${stepValue}`);
+                
+                // Animate step
+                const icon = this.querySelector('.step-icon');
+                icon.style.transform = 'scale(1.1) rotate(5deg)';
+                setTimeout(() => {
+                    icon.style.transform = 'scale(1) rotate(0deg)';
+                }, 300);
+            });
+        });
+
+        // Interactive wildcard cards
+        const wildcardCards = document.querySelectorAll('.wildcard-card');
+        wildcardCards.forEach(card => {
+            card.addEventListener('click', function() {
+                const wildcardSymbol = this.querySelector('.wildcard-symbol').textContent;
+                const wildcardDesc = this.querySelector('.wildcard-desc').textContent;
+                showToast(`Wildcard: ${wildcardSymbol} - ${wildcardDesc}`);
+                
+                // Animate selection
+                this.style.transform = 'scale(1.05)';
+                setTimeout(() => {
+                    this.style.transform = 'scale(1)';
+                }, 300);
+            });
+        });
+
+        // Interactive workflow steps
+        const workflowSteps = document.querySelectorAll('.workflow-step');
+        workflowSteps.forEach(step => {
+            step.addEventListener('click', function() {
+                const stepText = this.textContent.trim();
+                showToast(`Workflow: ${stepText}`);
+                
+                // Animate selection
+                this.style.transform = 'scale(1.02)';
+                setTimeout(() => {
+                    this.style.transform = 'scale(1)';
+                }, 300);
+            });
+        });
+
+        // Interactive example boxes
+        const exampleBoxes = document.querySelectorAll('.example-box');
+        exampleBoxes.forEach(box => {
+            box.addEventListener('click', function() {
+                const exampleTitle = this.querySelector('.example-title').textContent;
+                showToast(`Example: ${exampleTitle}`);
+                
+                // Animate example
+                this.style.boxShadow = '0 0 20px rgba(0, 255, 65, 0.3)';
+                setTimeout(() => {
+                    this.style.boxShadow = '';
+                }, 500);
+            });
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl/Cmd + K to focus search
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                searchInput.focus();
+                searchInput.select();
+            }
+            
+            // Escape to clear search
+            if (e.key === 'Escape') {
+                searchInput.value = '';
+                filterScenarios('', currentFilter);
+                searchInput.blur();
+            }
+        });
+
+        // Initialize page with file management themed animations
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animated search placeholder
+            const searchPlaceholder = "$ search touch, mkdir, cp, mv, rm, ln, wildcards...";
+            let i = 0;
+            const typeInterval = setInterval(() => {
+                if (i < searchPlaceholder.length) {
+                    searchInput.placeholder = searchPlaceholder.substring(0, i + 1);
+                    i++;
+                } else {
+                    clearInterval(typeInterval);
+                }
+            }, 50);
+
+            // Setup cards for animation
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, observerOptions);
+
+            scenarioCards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                card.style.transition = `opacity 0.6s ease ${index * 0.1}s, transform 0.6s ease ${index * 0.1}s`;
+                observer.observe(card);
+            });
+
+            // Animate file operation flow
+            fileSteps.forEach((step, index) => {
+                setTimeout(() => {
+                    const icon = step.querySelector('.step-icon');
+                    icon.style.transform = 'scale(1.1) rotate(5deg)';
+                    setTimeout(() => {
+                        icon.style.transform = 'scale(1) rotate(0deg)';
+                    }, 300);
+                }, index * 400 + 1000);
+            });
+
+            // Animate wildcard cards
+            wildcardCards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.style.transform = 'scale(1.02)';
+                    setTimeout(() => {
+                        card.style.transform = 'scale(1)';
+                    }, 200);
+                }, index * 200 + 2000);
+            });
+        });
+    </script>
+</body>
+</html>

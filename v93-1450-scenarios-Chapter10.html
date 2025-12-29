@@ -1,0 +1,1187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chapter 10 Beginner's Guide - SSH Security for Cybersecurity Operations</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;500;700&family=Source+Code+Pro:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --terminal-bg: #0c0c0c;
+            --terminal-secondary: #1a1a1a;
+            --terminal-accent: #2a2a2a;
+            --terminal-border: #404040;
+            --terminal-green: #00ff41;
+            --terminal-blue: #00bfff;
+            --terminal-yellow: #ffff00;
+            --terminal-orange: #ff8c00;
+            --terminal-red: #ff4444;
+            --terminal-purple: #cc99ff;
+            --terminal-cyan: #00ffff;
+            --terminal-white: #f0f0f0;
+            --terminal-gray: #808080;
+            --terminal-dark-gray: #404040;
+            --ssh-green: #00ff41;
+            --connection-blue: #00bfff;
+            --key-orange: #ff8c00;
+            --auth-purple: #cc99ff;
+            --security-cyan: #00ffff;
+            --config-red: #ff4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto Mono', 'Source Code Pro', monospace;
+            background: var(--terminal-bg);
+            color: var(--terminal-white);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .terminal-window {
+            background: var(--terminal-secondary);
+            margin: 1rem;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 255, 65, 0.1);
+            border: 1px solid var(--terminal-border);
+            overflow: hidden;
+        }
+
+        .terminal-header {
+            background: var(--terminal-accent);
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--terminal-border);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .terminal-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .terminal-button {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .terminal-button.close {
+            background: var(--config-red);
+        }
+
+        .terminal-button.minimize {
+            background: var(--terminal-yellow);
+        }
+
+        .terminal-button.maximize {
+            background: var(--ssh-green);
+        }
+
+        .terminal-title {
+            color: var(--terminal-white);
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        .header-section {
+            padding: 2rem 1.5rem;
+            text-align: center;
+            background: linear-gradient(135deg, var(--terminal-secondary), var(--terminal-accent));
+        }
+
+        .main-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--ssh-green);
+            margin-bottom: 1rem;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: var(--terminal-gray);
+            margin-bottom: 2rem;
+        }
+
+        .college-branding {
+            background: var(--terminal-accent);
+            border: 1px solid var(--ssh-green);
+            border-radius: 8px;
+            padding: 1rem;
+            display: inline-block;
+            margin-bottom: 2rem;
+        }
+
+        .college-name {
+            color: var(--ssh-green);
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .course-info {
+            color: var(--terminal-gray);
+            font-size: 0.9rem;
+        }
+
+        .search-section {
+            padding: 1.5rem;
+            background: var(--terminal-accent);
+            border-bottom: 1px solid var(--terminal-border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .search-container {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .search-input {
+            flex: 1;
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            color: var(--terminal-white);
+            font-family: 'Source Code Pro', monospace;
+            font-size: 1rem;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--ssh-green);
+            box-shadow: 0 0 0 2px rgba(0, 255, 65, 0.2);
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 6px;
+            padding: 0.5rem 1rem;
+            color: var(--terminal-gray);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.8rem;
+        }
+
+        .filter-btn:hover {
+            border-color: var(--ssh-green);
+            color: var(--ssh-green);
+        }
+
+        .filter-btn.active {
+            background: var(--ssh-green);
+            color: var(--terminal-bg);
+            border-color: var(--ssh-green);
+        }
+
+        .scenarios-grid {
+            padding: 2rem 1.5rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 2rem;
+        }
+
+        .scenario-card {
+            background: var(--terminal-secondary);
+            border: 1px solid var(--terminal-border);
+            border-radius: 12px;
+            padding: 0;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .scenario-card:hover {
+            border-color: var(--section-color);
+            box-shadow: 0 10px 30px rgba(0, 255, 65, 0.1);
+        }
+
+        .scenario-header {
+            background: var(--terminal-accent);
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--terminal-border);
+        }
+
+        .scenario-title {
+            color: var(--section-color);
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .scenario-icon {
+            font-size: 1.2rem;
+        }
+
+        .scenario-description {
+            color: var(--terminal-gray);
+            font-size: 0.95rem;
+            margin-bottom: 1rem;
+        }
+
+        .difficulty-level {
+            background: var(--terminal-bg);
+            border: 1px solid var(--section-color);
+            border-radius: 4px;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.8rem;
+            color: var(--section-color);
+            display: inline-block;
+        }
+
+        .scenario-content {
+            padding: 1.5rem;
+        }
+
+        .real-world-example {
+            background: linear-gradient(135deg, #2a1a1a, #3a2a2a);
+            border: 1px solid var(--config-red);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .real-world-title {
+            color: var(--config-red);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .real-world-text {
+            color: var(--terminal-white);
+            font-size: 0.9rem;
+        }
+
+        .command-example {
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--terminal-dark-gray);
+        }
+
+        .command-example:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .command-syntax {
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .command-syntax:hover {
+            border-color: var(--section-color);
+            background: rgba(0, 191, 255, 0.05);
+        }
+
+        .command-text {
+            font-family: 'Source Code Pro', monospace;
+            font-size: 1rem;
+            color: var(--terminal-cyan);
+            word-break: break-word;
+        }
+
+        .command-prompt {
+            color: var(--ssh-green);
+            margin-right: 0.5rem;
+        }
+
+        .copy-indicator {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: var(--terminal-accent);
+            color: var(--terminal-gray);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .command-syntax:hover .copy-indicator {
+            opacity: 1;
+        }
+
+        .command-description {
+            color: var(--terminal-white);
+            font-size: 0.95rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .command-notes {
+            color: var(--terminal-yellow);
+            font-size: 0.85rem;
+            font-style: italic;
+        }
+
+        .explanation-box {
+            background: var(--terminal-accent);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .explanation-title {
+            color: var(--ssh-green);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .explanation-text {
+            color: var(--terminal-gray);
+            font-size: 0.9rem;
+        }
+
+        /* Category-specific colors */
+        .category-connection .scenario-card {
+            --section-color: var(--connection-blue);
+        }
+
+        .category-keys .scenario-card {
+            --section-color: var(--key-orange);
+        }
+
+        .category-auth .scenario-card {
+            --section-color: var(--auth-purple);
+        }
+
+        .category-config .scenario-card {
+            --section-color: var(--config-red);
+        }
+
+        .category-security .scenario-card {
+            --section-color: var(--security-cyan);
+        }
+
+        .category-troubleshoot .scenario-card {
+            --section-color: var(--terminal-yellow);
+        }
+
+        /* Syntax highlighting */
+        .cmd { color: var(--terminal-cyan); }
+        .option { color: var(--terminal-yellow); }
+        .path { color: var(--terminal-purple); }
+        .user { color: var(--ssh-green); }
+        .host { color: var(--connection-blue); }
+        .key { color: var(--key-orange); }
+        .config { color: var(--config-red); }
+
+        /* Toast notification */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--ssh-green);
+            color: var(--terminal-bg);
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 500;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Chapter Quote Section */
+        .chapter-quote {
+            margin: 3rem 1.5rem;
+            padding: 2rem;
+            background: linear-gradient(135deg, var(--terminal-accent), var(--terminal-secondary));
+            border: 1px solid var(--ssh-green);
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .quote-text {
+            font-size: 1.3rem;
+            color: var(--terminal-white);
+            font-style: italic;
+            margin-bottom: 1rem;
+            line-height: 1.8;
+        }
+
+        .quote-author {
+            color: var(--ssh-green);
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .scenarios-grid {
+                grid-template-columns: 1fr;
+                padding: 1rem;
+            }
+            
+            .search-container {
+                flex-direction: column;
+            }
+            
+            .filter-buttons {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="terminal-window">
+        <div class="terminal-header">
+            <div class="terminal-buttons">
+                <div class="terminal-button close"></div>
+                <div class="terminal-button minimize"></div>
+                <div class="terminal-button maximize"></div>
+            </div>
+            <div class="terminal-title">student@cybersec-lab:~/ssh-security$</div>
+        </div>
+
+        <div class="header-section">
+            <h1 class="main-title">🔐 SSH Security Management</h1>
+            <p class="subtitle">Comprehensive Command Reference for Secure Remote Access</p>
+            
+            <div class="college-branding">
+                <div class="college-name">College of DuPage</div>
+                <div class="course-info">CIT 1450 - Linux/Unix Systems • AI Cybersecurity Program</div>
+            </div>
+        </div>
+
+        <div class="search-section">
+            <div class="search-container">
+                <input type="text" class="search-input" id="searchInput" 
+                       placeholder="$ search ssh connections, keys, authentication, config, or security...">
+                <div class="filter-buttons">
+                    <button class="filter-btn active" data-filter="all">All</button>
+                    <button class="filter-btn" data-filter="connection">Connection</button>
+                    <button class="filter-btn" data-filter="keys">Keys</button>
+                    <button class="filter-btn" data-filter="auth">Authentication</button>
+                    <button class="filter-btn" data-filter="config">Config</button>
+                    <button class="filter-btn" data-filter="security">Security</button>
+                    <button class="filter-btn" data-filter="troubleshoot">Debug</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="scenarios-grid" id="scenariosGrid">
+            <!-- SSH Connection Basics -->
+            <div class="scenario-card category-connection" data-category="connection" 
+                 data-keywords="ssh connection remote login basic commands host access">
+                <div class="scenario-header">
+                    <h3 class="scenario-title">
+                        <span class="scenario-icon">🌐</span>
+                        SSH Connection Basics
+                    </h3>
+                    <p class="scenario-description">Establish secure remote connections and basic SSH operations</p>
+                    <span class="difficulty-level">Beginner Level</span>
+                </div>
+                <div class="scenario-content">
+                    <div class="real-world-example">
+                        <div class="real-world-title">
+                            🖥️ Remote Administration Scenario
+                        </div>
+                        <div class="real-world-text">
+                            System administrator needs secure remote access to production servers for maintenance, monitoring, and emergency response
+                        </div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">ssh</span> <span class="host">servera</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Connect to remote host using current username</div>
+                        <div class="command-notes">Uses same username as local system, prompts for password</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">ssh</span> <span class="user">admin</span>@<span class="host">192.168.1.100</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Connect with specific username to IP address</div>
+                        <div class="command-notes">Essential for connecting as different users or to IP addresses</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">ssh</span> <span class="user">root</span>@<span class="host">production-server.company.com</span> <span class="option">-p 2222</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Connect to custom SSH port (non-standard port 2222)</div>
+                        <div class="command-notes">Security practice: move SSH from default port 22</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">ssh</span> <span class="user">operator</span>@<span class="host">server1</span> <span class="cmd">hostname</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Execute single command remotely without interactive shell</div>
+                        <div class="command-notes">Perfect for scripting and remote command execution</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">w</span> <span class="option">-f</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">View currently logged-in users and their locations</div>
+                        <div class="command-notes">Security monitoring: identify who is connected from where</div>
+                    </div>
+
+                    <div class="explanation-box">
+                        <div class="explanation-title">SSH Security Benefits</div>
+                        <div class="explanation-text">
+                            <strong>Encryption:</strong> All data encrypted in transit • <strong>Authentication:</strong> Multiple auth methods • 
+                            <strong>Integrity:</strong> Data tampering detection • <strong>Tunneling:</strong> Secure channel for other protocols
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SSH Key Generation -->
+            <div class="scenario-card category-keys" data-category="keys" 
+                 data-keywords="ssh-keygen key generation rsa ed25519 private public keys fingerprint">
+                <div class="scenario-header">
+                    <h3 class="scenario-title">
+                        <span class="scenario-icon">🔑</span>
+                        SSH Key Generation & Management
+                    </h3>
+                    <p class="scenario-description">Create and manage SSH key pairs for secure authentication</p>
+                    <span class="difficulty-level">Intermediate Level</span>
+                </div>
+                <div class="scenario-content">
+                    <div class="real-world-example">
+                        <div class="real-world-title">
+                            🔐 Security Infrastructure Setup
+                        </div>
+                        <div class="real-world-text">
+                            Security engineer establishing cryptographic authentication for automated systems and eliminating password-based access
+                        </div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">ssh-keygen</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Generate default RSA key pair (interactive)</div>
+                        <div class="command-notes">Creates ~/.ssh/id_rsa (private) and ~/.ssh/id_rsa.pub (public)</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">ssh-keygen</span> <span class="option">-t ed25519</span> <span class="option">-C</span> <span class="config">"admin@company.com"</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Generate Ed25519 key with comment (modern, more secure)</div>
+                        <div class="command-notes">Ed25519 is faster and more secure than RSA, with shorter keys</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">ssh-keygen</span> <span class="option">-f</span> <span class="path">~/.ssh/production_key</span> <span class="option">-N</span> <span class="config">""</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Generate key with custom filename and no passphrase</div>
+                        <div class="command-notes">For automated systems where passphrases aren't practical</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">ssh-keygen</span> <span class="option">-t rsa</span> <span class="option">-b 4096</span> <span class="option">-f</span> <span class="path">~/.ssh/secure_key</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Generate 4096-bit RSA key for enhanced security</div>
+                        <div class="command-notes">Larger key size = stronger security, but slower operations</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">ssh-keygen</span> <span class="option">-lf</span> <span class="path">~/.ssh/id_rsa.pub</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Display key fingerprint for verification</div>
+                        <div class="command-notes">Critical for verifying key authenticity and identity</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">ssh-keygen</span> <span class="option">-lf</span> <span class="path">/etc/ssh/ssh_host_ecdsa_key.pub</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Verify server host key fingerprint</div>
+                        <div class="command-notes">Essential for preventing man-in-the-middle attacks</div>
+                    </div>
+
+                    <div class="explanation-box">
+                        <div class="explanation-title">Key Types Comparison</div>
+                        <div class="explanation-text">
+                            <strong>Ed25519:</strong> Modern, fast, secure (recommended) • <strong>RSA:</strong> Legacy support, widely compatible • 
+                            <strong>ECDSA:</strong> Good security, smaller keys • <strong>DSA:</strong> Deprecated, avoid using
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SSH Authentication Setup -->
+            <div class="scenario-card category-auth" data-category="auth" 
+                 data-keywords="ssh-copy-id authentication public key authorized_keys ssh-add ssh-agent">
+                <div class="scenario-header">
+                    <h3 class="scenario-title">
+                        <span class="scenario-icon">🔓</span>
+                        Key-based Authentication Setup
+                    </h3>
+                    <p class="scenario-description">Configure passwordless SSH access with public key authentication</p>
+                    <span class="difficulty-level">Intermediate Level</span>
+                </div>
+                <div class="scenario-content">
+                    <div class="real-world-example">
+                        <div class="real-world-title">
+                            🤖 Automation & Security Setup
+                        </div>
+                        <div class="real-world-text">
+                            DevOps engineer configuring automated deployment systems and monitoring tools that need secure, passwordless access to multiple servers
+                        </div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">ssh-copy-id</span> <span class="user">admin</span>@<span class="host">server1.company.com</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Copy default public key to remote server</div>
+                        <div class="command-notes">Automatically appends key to ~/.ssh/authorized_keys on remote host</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">ssh-copy-id</span> <span class="option">-i</span> <span class="path">~/.ssh/production_key.pub</span> <span class="user">deploy</span>@<span class="host">prod-server</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Copy specific public key to remote server</div>
+                        <div class="command-notes">Use when you have multiple keys for different purposes</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">cat</span> <span class="path">~/.ssh/id_rsa.pub</span> <span class="cmd">| ssh</span> <span class="user">user</span>@<span class="host">server</span> <span class="config">"mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys"</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Manual method to copy public key</div>
+                        <div class="command-notes">Alternative when ssh-copy-id is not available</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">eval</span> <span class="config">$(ssh-agent)</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Start SSH agent for key management</div>
+                        <div class="command-notes">Manages passphrase-protected keys in memory</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">ssh-add</span> <span class="path">~/.ssh/production_key</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Add private key to SSH agent</div>
+                        <div class="command-notes">Prompts for passphrase once, then caches it</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">ssh-add</span> <span class="option">-l</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">List keys currently loaded in SSH agent</div>
+                        <div class="command-notes">Shows fingerprints and comments of loaded keys</div>
+                    </div>
+
+                    <div class="explanation-box">
+                        <div class="explanation-title">Authentication Flow</div>
+                        <div class="explanation-text">
+                            <strong>1. Key Generation:</strong> Create private/public key pair • <strong>2. Key Distribution:</strong> Copy public key to servers • 
+                            <strong>3. Agent Loading:</strong> Add private keys to agent • <strong>4. Passwordless Access:</strong> Automatic authentication
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SSH Configuration -->
+            <div class="scenario-card category-config" data-category="config" 
+                 data-keywords="sshd_config ssh_config configuration settings port security options">
+                <div class="scenario-header">
+                    <h3 class="scenario-title">
+                        <span class="scenario-icon">⚙️</span>
+                        SSH Configuration Management
+                    </h3>
+                    <p class="scenario-description">Configure SSH client and server settings for security and convenience</p>
+                    <span class="difficulty-level">Advanced Level</span>
+                </div>
+                <div class="scenario-content">
+                    <div class="real-world-example">
+                        <div class="real-world-title">
+                            🛠️ Infrastructure Optimization
+                        </div>
+                        <div class="real-world-text">
+                            System architect configuring SSH settings for hundreds of servers - optimizing security, performance, and user experience across enterprise infrastructure
+                        </div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">cat</span> <span class="path">~/.ssh/config</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">View SSH client configuration file</div>
+                        <div class="command-notes">Per-user settings for hosts, keys, ports, and options</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">vim</span> <span class="path">~/.ssh/config</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Edit SSH client configuration</div>
+                        <div class="command-notes">Add host aliases, default users, key files, and connection options</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">#</span><span class="cmd">vim</span> <span class="path">/etc/ssh/sshd_config</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Edit SSH server configuration (requires root)</div>
+                        <div class="command-notes">Global settings affecting all SSH connections to this server</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">#</span><span class="cmd">systemctl</span> <span class="option">reload</span> <span class="config">sshd</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Reload SSH daemon after configuration changes</div>
+                        <div class="command-notes">Applies new settings without disconnecting existing sessions</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">#</span><span class="cmd">sshd</span> <span class="option">-T</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Test SSH configuration syntax</div>
+                        <div class="command-notes">Validates config file before applying changes</div>
+                    </div>
+
+                    <div class="explanation-box">
+                        <div class="explanation-title">Key SSH Configuration Settings</div>
+                        <div class="explanation-text">
+                            <strong>~/.ssh/config:</strong> Client settings (per user) • <strong>/etc/ssh/sshd_config:</strong> Server settings (global) • 
+                            <strong>Host:</strong> Connection aliases • <strong>Port:</strong> Custom ports • <strong>IdentityFile:</strong> Specific keys
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SSH Security Hardening -->
+            <div class="scenario-card category-security" data-category="security" 
+                 data-keywords="security hardening PermitRootLogin PasswordAuthentication disable root port security">
+                <div class="scenario-header">
+                    <h3 class="scenario-title">
+                        <span class="scenario-icon">🛡️</span>
+                        SSH Security Hardening
+                    </h3>
+                    <p class="scenario-description">Implement security best practices and disable risky SSH features</p>
+                    <span class="difficulty-level">Expert Level</span>
+                </div>
+                <div class="scenario-content">
+                    <div class="real-world-example">
+                        <div class="real-world-title">
+                            🔒 Security Compliance Implementation
+                        </div>
+                        <div class="real-world-text">
+                            Security consultant implementing enterprise security policies - disable root login, enforce key authentication, configure custom ports, and audit access controls
+                        </div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">#</span><span class="config">PermitRootLogin no</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Disable direct root login over SSH (add to sshd_config)</div>
+                        <div class="command-notes">Forces users to login as regular users and use sudo</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">#</span><span class="config">PasswordAuthentication no</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Disable password authentication (add to sshd_config)</div>
+                        <div class="command-notes">Forces key-based authentication only, prevents brute force attacks</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">#</span><span class="config">Port 2222</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Change SSH port from default 22 (add to sshd_config)</div>
+                        <div class="command-notes">Security through obscurity - reduces automated attacks</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">#</span><span class="config">AllowUsers admin deploy monitoring</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Restrict SSH access to specific users (add to sshd_config)</div>
+                        <div class="command-notes">Whitelist approach - only listed users can connect via SSH</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">#</span><span class="config">MaxAuthTries 3</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Limit authentication attempts (add to sshd_config)</div>
+                        <div class="command-notes">Prevents brute force attacks by limiting retry attempts</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">#</span><span class="config">ClientAliveInterval 300</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Set client timeout to 5 minutes (add to sshd_config)</div>
+                        <div class="command-notes">Automatically disconnect idle sessions to prevent unauthorized access</div>
+                    </div>
+
+                    <div class="explanation-box">
+                        <div class="explanation-title">Security Hardening Checklist</div>
+                        <div class="explanation-text">
+                            <strong>✓ Disable root login</strong> • <strong>✓ Disable password auth</strong> • <strong>✓ Change default port</strong> • 
+                            <strong>✓ Limit user access</strong> • <strong>✓ Set connection timeouts</strong> • <strong>✓ Enable key-only auth</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SSH Troubleshooting -->
+            <div class="scenario-card category-troubleshoot" data-category="troubleshoot" 
+                 data-keywords="troubleshooting debug verbose ssh -v connection problems authentication issues">
+                <div class="scenario-header">
+                    <h3 class="scenario-title">
+                        <span class="scenario-icon">🔍</span>
+                        SSH Troubleshooting & Debugging
+                    </h3>
+                    <p class="scenario-description">Debug connection issues and authentication problems</p>
+                    <span class="difficulty-level">Expert Level</span>
+                </div>
+                <div class="scenario-content">
+                    <div class="real-world-example">
+                        <div class="real-world-title">
+                            🚨 Connection Issues Investigation
+                        </div>
+                        <div class="real-world-text">
+                            Network engineer diagnosing SSH connectivity problems - analyzing authentication failures, host key mismatches, and network configuration issues
+                        </div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">ssh</span> <span class="option">-v</span> <span class="user">user</span>@<span class="host">server</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Enable verbose output for debugging</div>
+                        <div class="command-notes">Shows connection process, authentication methods, and errors</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">ssh</span> <span class="option">-vvv</span> <span class="user">user</span>@<span class="host">server</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Maximum verbosity for detailed debugging</div>
+                        <div class="command-notes">Shows all protocol details, key exchanges, and decision points</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">ssh</span> <span class="option">-o StrictHostKeyChecking=no</span> <span class="user">user</span>@<span class="host">server</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Bypass host key verification (testing only)</div>
+                        <div class="command-notes">DANGEROUS: Only use for testing, never in production</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">ssh</span> <span class="option">-o PasswordAuthentication=no</span> <span class="user">user</span>@<span class="host">server</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Force key-only authentication (no password fallback)</div>
+                        <div class="command-notes">Test if key authentication is working properly</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">ssh-keyscan</span> <span class="host">server</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Retrieve server's host keys</div>
+                        <div class="command-notes">Useful for pre-populating known_hosts files</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">ssh-keygen</span> <span class="option">-R</span> <span class="host">servername</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Remove host key from known_hosts file</div>
+                        <div class="command-notes">Fix host key mismatch after server reinstall or key change</div>
+                    </div>
+
+                    <div class="explanation-box">
+                        <div class="explanation-title">Common SSH Issues & Solutions</div>
+                        <div class="explanation-text">
+                            <strong>Permission denied:</strong> Check key permissions (600) • <strong>Host key verification failed:</strong> Remove old key • 
+                            <strong>Connection refused:</strong> Check port and firewall • <strong>Timeout:</strong> Network or DNS issues
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chapter Quote -->
+        <div class="chapter-quote">
+            <div class="quote-text">
+                "In cybersecurity, SSH is not merely a tool for remote access—it is the secure bridge that connects trust across untrusted networks. Master its cryptographic foundations, and you command the keys to the digital kingdom. Every connection is a handshake of trust; every key, a token of verified identity."
+            </div>
+            <div class="quote-author">— Chapter 10: Configure and Secure SSH</div>
+        </div>
+    </div>
+
+    <!-- Toast notification -->
+    <div id="toast" class="toast"></div>
+
+    <script>
+        const searchInput = document.getElementById('searchInput');
+        const scenariosGrid = document.getElementById('scenariosGrid');
+        const filterButtons = document.querySelectorAll('.filter-btn');
+        
+        let currentFilter = 'all';
+
+        // Search and filter functionality
+        function filterCommands(searchTerm, category) {
+            const cards = scenariosGrid.querySelectorAll('.scenario-card');
+            searchTerm = searchTerm.toLowerCase();
+
+            cards.forEach(card => {
+                const keywords = card.getAttribute('data-keywords').toLowerCase();
+                const cardCategory = card.getAttribute('data-category');
+                const title = card.querySelector('.scenario-title').textContent.toLowerCase();
+                const description = card.querySelector('.scenario-description').textContent.toLowerCase();
+
+                const matchesSearch = keywords.includes(searchTerm) || 
+                                    title.includes(searchTerm) || 
+                                    description.includes(searchTerm);
+                const matchesCategory = category === 'all' || cardCategory === category;
+
+                if (matchesSearch && matchesCategory) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        // Search input handler
+        searchInput.addEventListener('input', (e) => {
+            filterCommands(e.target.value, currentFilter);
+        });
+
+        // Filter button handlers
+        filterButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                // Update active button
+                filterButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                
+                // Update current filter
+                currentFilter = button.getAttribute('data-filter');
+                
+                // Apply filter
+                filterCommands(searchInput.value, currentFilter);
+            });
+        });
+
+        // Copy command functionality
+        function copyCommand(element) {
+            const commandText = element.querySelector('.command-text').textContent;
+            
+            // Remove the prompt symbol for cleaner copying
+            const cleanCommand = commandText.replace(/^\$\s*/, '').replace(/^#\s*/, '');
+            
+            navigator.clipboard.writeText(cleanCommand).then(() => {
+                showToast('Command copied to clipboard!');
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+                showToast('Copy failed - try selecting manually');
+            });
+        }
+
+        // Show toast notification
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2500);
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl/Cmd + K to focus search
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                searchInput.focus();
+                searchInput.select();
+            }
+            
+            // Escape to clear search
+            if (e.key === 'Escape') {
+                searchInput.value = '';
+                filterCommands('', currentFilter);
+                searchInput.blur();
+            }
+        });
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Focus search on page load
+            setTimeout(() => {
+                searchInput.focus();
+            }, 1000);
+
+            // Show typing animation in search
+            const searchPlaceholder = "$ search ssh connections, keys, authentication, config, or security...";
+            let i = 0;
+            const typeInterval = setInterval(() => {
+                if (i < searchPlaceholder.length) {
+                    searchInput.placeholder = searchPlaceholder.substring(0, i + 1);
+                    i++;
+                } else {
+                    clearInterval(typeInterval);
+                }
+            }, 50);
+        });
+    </script>
+</body>
+</html>

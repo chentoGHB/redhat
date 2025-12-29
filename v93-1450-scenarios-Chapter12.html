@@ -1,0 +1,1264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chapter 12 Beginner's Guide - Package Management for Cybersecurity Operations</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;500;700&family=Source+Code+Pro:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --terminal-bg: #0c0c0c;
+            --terminal-secondary: #1a1a1a;
+            --terminal-accent: #2a2a2a;
+            --terminal-border: #404040;
+            --terminal-green: #00ff41;
+            --terminal-blue: #00bfff;
+            --terminal-yellow: #ffff00;
+            --terminal-orange: #ff8c00;
+            --terminal-red: #ff4444;
+            --terminal-purple: #cc99ff;
+            --terminal-cyan: #00ffff;
+            --terminal-white: #f0f0f0;
+            --terminal-gray: #808080;
+            --terminal-dark-gray: #404040;
+            --package-green: #00ff41;
+            --dnf-blue: #00bfff;
+            --rpm-orange: #ff8c00;
+            --repo-purple: #cc99ff;
+            --subscription-cyan: #00ffff;
+            --security-red: #ff4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto Mono', 'Source Code Pro', monospace;
+            background: var(--terminal-bg);
+            color: var(--terminal-white);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .terminal-window {
+            background: var(--terminal-secondary);
+            margin: 1rem;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 255, 65, 0.1);
+            border: 1px solid var(--terminal-border);
+            overflow: hidden;
+        }
+
+        .terminal-header {
+            background: var(--terminal-accent);
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--terminal-border);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .terminal-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .terminal-button {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .terminal-button.close {
+            background: var(--security-red);
+        }
+
+        .terminal-button.minimize {
+            background: var(--terminal-yellow);
+        }
+
+        .terminal-button.maximize {
+            background: var(--package-green);
+        }
+
+        .terminal-title {
+            color: var(--terminal-white);
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        .header-section {
+            padding: 2rem 1.5rem;
+            text-align: center;
+            background: linear-gradient(135deg, var(--terminal-secondary), var(--terminal-accent));
+        }
+
+        .main-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--package-green);
+            margin-bottom: 1rem;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: var(--terminal-gray);
+            margin-bottom: 2rem;
+        }
+
+        .college-branding {
+            background: var(--terminal-accent);
+            border: 1px solid var(--package-green);
+            border-radius: 8px;
+            padding: 1rem;
+            display: inline-block;
+            margin-bottom: 2rem;
+        }
+
+        .college-name {
+            color: var(--package-green);
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .course-info {
+            color: var(--terminal-gray);
+            font-size: 0.9rem;
+        }
+
+        .search-section {
+            padding: 1.5rem;
+            background: var(--terminal-accent);
+            border-bottom: 1px solid var(--terminal-border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .search-container {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .search-input {
+            flex: 1;
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            color: var(--terminal-white);
+            font-family: 'Source Code Pro', monospace;
+            font-size: 1rem;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--package-green);
+            box-shadow: 0 0 0 2px rgba(0, 255, 65, 0.2);
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 6px;
+            padding: 0.5rem 1rem;
+            color: var(--terminal-gray);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.8rem;
+        }
+
+        .filter-btn:hover {
+            border-color: var(--package-green);
+            color: var(--package-green);
+        }
+
+        .filter-btn.active {
+            background: var(--package-green);
+            color: var(--terminal-bg);
+            border-color: var(--package-green);
+        }
+
+        .scenarios-grid {
+            padding: 2rem 1.5rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 2rem;
+        }
+
+        .scenario-card {
+            background: var(--terminal-secondary);
+            border: 1px solid var(--terminal-border);
+            border-radius: 12px;
+            padding: 0;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .scenario-card:hover {
+            border-color: var(--section-color);
+            box-shadow: 0 10px 30px rgba(0, 255, 65, 0.1);
+        }
+
+        .scenario-header {
+            background: var(--terminal-accent);
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--terminal-border);
+        }
+
+        .scenario-title {
+            color: var(--section-color);
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .scenario-icon {
+            font-size: 1.2rem;
+        }
+
+        .scenario-description {
+            color: var(--terminal-gray);
+            font-size: 0.95rem;
+            margin-bottom: 1rem;
+        }
+
+        .difficulty-level {
+            background: var(--terminal-bg);
+            border: 1px solid var(--section-color);
+            border-radius: 4px;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.8rem;
+            color: var(--section-color);
+            display: inline-block;
+        }
+
+        .scenario-content {
+            padding: 1.5rem;
+        }
+
+        .real-world-example {
+            background: linear-gradient(135deg, #2a1a1a, #3a2a2a);
+            border: 1px solid var(--security-red);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .real-world-title {
+            color: var(--security-red);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .real-world-text {
+            color: var(--terminal-white);
+            font-size: 0.9rem;
+        }
+
+        .command-example {
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--terminal-dark-gray);
+        }
+
+        .command-example:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .command-syntax {
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .command-syntax:hover {
+            border-color: var(--section-color);
+            background: rgba(0, 191, 255, 0.05);
+        }
+
+        .command-text {
+            font-family: 'Source Code Pro', monospace;
+            font-size: 1rem;
+            color: var(--terminal-cyan);
+            word-break: break-word;
+        }
+
+        .command-prompt {
+            color: var(--package-green);
+            margin-right: 0.5rem;
+        }
+
+        .copy-indicator {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: var(--terminal-accent);
+            color: var(--terminal-gray);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .command-syntax:hover .copy-indicator {
+            opacity: 1;
+        }
+
+        .command-description {
+            color: var(--terminal-white);
+            font-size: 0.95rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .command-notes {
+            color: var(--terminal-yellow);
+            font-size: 0.85rem;
+            font-style: italic;
+        }
+
+        .explanation-box {
+            background: var(--terminal-accent);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .explanation-title {
+            color: var(--package-green);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .explanation-text {
+            color: var(--terminal-gray);
+            font-size: 0.9rem;
+        }
+
+        /* Category-specific colors */
+        .category-subscription .scenario-card {
+            --section-color: var(--subscription-cyan);
+        }
+
+        .category-rpm .scenario-card {
+            --section-color: var(--rpm-orange);
+        }
+
+        .category-dnf .scenario-card {
+            --section-color: var(--dnf-blue);
+        }
+
+        .category-groups .scenario-card {
+            --section-color: var(--package-green);
+        }
+
+        .category-repositories .scenario-card {
+            --section-color: var(--repo-purple);
+        }
+
+        .category-history .scenario-card {
+            --section-color: var(--security-red);
+        }
+
+        /* Syntax highlighting */
+        .cmd { color: var(--terminal-cyan); }
+        .option { color: var(--terminal-yellow); }
+        .path { color: var(--terminal-purple); }
+        .package { color: var(--dnf-blue); }
+        .repo { color: var(--repo-purple); }
+        .user { color: var(--package-green); }
+        .config { color: var(--rpm-orange); }
+
+        /* Toast notification */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--package-green);
+            color: var(--terminal-bg);
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 500;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Chapter Quote Section */
+        .chapter-quote {
+            margin: 3rem 1.5rem;
+            padding: 2rem;
+            background: linear-gradient(135deg, var(--terminal-accent), var(--terminal-secondary));
+            border: 1px solid var(--package-green);
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .quote-text {
+            font-size: 1.3rem;
+            color: var(--terminal-white);
+            font-style: italic;
+            margin-bottom: 1rem;
+            line-height: 1.8;
+        }
+
+        .quote-author {
+            color: var(--package-green);
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .scenarios-grid {
+                grid-template-columns: 1fr;
+                padding: 1rem;
+            }
+            
+            .search-container {
+                flex-direction: column;
+            }
+            
+            .filter-buttons {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="terminal-window">
+        <div class="terminal-header">
+            <div class="terminal-buttons">
+                <div class="terminal-button close"></div>
+                <div class="terminal-button minimize"></div>
+                <div class="terminal-button maximize"></div>
+            </div>
+            <div class="terminal-title">student@cybersec-lab:~/package-management$</div>
+        </div>
+
+        <div class="header-section">
+            <h1 class="main-title">📦 Package Management</h1>
+            <p class="subtitle">Comprehensive Command Reference for Software Installation & Updates</p>
+            
+            <div class="college-branding">
+                <div class="college-name">College of DuPage</div>
+                <div class="course-info">CIT 1450 - Linux/Unix Systems • AI Cybersecurity Program</div>
+            </div>
+        </div>
+
+        <div class="search-section">
+            <div class="search-container">
+                <input type="text" class="search-input" id="searchInput" 
+                       placeholder="$ search subscription, rpm, dnf, packages, repositories, or history...">
+                <div class="filter-buttons">
+                    <button class="filter-btn active" data-filter="all">All</button>
+                    <button class="filter-btn" data-filter="subscription">Registration</button>
+                    <button class="filter-btn" data-filter="rpm">RPM</button>
+                    <button class="filter-btn" data-filter="dnf">DNF</button>
+                    <button class="filter-btn" data-filter="groups">Groups</button>
+                    <button class="filter-btn" data-filter="repositories">Repos</button>
+                    <button class="filter-btn" data-filter="history">History</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="scenarios-grid" id="scenariosGrid">
+            <!-- System Registration -->
+            <div class="scenario-card category-subscription" data-category="subscription" 
+                 data-keywords="subscription registration rhc subscription-manager redhat entitlement activation key">
+                <div class="scenario-header">
+                    <h3 class="scenario-title">
+                        <span class="scenario-icon">🔑</span>
+                        System Registration & Subscription
+                    </h3>
+                    <p class="scenario-description">Register systems with Red Hat and manage entitlements</p>
+                    <span class="difficulty-level">Beginner Level</span>
+                </div>
+                <div class="scenario-content">
+                    <div class="real-world-example">
+                        <div class="real-world-title">
+                            🏢 Enterprise System Deployment
+                        </div>
+                        <div class="real-world-text">
+                            System administrator deploying new RHEL servers in production environment needs to register systems for security updates, compliance, and official support
+                        </div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">#</span><span class="cmd">rhc</span> <span class="option">connect</span> <span class="config">-u username -p password</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Register system to Red Hat Customer Portal (RHEL 8.8+)</div>
+                        <div class="command-notes">Modern registration tool that also enables Red Hat Insights</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">#</span><span class="cmd">rhc</span> <span class="option">connect</span> <span class="config">-a activation_key -o organization_id</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Register using activation key and organization ID</div>
+                        <div class="command-notes">Preferred method for automated deployments and scripting</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">#</span><span class="cmd">subscription-manager</span> <span class="option">register --username</span> <span class="user">yourusername</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Register system using traditional subscription-manager</div>
+                        <div class="command-notes">Legacy tool for RHEL 8.7 and earlier or Satellite registration</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">#</span><span class="cmd">subscription-manager</span> <span class="option">list --available</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">View available subscriptions for your account</div>
+                        <div class="command-notes">Shows subscription pools, products, and support levels</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">#</span><span class="cmd">subscription-manager</span> <span class="option">attach --auto</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Auto-attach best compatible subscription</div>
+                        <div class="command-notes">Automatically selects appropriate entitlement for the system</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">#</span><span class="cmd">rhc</span> <span class="option">disconnect</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Unregister system from Red Hat services</div>
+                        <div class="command-notes">Removes system from inventory and disables repositories</div>
+                    </div>
+
+                    <div class="explanation-box">
+                        <div class="explanation-title">Registration Benefits</div>
+                        <div class="explanation-text">
+                            <strong>Security Updates:</strong> Access to errata and patches • <strong>Support:</strong> Official Red Hat assistance • 
+                            <strong>Compliance:</strong> License tracking • <strong>Insights:</strong> Automated system analysis
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RPM Package Investigation -->
+            <div class="scenario-card category-rpm" data-category="rpm" 
+                 data-keywords="rpm package investigation query list files scripts rpm2cpio cpio extraction">
+                <div class="scenario-header">
+                    <h3 class="scenario-title">
+                        <span class="scenario-icon">🔍</span>
+                        RPM Package Investigation
+                    </h3>
+                    <p class="scenario-description">Analyze RPM packages and extract files for security assessment</p>
+                    <span class="difficulty-level">Intermediate Level</span>
+                </div>
+                <div class="scenario-content">
+                    <div class="real-world-example">
+                        <div class="real-world-title">
+                            🛡️ Security Analysis Scenario
+                        </div>
+                        <div class="real-world-text">
+                            Security analyst investigating third-party RPM package before installation - need to examine contents, scripts, and dependencies for potential security risks
+                        </div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">rpm</span> <span class="option">-q</span> <span class="package">httpd</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Query if package is installed and show version</div>
+                        <div class="command-notes">Basic package status check for installed packages</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">rpm</span> <span class="option">-qi</span> <span class="package">httpd</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Show detailed package information</div>
+                        <div class="command-notes">Displays description, version, size, license, and build information</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">rpm</span> <span class="option">-ql</span> <span class="package">httpd</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">List all files in installed package</div>
+                        <div class="command-notes">Shows complete file inventory including configs and executables</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">rpm</span> <span class="option">-qp -i</span> <span class="config">package.rpm</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Query package file information (not installed)</div>
+                        <div class="command-notes">Examine package details before installation for security assessment</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">rpm</span> <span class="option">-q --scripts</span> <span class="package">httpd</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Display install/uninstall scripts in package</div>
+                        <div class="command-notes">Critical security check - scripts run as root during installation</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">rpm2cpio</span> <span class="config">package.rpm</span> <span class="option">| cpio -tv</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">List contents of RPM without installing</div>
+                        <div class="command-notes">Convert RPM to cpio archive and list files with permissions</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">rpm2cpio</span> <span class="config">package.rpm</span> <span class="option">| cpio -idv</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Extract all files from RPM package</div>
+                        <div class="command-notes">Extract to current directory for detailed file examination</div>
+                    </div>
+
+                    <div class="explanation-box">
+                        <div class="explanation-title">Security Package Analysis</div>
+                        <div class="explanation-text">
+                            <strong>Scripts:</strong> Check for malicious pre/post install code • <strong>Files:</strong> Verify file locations and permissions • 
+                            <strong>Dependencies:</strong> Review package requirements • <strong>Signatures:</strong> Validate package authenticity
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DNF Package Management -->
+            <div class="scenario-card category-dnf" data-category="dnf" 
+                 data-keywords="dnf search install remove update upgrade packages dependencies software">
+                <div class="scenario-header">
+                    <h3 class="scenario-title">
+                        <span class="scenario-icon">📦</span>
+                        DNF Package Management
+                    </h3>
+                    <p class="scenario-description">Install, update, and manage software packages with DNF</p>
+                    <span class="difficulty-level">Beginner Level</span>
+                </div>
+                <div class="scenario-content">
+                    <div class="real-world-example">
+                        <div class="real-world-title">
+                            🖥️ System Administration Tasks
+                        </div>
+                        <div class="real-world-text">
+                            Administrator managing production servers needs to install security tools, update packages for vulnerabilities, and maintain software inventory
+                        </div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">dnf</span> <span class="option">search</span> <span class="package">nmap</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Search for packages containing keyword</div>
+                        <div class="command-notes">Searches package names, summaries, and descriptions</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">dnf</span> <span class="option">info</span> <span class="package">nmap</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Display detailed package information</div>
+                        <div class="command-notes">Shows size, dependencies, description, and repository</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">#</span><span class="cmd">dnf</span> <span class="option">install</span> <span class="package">nmap</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Install package and dependencies</div>
+                        <div class="command-notes">Downloads from repositories and resolves dependencies automatically</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">#</span><span class="cmd">dnf</span> <span class="option">install -y</span> <span class="package">wget curl</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Install multiple packages without prompts</div>
+                        <div class="command-notes">Use -y flag for automated installations and scripts</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">#</span><span class="cmd">dnf</span> <span class="option">update</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Update all installed packages to latest versions</div>
+                        <div class="command-notes">Essential for security patches and bug fixes</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">#</span><span class="cmd">dnf</span> <span class="option">update</span> <span class="package">kernel</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Update specific package</div>
+                        <div class="command-notes">Update individual packages when needed</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">#</span><span class="cmd">dnf</span> <span class="option">remove</span> <span class="package">old-package</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Remove package and unused dependencies</div>
+                        <div class="command-notes">Shows what will be removed before confirmation</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">dnf</span> <span class="option">list installed</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">List all currently installed packages</div>
+                        <div class="command-notes">Complete inventory of installed software</div>
+                    </div>
+
+                    <div class="explanation-box">
+                        <div class="explanation-title">Package Management Best Practices</div>
+                        <div class="explanation-text">
+                            <strong>Search first:</strong> Find exact package names • <strong>Read info:</strong> Check dependencies and size • 
+                            <strong>Test updates:</strong> Staging before production • <strong>Regular updates:</strong> Security patches
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Package Groups -->
+            <div class="scenario-card category-groups" data-category="groups" 
+                 data-keywords="dnf group package groups install bundle development tools security">
+                <div class="scenario-header">
+                    <h3 class="scenario-title">
+                        <span class="scenario-icon">📂</span>
+                        Package Groups & Collections
+                    </h3>
+                    <p class="scenario-description">Install and manage related packages as groups</p>
+                    <span class="difficulty-level">Intermediate Level</span>
+                </div>
+                <div class="scenario-content">
+                    <div class="real-world-example">
+                        <div class="real-world-title">
+                            🛠️ Role-based Server Setup
+                        </div>
+                        <div class="real-world-text">
+                            System builder configuring specialized servers - development workstation needs compiler tools, security server needs monitoring packages
+                        </div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">dnf</span> <span class="option">group list</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">List all available package groups</div>
+                        <div class="command-notes">Shows installed and available package collections</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">dnf</span> <span class="option">group info</span> <span class="config">"Development Tools"</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Show packages included in specific group</div>
+                        <div class="command-notes">Displays default and optional packages in group</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">#</span><span class="cmd">dnf</span> <span class="option">group install</span> <span class="config">"Security Tools"</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Install entire package group</div>
+                        <div class="command-notes">Installs all default packages and their dependencies</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">#</span><span class="cmd">dnf</span> <span class="option">group install --with-optional</span> <span class="config">"Development Tools"</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Install group with optional packages</div>
+                        <div class="command-notes">Includes both default and optional packages in group</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">#</span><span class="cmd">dnf</span> <span class="option">group remove</span> <span class="config">"Legacy UNIX Compatibility"</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Remove entire package group</div>
+                        <div class="command-notes">Removes all packages that were installed as part of group</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">dnf</span> <span class="option">group list --installed</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">List currently installed package groups</div>
+                        <div class="command-notes">Show which groups are currently installed on system</div>
+                    </div>
+
+                    <div class="explanation-box">
+                        <div class="explanation-title">Common Package Groups</div>
+                        <div class="explanation-text">
+                            <strong>Development Tools:</strong> Compilers, make, git • <strong>Security Tools:</strong> SCAP, OpenSSL utilities • 
+                            <strong>System Tools:</strong> Administrative utilities • <strong>Network Servers:</strong> Web, FTP, DNS services
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Repository Management -->
+            <div class="scenario-card category-repositories" data-category="repositories" 
+                 data-keywords="dnf repository config enable disable baseurl gpg key third-party">
+                <div class="scenario-header">
+                    <h3 class="scenario-title">
+                        <span class="scenario-icon">🗂️</span>
+                        Repository Management
+                    </h3>
+                    <p class="scenario-description">Configure and manage software repositories and sources</p>
+                    <span class="difficulty-level">Advanced Level</span>
+                </div>
+                <div class="scenario-content">
+                    <div class="real-world-example">
+                        <div class="real-world-title">
+                            🔧 Enterprise Repository Configuration
+                        </div>
+                        <div class="real-world-text">
+                            Infrastructure team setting up internal repositories, enabling third-party sources for specialized tools, managing repository priorities for security
+                        </div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">dnf</span> <span class="option">repolist</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">List all enabled repositories</div>
+                        <div class="command-notes">Shows repository ID, name, and package count</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">dnf</span> <span class="option">repolist --all</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">List all repositories (enabled and disabled)</div>
+                        <div class="command-notes">Complete view of available repositories</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">#</span><span class="cmd">dnf</span> <span class="option">config-manager --enable</span> <span class="repo">repository-name</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Enable disabled repository</div>
+                        <div class="command-notes">Activate repository for package installations</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">#</span><span class="cmd">dnf</span> <span class="option">config-manager --disable</span> <span class="repo">repository-name</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Disable repository temporarily</div>
+                        <div class="command-notes">Prevent packages from installing from specific repository</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">#</span><span class="cmd">dnf</span> <span class="option">config-manager --add-repo</span> <span class="config">https://example.com/repo</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Add new repository from URL</div>
+                        <div class="command-notes">Configure third-party or internal repositories</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">cat</span> <span class="path">/etc/yum.repos.d/repo-name.repo</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">View repository configuration file</div>
+                        <div class="command-notes">Check baseurl, GPG settings, and enabled status</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">#</span><span class="cmd">dnf</span> <span class="option">clean all</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Clear all cached repository data</div>
+                        <div class="command-notes">Force fresh metadata download on next operation</div>
+                    </div>
+
+                    <div class="explanation-box">
+                        <div class="explanation-title">Repository Security</div>
+                        <div class="explanation-text">
+                            <strong>GPG Keys:</strong> Verify package signatures • <strong>HTTPS:</strong> Secure repository connections • 
+                            <strong>Priorities:</strong> Control package source preferences • <strong>Testing:</strong> Staging repos before production
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Package History & Troubleshooting -->
+            <div class="scenario-card category-history" data-category="history" 
+                 data-keywords="dnf history undo rollback transaction log troubleshooting package conflicts">
+                <div class="scenario-header">
+                    <h3 class="scenario-title">
+                        <span class="scenario-icon">📊</span>
+                        Package History & Troubleshooting
+                    </h3>
+                    <p class="scenario-description">Track package changes and resolve installation issues</p>
+                    <span class="difficulty-level">Expert Level</span>
+                </div>
+                <div class="scenario-content">
+                    <div class="real-world-example">
+                        <div class="real-world-title">
+                            🚨 System Recovery Scenario
+                        </div>
+                        <div class="real-world-text">
+                            System administrator troubleshooting broken dependencies after problematic package installation - need to review history and rollback changes
+                        </div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">dnf</span> <span class="option">history</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Show transaction history with dates and actions</div>
+                        <div class="command-notes">Lists all DNF operations with transaction IDs</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">dnf</span> <span class="option">history info</span> <span class="config">5</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Show detailed information about specific transaction</div>
+                        <div class="command-notes">Displays packages affected, user, and exact changes made</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">#</span><span class="cmd">dnf</span> <span class="option">history undo</span> <span class="config">5</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Undo specific transaction by ID</div>
+                        <div class="command-notes">Reverses installations, removals, and updates</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">#</span><span class="cmd">dnf</span> <span class="option">history rollback</span> <span class="config">3</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Rollback to state after specific transaction</div>
+                        <div class="command-notes">Undoes all transactions after specified ID</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">dnf</span> <span class="option">check</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Check for package database problems</div>
+                        <div class="command-notes">Identifies broken dependencies and conflicts</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">dnf</span> <span class="option">provides</span> <span class="path">/usr/bin/htop</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Find which package provides specific file</div>
+                        <div class="command-notes">Useful for finding missing dependencies or commands</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">dnf</span> <span class="option">deplist</span> <span class="package">httpd</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Show package dependencies</div>
+                        <div class="command-notes">Lists all packages required by specified package</div>
+                    </div>
+
+                    <div class="explanation-box">
+                        <div class="explanation-title">Troubleshooting Strategy</div>
+                        <div class="explanation-text">
+                            <strong>History first:</strong> Check what changed recently • <strong>Check deps:</strong> Verify dependencies • 
+                            <strong>Test undo:</strong> Plan rollback before executing • <strong>Clean cache:</strong> Refresh metadata
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chapter Quote -->
+        <div class="chapter-quote">
+            <div class="quote-text">
+                "In the digital realm of cybersecurity, software package management is the fortress gate that controls what enters your system. Every package installed, every update applied, every dependency resolved—these are the decisions that determine whether your system remains secure or becomes vulnerable. Master package management, and you command the very foundation of system integrity."
+            </div>
+            <div class="quote-author">— Chapter 12: Install and Update Software Packages</div>
+        </div>
+    </div>
+
+    <!-- Toast notification -->
+    <div id="toast" class="toast"></div>
+
+    <script>
+        const searchInput = document.getElementById('searchInput');
+        const scenariosGrid = document.getElementById('scenariosGrid');
+        const filterButtons = document.querySelectorAll('.filter-btn');
+        
+        let currentFilter = 'all';
+
+        // Search and filter functionality
+        function filterCommands(searchTerm, category) {
+            const cards = scenariosGrid.querySelectorAll('.scenario-card');
+            searchTerm = searchTerm.toLowerCase();
+
+            cards.forEach(card => {
+                const keywords = card.getAttribute('data-keywords').toLowerCase();
+                const cardCategory = card.getAttribute('data-category');
+                const title = card.querySelector('.scenario-title').textContent.toLowerCase();
+                const description = card.querySelector('.scenario-description').textContent.toLowerCase();
+
+                const matchesSearch = keywords.includes(searchTerm) || 
+                                    title.includes(searchTerm) || 
+                                    description.includes(searchTerm);
+                const matchesCategory = category === 'all' || cardCategory === category;
+
+                if (matchesSearch && matchesCategory) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        // Search input handler
+        searchInput.addEventListener('input', (e) => {
+            filterCommands(e.target.value, currentFilter);
+        });
+
+        // Filter button handlers
+        filterButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                // Update active button
+                filterButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                
+                // Update current filter
+                currentFilter = button.getAttribute('data-filter');
+                
+                // Apply filter
+                filterCommands(searchInput.value, currentFilter);
+            });
+        });
+
+        // Copy command functionality
+        function copyCommand(element) {
+            const commandText = element.querySelector('.command-text').textContent;
+            
+            // Remove the prompt symbol for cleaner copying
+            const cleanCommand = commandText.replace(/^\$\s*/, '').replace(/^#\s*/, '');
+            
+            navigator.clipboard.writeText(cleanCommand).then(() => {
+                showToast('Command copied to clipboard!');
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+                showToast('Copy failed - try selecting manually');
+            });
+        }
+
+        // Show toast notification
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2500);
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl/Cmd + K to focus search
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                searchInput.focus();
+                searchInput.select();
+            }
+            
+            // Escape to clear search
+            if (e.key === 'Escape') {
+                searchInput.value = '';
+                filterCommands('', currentFilter);
+                searchInput.blur();
+            }
+        });
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Focus search on page load
+            setTimeout(() => {
+                searchInput.focus();
+            }, 1000);
+
+            // Show typing animation in search
+            const searchPlaceholder = "$ search subscription, rpm, dnf, packages, repositories, or history...";
+            let i = 0;
+            const typeInterval = setInterval(() => {
+                if (i < searchPlaceholder.length) {
+                    searchInput.placeholder = searchPlaceholder.substring(0, i + 1);
+                    i++;
+                } else {
+                    clearInterval(typeInterval);
+                }
+            }, 50);
+        });
+    </script>
+</body>
+</html>

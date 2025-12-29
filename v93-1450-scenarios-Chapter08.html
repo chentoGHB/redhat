@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chapter 8 Beginner's Guide - Process Management for Cybersecurity Operations</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;500;700&family=Source+Code+Pro:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --terminal-bg: #0c0c0c;
+            --terminal-secondary: #1a1a1a;
+            --terminal-accent: #2a2a2a;
+            --terminal-border: #404040;
+            --terminal-green: #00ff41;
+            --terminal-blue: #00bfff;
+            --terminal-yellow: #ffff00;
+            --terminal-orange: #ff8c00;
+            --terminal-red: #ff4444;
+            --terminal-purple: #cc99ff;
+            --terminal-cyan: #00ffff;
+            --terminal-white: #f0f0f0;
+            --terminal-gray: #808080;
+            --terminal-dark-gray: #404040;
+            --process-green: #00ff41;
+            --monitoring-blue: #00bfff;
+            --signal-orange: #ff8c00;
+            --job-purple: #cc99ff;
+            --security-cyan: #00ffff;
+            --threat-red: #ff4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto Mono', 'Source Code Pro', monospace;
+            background: var(--terminal-bg);
+            color: var(--terminal-white);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .terminal-window {
+            background: var(--terminal-secondary);
+            margin: 1rem;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 255, 65, 0.1);
+            border: 1px solid var(--terminal-border);
+            overflow: hidden;
+        }
+
+        .terminal-header {
+            background: var(--terminal-accent);
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--terminal-border);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .terminal-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .terminal-button {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .terminal-button.close {
+            background: var(--threat-red);
+        }
+
+        .terminal-button.minimize {
+            background: var(--terminal-yellow);
+        }
+
+        .terminal-button.maximize {
+            background: var(--process-green);
+        }
+
+        .terminal-title {
+            color: var(--terminal-white);
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        .header-section {
+            padding: 2rem 1.5rem;
+            text-align: center;
+            background: linear-gradient(135deg, var(--terminal-secondary), var(--terminal-accent));
+        }
+
+        .main-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--process-green);
+            margin-bottom: 1rem;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: var(--terminal-gray);
+            margin-bottom: 2rem;
+        }
+
+        .college-branding {
+            background: var(--terminal-accent);
+            border: 1px solid var(--process-green);
+            border-radius: 8px;
+            padding: 1rem;
+            display: inline-block;
+            margin-bottom: 2rem;
+        }
+
+        .college-name {
+            color: var(--process-green);
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .course-info {
+            color: var(--terminal-gray);
+            font-size: 0.9rem;
+        }
+
+        .search-section {
+            padding: 1.5rem;
+            background: var(--terminal-accent);
+            border-bottom: 1px solid var(--terminal-border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .search-container {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .search-input {
+            flex: 1;
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            color: var(--terminal-white);
+            font-family: 'Source Code Pro', monospace;
+            font-size: 1rem;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--process-green);
+            box-shadow: 0 0 0 2px rgba(0, 255, 65, 0.2);
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 6px;
+            padding: 0.5rem 1rem;
+            color: var(--terminal-gray);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.8rem;
+        }
+
+        .filter-btn:hover {
+            border-color: var(--process-green);
+            color: var(--process-green);
+        }
+
+        .filter-btn.active {
+            background: var(--process-green);
+            color: var(--terminal-bg);
+            border-color: var(--process-green);
+        }
+
+        .scenarios-grid {
+            padding: 2rem 1.5rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 2rem;
+        }
+
+        .scenario-card {
+            background: var(--terminal-secondary);
+            border: 1px solid var(--terminal-border);
+            border-radius: 12px;
+            padding: 0;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .scenario-card:hover {
+            border-color: var(--section-color);
+            box-shadow: 0 10px 30px rgba(0, 255, 65, 0.1);
+        }
+
+        .scenario-header {
+            background: var(--terminal-accent);
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--terminal-border);
+        }
+
+        .scenario-title {
+            color: var(--section-color);
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .scenario-icon {
+            font-size: 1.2rem;
+        }
+
+        .scenario-description {
+            color: var(--terminal-gray);
+            font-size: 0.95rem;
+            margin-bottom: 1rem;
+        }
+
+        .difficulty-level {
+            background: var(--terminal-bg);
+            border: 1px solid var(--section-color);
+            border-radius: 4px;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.8rem;
+            color: var(--section-color);
+            display: inline-block;
+        }
+
+        .scenario-content {
+            padding: 1.5rem;
+        }
+
+        .real-world-example {
+            background: linear-gradient(135deg, #2a1a1a, #3a2a2a);
+            border: 1px solid var(--threat-red);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .real-world-title {
+            color: var(--threat-red);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .real-world-text {
+            color: var(--terminal-white);
+            font-size: 0.9rem;
+        }
+
+        .command-example {
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--terminal-dark-gray);
+        }
+
+        .command-example:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .command-syntax {
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .command-syntax:hover {
+            border-color: var(--section-color);
+            background: rgba(0, 191, 255, 0.05);
+        }
+
+        .command-text {
+            font-family: 'Source Code Pro', monospace;
+            font-size: 1rem;
+            color: var(--terminal-cyan);
+            word-break: break-word;
+        }
+
+        .command-prompt {
+            color: var(--process-green);
+            margin-right: 0.5rem;
+        }
+
+        .copy-indicator {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: var(--terminal-accent);
+            color: var(--terminal-gray);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .command-syntax:hover .copy-indicator {
+            opacity: 1;
+        }
+
+        .command-description {
+            color: var(--terminal-white);
+            font-size: 0.95rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .command-notes {
+            color: var(--terminal-yellow);
+            font-size: 0.85rem;
+            font-style: italic;
+        }
+
+        .explanation-box {
+            background: var(--terminal-accent);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .explanation-title {
+            color: var(--process-green);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .explanation-text {
+            color: var(--terminal-gray);
+            font-size: 0.9rem;
+        }
+
+        /* Category-specific colors */
+        .category-monitoring .scenario-card {
+            --section-color: var(--monitoring-blue);
+        }
+
+        .category-jobs .scenario-card {
+            --section-color: var(--job-purple);
+        }
+
+        .category-signals .scenario-card {
+            --section-color: var(--signal-orange);
+        }
+
+        .category-security .scenario-card {
+            --section-color: var(--security-cyan);
+        }
+
+        .category-states .scenario-card {
+            --section-color: var(--process-green);
+        }
+
+        .category-performance .scenario-card {
+            --section-color: var(--terminal-yellow);
+        }
+
+        /* Syntax highlighting */
+        .cmd { color: var(--terminal-cyan); }
+        .option { color: var(--terminal-yellow); }
+        .path { color: var(--terminal-purple); }
+        .user { color: var(--process-green); }
+        .signal { color: var(--signal-orange); }
+        .pid { color: var(--monitoring-blue); }
+        .state { color: var(--job-purple); }
+
+        /* Toast notification */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--process-green);
+            color: var(--terminal-bg);
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 500;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .scenarios-grid {
+                grid-template-columns: 1fr;
+                padding: 1rem;
+            }
+            
+            .search-container {
+                flex-direction: column;
+            }
+            
+            .filter-buttons {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="terminal-window">
+        <div class="terminal-header">
+            <div class="terminal-buttons">
+                <div class="terminal-button close"></div>
+                <div class="terminal-button minimize"></div>
+                <div class="terminal-button maximize"></div>
+            </div>
+            <div class="terminal-title">student@cybersec-lab:~/process-management$</div>
+        </div>
+
+        <div class="header-section">
+            <h1 class="main-title">🖥️ Linux Process Management</h1>
+            <p class="subtitle">Comprehensive Command Reference for Cybersecurity Professionals</p>
+            
+            <div class="college-branding">
+                <div class="college-name">College of DuPage</div>
+                <div class="course-info">CIT 1450 - Linux/Unix Systems • AI Cybersecurity Program</div>
+            </div>
+        </div>
+
+        <div class="search-section">
+            <div class="search-container">
+                <input type="text" class="search-input" id="searchInput" 
+                       placeholder="$ search process monitoring, job control, signals, or performance...">
+                <div class="filter-buttons">
+                    <button class="filter-btn active" data-filter="all">All</button>
+                    <button class="filter-btn" data-filter="monitoring">Monitoring</button>
+                    <button class="filter-btn" data-filter="jobs">Job Control</button>
+                    <button class="filter-btn" data-filter="signals">Signals</button>
+                    <button class="filter-btn" data-filter="security">Security</button>
+                    <button class="filter-btn" data-filter="performance">Performance</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="scenarios-grid" id="scenariosGrid">
+            <!-- Process Monitoring Scenarios -->
+            <div class="scenario-card category-monitoring" data-category="monitoring" 
+                 data-keywords="process monitoring ps top htop processes list running status">
+                <div class="scenario-header">
+                    <h3 class="scenario-title">
+                        <span class="scenario-icon">📊</span>
+                        Process Discovery & Monitoring
+                    </h3>
+                    <p class="scenario-description">Essential commands for viewing, tracking, and analyzing running processes</p>
+                    <span class="difficulty-level">Beginner Level</span>
+                </div>
+                <div class="scenario-content">
+                    <div class="real-world-example">
+                        <div class="real-world-title">
+                            🔍 Security Scenario
+                        </div>
+                        <div class="real-world-text">
+                            SOC analyst needs to identify suspicious processes consuming excessive resources and investigate potential malware infections
+                        </div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">ps</span> <span class="option">aux</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Display all running processes with detailed information</div>
+                        <div class="command-notes">Shows user, PID, CPU%, memory%, start time, and command</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">ps</span> <span class="option">-ef</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Full-format listing showing process hierarchy and parent-child relationships</div>
+                        <div class="command-notes">Essential for identifying process trees and parent processes</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">top</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Real-time process activity monitor with live updates</div>
+                        <div class="command-notes">Press 'q' to quit, 'k' to kill processes, 'm' for memory view</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">ps</span> <span class="option">-u</span> <span class="user">student</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Show processes owned by specific user</div>
+                        <div class="command-notes">Critical for user activity analysis and session monitoring</div>
+                    </div>
+
+                    <div class="explanation-box">
+                        <div class="explanation-title">Process States Reference</div>
+                        <div class="explanation-text">
+                            <strong>R:</strong> Running/Runnable • <strong>S:</strong> Sleeping (interruptible) • 
+                            <strong>D:</strong> Uninterruptible sleep • <strong>T:</strong> Stopped • <strong>Z:</strong> Zombie
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Job Control Scenarios -->
+            <div class="scenario-card category-jobs" data-category="jobs" 
+                 data-keywords="job control background foreground suspend resume jobs bg fg">
+                <div class="scenario-header">
+                    <h3 class="scenario-title">
+                        <span class="scenario-icon">⚙️</span>
+                        Job Control & Background Tasks
+                    </h3>
+                    <p class="scenario-description">Manage multiple processes and background tasks effectively</p>
+                    <span class="difficulty-level">Intermediate Level</span>
+                </div>
+                <div class="scenario-content">
+                    <div class="real-world-example">
+                        <div class="real-world-title">
+                            🛠️ System Administration Scenario
+                        </div>
+                        <div class="real-world-text">
+                            Security analyst needs to run long network scans in background while maintaining interactive shell access for other tasks
+                        </div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">nmap -sS target.com</span> <span class="option">&</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Start process in background using ampersand (&)</div>
+                        <div class="command-notes">Process runs in background, shell remains available for other commands</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">jobs</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">List all active jobs in current shell session</div>
+                        <div class="command-notes">Shows job IDs, states (Running/Stopped), and command names</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">fg</span> <span class="option">%1</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Bring background job #1 to foreground</div>
+                        <div class="command-notes">Use Ctrl+C to terminate or Ctrl+Z to suspend</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">bg</span> <span class="option">%2</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Resume suspended job #2 in background</div>
+                        <div class="command-notes">Converts stopped job to running background job</div>
+                    </div>
+
+                    <div class="explanation-box">
+                        <div class="explanation-title">Job Control Keyboard Shortcuts</div>
+                        <div class="explanation-text">
+                            <strong>Ctrl+Z:</strong> Suspend current process • <strong>Ctrl+C:</strong> Terminate process • 
+                            <strong>Ctrl+\:</strong> Force quit with core dump
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Signal Management Scenarios -->
+            <div class="scenario-card category-signals" data-category="signals" 
+                 data-keywords="signals kill pkill pgrep terminate SIGTERM SIGKILL HUP INT QUIT">
+                <div class="scenario-header">
+                    <h3 class="scenario-title">
+                        <span class="scenario-icon">⚡</span>
+                        Process Termination & Signals
+                    </h3>
+                    <p class="scenario-description">Send signals to control and terminate processes safely</p>
+                    <span class="difficulty-level">Advanced Level</span>
+                </div>
+                <div class="scenario-content">
+                    <div class="real-world-example">
+                        <div class="real-world-title">
+                            🚨 Incident Response Scenario
+                        </div>
+                        <div class="real-world-text">
+                            Malicious process detected consuming system resources - immediate termination required while preserving system stability
+                        </div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">kill</span> <span class="pid">1234</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Send SIGTERM (signal 15) to process ID 1234 - graceful termination</div>
+                        <div class="command-notes">Default signal allows process to cleanup before exiting</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">kill</span> <span class="option">-9</span> <span class="pid">5678</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Force kill with SIGKILL - immediate termination (cannot be blocked)</div>
+                        <div class="command-notes">Use only when normal termination fails - may leave orphaned resources</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">pkill</span> <span class="option">-u</span> <span class="user">malicioususer</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Terminate all processes owned by specific user</div>
+                        <div class="command-notes">Critical for immediate user session termination in security incidents</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">pgrep</span> <span class="option">-l</span> <span class="cmd">firefox</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Find process IDs and names matching 'firefox'</div>
+                        <div class="command-notes">Use before pkill to verify which processes will be affected</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">kill</span> <span class="option">-HUP</span> <span class="pid">$(pgrep nginx)</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Send hangup signal to reload nginx configuration</div>
+                        <div class="command-notes">Graceful service restart without stopping connections</div>
+                    </div>
+
+                    <div class="explanation-box">
+                        <div class="explanation-title">Common Signal Types</div>
+                        <div class="explanation-text">
+                            <strong>TERM (15):</strong> Graceful termination • <strong>KILL (9):</strong> Force kill • 
+                            <strong>HUP (1):</strong> Reload config • <strong>INT (2):</strong> Interrupt (Ctrl+C) • 
+                            <strong>STOP (19):</strong> Suspend process
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Performance Monitoring -->
+            <div class="scenario-card category-performance" data-category="performance" 
+                 data-keywords="performance monitoring load average cpu memory top htop iostat load">
+                <div class="scenario-header">
+                    <h3 class="scenario-title">
+                        <span class="scenario-icon">📈</span>
+                        Performance Analysis & Load Monitoring
+                    </h3>
+                    <p class="scenario-description">Monitor system performance and identify resource bottlenecks</p>
+                    <span class="difficulty-level">Advanced Level</span>
+                </div>
+                <div class="scenario-content">
+                    <div class="real-world-example">
+                        <div class="real-world-title">
+                            ⚡ Performance Investigation
+                        </div>
+                        <div class="real-world-text">
+                            Server experiencing performance issues - identify processes consuming excessive CPU and memory resources
+                        </div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">top</span> <span class="option">-o %CPU</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Display processes sorted by CPU usage (highest first)</div>
+                        <div class="command-notes">Press 'M' for memory sort, 'P' for CPU sort, '1' for per-CPU view</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">ps</span> <span class="option">aux --sort=-%cpu</span> <span class="cmd">| head -10</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Show top 10 CPU-intensive processes</div>
+                        <div class="command-notes">Use --sort=-%mem for memory-intensive processes</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">uptime</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Display system uptime and load averages (1, 5, 15 minutes)</div>
+                        <div class="command-notes">Load > CPU cores indicates system stress</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">lscpu</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Display CPU architecture and core count information</div>
+                        <div class="command-notes">Essential for understanding load average context</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">ps</span> <span class="option">-eo pid,ppid,cmd,%mem,%cpu --sort=-%mem</span> <span class="cmd">| head -10</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Custom process listing with memory and CPU percentages</div>
+                        <div class="command-notes">Tailored output for performance analysis</div>
+                    </div>
+
+                    <div class="explanation-box">
+                        <div class="explanation-title">Load Average Interpretation</div>
+                        <div class="explanation-text">
+                            <strong>Load &lt; CPU cores:</strong> System running smoothly • 
+                            <strong>Load = CPU cores:</strong> System fully utilized • 
+                            <strong>Load &gt; CPU cores:</strong> System overloaded, processes waiting
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Security Process Analysis -->
+            <div class="scenario-card category-security" data-category="security" 
+                 data-keywords="security forensics process analysis investigation malware detection parent child">
+                <div class="scenario-header">
+                    <h3 class="scenario-title">
+                        <span class="scenario-icon">🔒</span>
+                        Security Process Investigation
+                    </h3>
+                    <p class="scenario-description">Analyze process relationships and identify security threats</p>
+                    <span class="difficulty-level">Expert Level</span>
+                </div>
+                <div class="scenario-content">
+                    <div class="real-world-example">
+                        <div class="real-world-title">
+                            🕵️ Threat Hunting Scenario
+                        </div>
+                        <div class="real-world-text">
+                            Investigating suspicious process spawning patterns and tracking malware process trees for incident analysis
+                        </div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">ps</span> <span class="option">-ejH</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Display process tree hierarchy showing parent-child relationships</div>
+                        <div class="command-notes">Critical for identifying malware process spawning patterns</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">ps</span> <span class="option">-eo pid,ppid,user,args</span> <span class="cmd">| grep</span> <span class="option">-i suspicious</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Search for suspicious process names with parent process information</div>
+                        <div class="command-notes">Essential for malware detection and forensic analysis</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">ls</span> <span class="option">-la</span> <span class="path">/proc/1234/exe</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Show executable path for process ID 1234</div>
+                        <div class="command-notes">Verify if process executable matches legitimate binary location</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">ps</span> <span class="option">-eo lstart,pid,ppid,cmd</span> <span class="cmd">--sort=lstart</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Show process start times to identify recently launched processes</div>
+                        <div class="command-notes">Useful for timeline analysis during incident response</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">#</span><span class="cmd">lsof</span> <span class="option">-p</span> <span class="pid">1234</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">List open files and network connections for process 1234</div>
+                        <div class="command-notes">Reveals process behavior and potential data exfiltration</div>
+                    </div>
+
+                    <div class="explanation-box">
+                        <div class="explanation-title">Security Process Indicators</div>
+                        <div class="explanation-text">
+                            <strong>Unusual parents:</strong> Check if process has legitimate parent • 
+                            <strong>Hidden locations:</strong> Binaries in /tmp, /dev, unusual paths • 
+                            <strong>Network activity:</strong> Unexpected outbound connections
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Advanced Process States -->
+            <div class="scenario-card category-states" data-category="monitoring" 
+                 data-keywords="process states zombie defunct sleeping running stopped traced">
+                <div class="scenario-header">
+                    <h3 class="scenario-title">
+                        <span class="scenario-icon">🔄</span>
+                        Process States & Lifecycle Analysis
+                    </h3>
+                    <p class="scenario-description">Understand and diagnose different process states and conditions</p>
+                    <span class="difficulty-level">Intermediate Level</span>
+                </div>
+                <div class="scenario-content">
+                    <div class="real-world-example">
+                        <div class="real-world-title">
+                            🔧 System Troubleshooting Scenario
+                        </div>
+                        <div class="real-world-text">
+                            System showing unusual behavior with zombie processes and hung applications - need to identify and resolve process state issues
+                        </div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">ps</span> <span class="option">aux | grep</span> <span class="state">'&lt;defunct&gt;'</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Find zombie processes that need parent cleanup</div>
+                        <div class="command-notes">Zombie processes indicate parent process management issues</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">ps</span> <span class="option">-eo pid,stat,comm | grep</span> <span class="state">'^.*D'</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Find processes in uninterruptible sleep (D state)</div>
+                        <div class="command-notes">D state processes waiting for I/O, may indicate storage issues</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">ps</span> <span class="option">-eo pid,stat,comm | grep</span> <span class="state">T</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Find stopped or traced processes</div>
+                        <div class="command-notes">T state indicates suspended processes or debugging sessions</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">ps</span> <span class="option">-eo pid,stat,comm,etime</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Display process state with elapsed time</div>
+                        <div class="command-notes">Helps identify long-running or stuck processes</div>
+                    </div>
+
+                    <div class="explanation-box">
+                        <div class="explanation-title">Process State Flags</div>
+                        <div class="explanation-text">
+                            <strong>R:</strong> Running • <strong>S:</strong> Sleeping (interruptible) • 
+                            <strong>D:</strong> Disk sleep (uninterruptible) • <strong>T:</strong> Stopped • 
+                            <strong>Z:</strong> Zombie • <strong>+:</strong> Foreground process group
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast notification -->
+    <div id="toast" class="toast"></div>
+
+    <script>
+        const searchInput = document.getElementById('searchInput');
+        const scenariosGrid = document.getElementById('scenariosGrid');
+        const filterButtons = document.querySelectorAll('.filter-btn');
+        
+        let currentFilter = 'all';
+
+        // Search and filter functionality
+        function filterCommands(searchTerm, category) {
+            const cards = scenariosGrid.querySelectorAll('.scenario-card');
+            searchTerm = searchTerm.toLowerCase();
+
+            cards.forEach(card => {
+                const keywords = card.getAttribute('data-keywords').toLowerCase();
+                const cardCategory = card.getAttribute('data-category');
+                const title = card.querySelector('.scenario-title').textContent.toLowerCase();
+                const description = card.querySelector('.scenario-description').textContent.toLowerCase();
+
+                const matchesSearch = keywords.includes(searchTerm) || 
+                                    title.includes(searchTerm) || 
+                                    description.includes(searchTerm);
+                const matchesCategory = category === 'all' || cardCategory === category;
+
+                if (matchesSearch && matchesCategory) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        // Search input handler
+        searchInput.addEventListener('input', (e) => {
+            filterCommands(e.target.value, currentFilter);
+        });
+
+        // Filter button handlers
+        filterButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                // Update active button
+                filterButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                
+                // Update current filter
+                currentFilter = button.getAttribute('data-filter');
+                
+                // Apply filter
+                filterCommands(searchInput.value, currentFilter);
+            });
+        });
+
+        // Copy command functionality
+        function copyCommand(element) {
+            const commandText = element.querySelector('.command-text').textContent;
+            
+            // Remove the prompt symbol for cleaner copying
+            const cleanCommand = commandText.replace(/^\$\s*/, '').replace(/^#\s*/, '');
+            
+            navigator.clipboard.writeText(cleanCommand).then(() => {
+                showToast('Command copied to clipboard!');
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+                showToast('Copy failed - try selecting manually');
+            });
+        }
+
+        // Show toast notification
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2500);
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl/Cmd + K to focus search
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                searchInput.focus();
+                searchInput.select();
+            }
+            
+            // Escape to clear search
+            if (e.key === 'Escape') {
+                searchInput.value = '';
+                filterCommands('', currentFilter);
+                searchInput.blur();
+            }
+        });
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Focus search on page load
+            setTimeout(() => {
+                searchInput.focus();
+            }, 1000);
+
+            // Show typing animation in search
+            const searchPlaceholder = "$ search process monitoring, job control, signals, or performance...";
+            let i = 0;
+            const typeInterval = setInterval(() => {
+                if (i < searchPlaceholder.length) {
+                    searchInput.placeholder = searchPlaceholder.substring(0, i + 1);
+                    i++;
+                } else {
+                    clearInterval(typeInterval);
+                }
+            }, 50);
+        });
+    </script>
+</body>
+</html>

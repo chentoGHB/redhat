@@ -1,0 +1,1683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chapter 07 Beginner's Guide - Control Access to Files</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;500;700&family=Source+Code+Pro:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --terminal-bg: #0c0c0c;
+            --terminal-secondary: #1a1a1a;
+            --terminal-accent: #2a2a2a;
+            --terminal-border: #404040;
+            --terminal-green: #00ff41;
+            --terminal-blue: #00bfff;
+            --terminal-yellow: #ffff00;
+            --terminal-orange: #ff8c00;
+            --terminal-red: #ff4444;
+            --terminal-purple: #cc99ff;
+            --terminal-cyan: #00ffff;
+            --terminal-white: #f0f0f0;
+            --terminal-gray: #808080;
+            --terminal-dark-gray: #404040;
+            --permissions-green: #00ff41;
+            --ownership-blue: #00bfff;
+            --octal-orange: #ff8c00;
+            --special-red: #ff4444;
+            --umask-purple: #cc99ff;
+            --security-cyan: #00ffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto Mono', 'Source Code Pro', monospace;
+            background: var(--terminal-bg);
+            color: var(--terminal-white);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .terminal-window {
+            background: var(--terminal-secondary);
+            margin: 1rem;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 255, 65, 0.1);
+            border: 1px solid var(--terminal-border);
+            overflow: hidden;
+        }
+
+        .terminal-header {
+            background: linear-gradient(135deg, #333, #444);
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            border-bottom: 1px solid var(--terminal-border);
+        }
+
+        .terminal-button {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .close { background: #ff5f56; }
+        .minimize { background: #ffbd2e; }
+        .maximize { background: #27ca3f; }
+
+        .terminal-title {
+            color: var(--terminal-white);
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-left: 1rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background: var(--terminal-secondary);
+            border-radius: 12px;
+            border: 1px solid var(--terminal-border);
+        }
+
+        .title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--permissions-green);
+            margin-bottom: 0.5rem;
+            text-shadow: 0 0 20px rgba(0, 255, 65, 0.3);
+        }
+
+        .subtitle {
+            color: var(--ownership-blue);
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+        }
+
+        .course-info {
+            color: var(--terminal-gray);
+            font-size: 0.95rem;
+        }
+
+        .beginner-notice {
+            background: linear-gradient(135deg, #2a4a2a, #1a3a1a);
+            border: 1px solid var(--permissions-green);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            text-align: center;
+        }
+
+        .beginner-notice h3 {
+            color: var(--terminal-yellow);
+            margin-bottom: 0.5rem;
+            font-size: 1.3rem;
+        }
+
+        .beginner-notice p {
+            color: var(--terminal-white);
+        }
+
+        .search-terminal {
+            background: var(--terminal-secondary);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            position: sticky;
+            top: 1rem;
+            z-index: 100;
+        }
+
+        .search-input {
+            width: 100%;
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 6px;
+            padding: 0.75rem 1rem;
+            color: var(--permissions-green);
+            font-family: inherit;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--permissions-green);
+            box-shadow: 0 0 10px rgba(0, 255, 65, 0.2);
+        }
+
+        .search-input::placeholder {
+            color: var(--terminal-gray);
+        }
+
+        .filter-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-tab {
+            background: var(--terminal-accent);
+            border: 1px solid var(--terminal-border);
+            border-radius: 6px;
+            padding: 0.5rem 1rem;
+            color: var(--terminal-gray);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            font-size: 0.9rem;
+        }
+
+        .filter-tab:hover {
+            background: var(--terminal-border);
+            color: var(--terminal-white);
+        }
+
+        .filter-tab.active {
+            background: var(--permissions-green);
+            color: var(--terminal-bg);
+            border-color: var(--permissions-green);
+        }
+
+        .scenario-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 2rem;
+        }
+
+        .scenario-card {
+            background: var(--terminal-secondary);
+            border: 1px solid var(--terminal-border);
+            border-radius: 12px;
+            padding: 0;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .scenario-card:hover {
+            border-color: var(--section-color);
+            box-shadow: 0 10px 30px rgba(0, 255, 65, 0.1);
+        }
+
+        .scenario-card.hidden {
+            display: none;
+        }
+
+        .scenario-header {
+            background: var(--terminal-accent);
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--terminal-border);
+        }
+
+        .scenario-title {
+            color: var(--section-color);
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .scenario-description {
+            color: var(--terminal-gray);
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .scenario-body {
+            padding: 1.5rem;
+        }
+
+        .command-section {
+            margin-bottom: 2rem;
+        }
+
+        .command-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .command-title {
+            color: var(--section-color);
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .command-tag {
+            background: var(--section-color);
+            color: var(--terminal-bg);
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .command-block {
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            position: relative;
+            overflow-x: auto;
+        }
+
+        .command-prompt {
+            color: var(--section-color);
+            font-weight: 500;
+        }
+
+        .command-text {
+            color: var(--terminal-cyan);
+            font-family: 'Source Code Pro', monospace;
+            white-space: pre-wrap;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: var(--terminal-accent);
+            border: 1px solid var(--terminal-border);
+            color: var(--terminal-gray);
+            padding: 0.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .copy-btn:hover {
+            background: var(--section-color);
+            color: var(--terminal-bg);
+            border-color: var(--section-color);
+        }
+
+        .explanation-box {
+            background: rgba(0, 191, 255, 0.1);
+            border: 1px solid var(--ownership-blue);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .explanation-title {
+            color: var(--ownership-blue);
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .explanation-text {
+            color: var(--terminal-white);
+            line-height: 1.6;
+        }
+
+        .security-box {
+            background: rgba(0, 255, 255, 0.1);
+            border: 1px solid var(--security-cyan);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .security-title {
+            color: var(--security-cyan);
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .danger-box {
+            background: rgba(255, 68, 68, 0.1);
+            border: 1px solid var(--special-red);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .danger-title {
+            color: var(--special-red);
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .use-case-box {
+            background: rgba(255, 140, 0, 0.1);
+            border: 1px solid var(--octal-orange);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .use-case-title {
+            color: var(--octal-orange);
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .workflow-container {
+            background: rgba(204, 153, 255, 0.1);
+            border: 1px solid var(--umask-purple);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .workflow-title {
+            color: var(--umask-purple);
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .workflow-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .workflow-step {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem;
+            background: var(--terminal-accent);
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .workflow-step:hover {
+            background: var(--terminal-border);
+        }
+
+        .step-number {
+            background: var(--umask-purple);
+            color: var(--terminal-bg);
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .permission-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .permission-section {
+            background: var(--terminal-accent);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .permission-section:hover {
+            border-color: var(--section-color);
+            box-shadow: 0 5px 15px rgba(0, 255, 65, 0.1);
+        }
+
+        .permission-label {
+            color: var(--section-color);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .permission-bits {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.25rem;
+            margin: 0.75rem 0;
+        }
+
+        .permission-bit {
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 4px;
+            padding: 0.5rem;
+            text-align: center;
+            font-family: 'Source Code Pro', monospace;
+            font-size: 0.9rem;
+            color: var(--terminal-cyan);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .permission-bit:hover {
+            background: var(--section-color);
+            color: var(--terminal-bg);
+        }
+
+        .permission-bit.active {
+            background: var(--section-color);
+            color: var(--terminal-bg);
+        }
+
+        .octal-calculator {
+            background: var(--terminal-accent);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            text-align: center;
+        }
+
+        .calculator-title {
+            color: var(--octal-orange);
+            font-weight: 600;
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+
+        .calculator-display {
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 6px;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-family: 'Source Code Pro', monospace;
+            font-size: 1.2rem;
+            color: var(--octal-orange);
+            text-align: center;
+        }
+
+        .special-permissions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .special-permission {
+            background: var(--terminal-accent);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .special-permission:hover {
+            border-color: var(--special-red);
+            box-shadow: 0 5px 15px rgba(255, 68, 68, 0.1);
+        }
+
+        .special-name {
+            color: var(--special-red);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .special-octal {
+            color: var(--terminal-yellow);
+            font-family: 'Source Code Pro', monospace;
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .special-symbol {
+            color: var(--terminal-cyan);
+            font-family: 'Source Code Pro', monospace;
+            margin-bottom: 0.5rem;
+        }
+
+        .special-desc {
+            color: var(--terminal-gray);
+            font-size: 0.9rem;
+        }
+
+        .example-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .example-box {
+            background: var(--terminal-accent);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .example-box:hover {
+            border-color: var(--section-color);
+            box-shadow: 0 5px 15px rgba(0, 255, 65, 0.1);
+        }
+
+        .example-title {
+            color: var(--section-color);
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .example-code {
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 6px;
+            padding: 1rem;
+            margin: 0.75rem 0;
+            font-family: 'Source Code Pro', monospace;
+            color: var(--terminal-cyan);
+            position: relative;
+        }
+
+        .toast {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            background: var(--permissions-green);
+            color: var(--terminal-bg);
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 500;
+            transform: translateX(400px);
+            transition: all 0.3s ease;
+            z-index: 1000;
+            max-width: 400px;
+            font-family: inherit;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 4rem;
+            padding: 2rem;
+            border-top: 1px solid var(--terminal-border);
+            color: var(--terminal-gray);
+        }
+
+        /* Section-specific colors */
+        .scenario-card[data-category="permissions"] {
+            --section-color: var(--permissions-green);
+        }
+
+        .scenario-card[data-category="ownership"] {
+            --section-color: var(--ownership-blue);
+        }
+
+        .scenario-card[data-category="octal"] {
+            --section-color: var(--octal-orange);
+        }
+
+        .scenario-card[data-category="special"] {
+            --section-color: var(--special-red);
+        }
+
+        .scenario-card[data-category="umask"] {
+            --section-color: var(--umask-purple);
+        }
+
+        .scenario-card[data-category="security"] {
+            --section-color: var(--security-cyan);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .scenario-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .permission-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .example-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .special-permissions-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="terminal-window">
+        <div class="terminal-header">
+            <div class="terminal-button close"></div>
+            <div class="terminal-button minimize"></div>
+            <div class="terminal-button maximize"></div>
+            <span class="terminal-title">student@cod-cybersec:~/chapter07$ ./file_access_control.sh</span>
+        </div>
+        
+        <div class="container">
+            <div class="header">
+                <h1 class="title">🔐 Chapter 07: Control Access to Files</h1>
+                <p class="subtitle">Master File Permissions & Security Controls</p>
+                <p class="course-info">College of DuPage | CIT 1450 Linux/Unix Systems | AI Cybersecurity Program</p>
+            </div>
+
+            <div class="beginner-notice">
+                <h3>🛡️ Essential Security Foundation</h3>
+                <p>File permissions are the first line of defense in Linux security. Master these concepts to control who can access, modify, and execute files and directories on your system.</p>
+            </div>
+
+            <div class="search-terminal">
+                <input type="text" id="searchInput" class="search-input" placeholder="">
+                <div class="filter-tabs">
+                    <button class="filter-tab active" data-category="all">All Controls</button>
+                    <button class="filter-tab" data-category="permissions">Permissions (rwx)</button>
+                    <button class="filter-tab" data-category="ownership">Ownership Control</button>
+                    <button class="filter-tab" data-category="octal">Octal Notation</button>
+                    <button class="filter-tab" data-category="special">Special Permissions</button>
+                    <button class="filter-tab" data-category="umask">Umask & Defaults</button>
+                    <button class="filter-tab" data-category="security">Security Best Practices</button>
+                </div>
+            </div>
+
+            <div class="scenario-grid">
+                <!-- Permissions (rwx) -->
+                <div class="scenario-card" data-category="permissions">
+                    <div class="scenario-header">
+                        <h3 class="scenario-title">
+                            📝 File Permissions (rwx)
+                        </h3>
+                        <p class="scenario-description">
+                            Control read, write, and execute access for user, group, and others using symbolic and octal notation.
+                        </p>
+                    </div>
+                    <div class="scenario-body">
+                        <div class="command-section">
+                            <div class="command-header">
+                                <span class="command-title">Permission Commands</span>
+                                <span class="command-tag">Access Control</span>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">chmod u+x script.sh</span>
+                                <button class="copy-btn" onclick="copyCommand('chmod u+x script.sh')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">chmod 755 directory</span>
+                                <button class="copy-btn" onclick="copyCommand('chmod 755 directory')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">chmod go-w sensitive.txt</span>
+                                <button class="copy-btn" onclick="copyCommand('chmod go-w sensitive.txt')">📋</button>
+                            </div>
+                        </div>
+
+                        <div class="permission-grid">
+                            <div class="permission-section" onclick="togglePermissionDemo('user')">
+                                <div class="permission-label">User (Owner)</div>
+                                <div class="permission-bits">
+                                    <div class="permission-bit" data-perm="r">r</div>
+                                    <div class="permission-bit" data-perm="w">w</div>
+                                    <div class="permission-bit" data-perm="x">x</div>
+                                </div>
+                                <div style="color: var(--terminal-gray); font-size: 0.8rem;">rwx = 4+2+1 = 7</div>
+                            </div>
+                            <div class="permission-section" onclick="togglePermissionDemo('group')">
+                                <div class="permission-label">Group</div>
+                                <div class="permission-bits">
+                                    <div class="permission-bit" data-perm="r">r</div>
+                                    <div class="permission-bit" data-perm="w">w</div>
+                                    <div class="permission-bit" data-perm="x">x</div>
+                                </div>
+                                <div style="color: var(--terminal-gray); font-size: 0.8rem;">rwx = 4+2+1 = 7</div>
+                            </div>
+                            <div class="permission-section" onclick="togglePermissionDemo('others')">
+                                <div class="permission-label">Others</div>
+                                <div class="permission-bits">
+                                    <div class="permission-bit" data-perm="r">r</div>
+                                    <div class="permission-bit" data-perm="w">w</div>
+                                    <div class="permission-bit" data-perm="x">x</div>
+                                </div>
+                                <div style="color: var(--terminal-gray); font-size: 0.8rem;">rwx = 4+2+1 = 7</div>
+                            </div>
+                        </div>
+
+                        <div class="octal-calculator">
+                            <div class="calculator-title">📊 Interactive Permissions Calculator</div>
+                            <div class="calculator-display" id="permissionDisplay">
+                                rwxrwxrwx = 777
+                            </div>
+                            <div style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                Click permission bits above to see calculations
+                            </div>
+                        </div>
+
+                        <div class="explanation-box">
+                            <div class="explanation-title">🎯 Permission Bit Values:</div>
+                            <div class="explanation-text">
+                                <strong>Read (r) = 4:</strong> View file contents or list directory<br>
+                                <strong>Write (w) = 2:</strong> Modify file contents or create/delete files<br>
+                                <strong>Execute (x) = 1:</strong> Run file as program or access directory<br>
+                                <strong>Symbolic:</strong> u=user, g=group, o=others, a=all<br>
+                                <strong>Operations:</strong> + (add), - (remove), = (set exactly)
+                            </div>
+                        </div>
+
+                        <div class="example-grid">
+                            <div class="example-box">
+                                <div class="example-title">🔒 Secure File Permissions</div>
+                                <div class="example-code">chmod 600 private.key
+chmod u=rw,go= secret.txt</div>
+                                <p style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                    Owner read/write only - maximum security
+                                </p>
+                            </div>
+                            <div class="example-box">
+                                <div class="example-title">📂 Directory Permissions</div>
+                                <div class="example-code">chmod 755 public_html
+chmod 750 logs</div>
+                                <p style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                    Standard web directory and restricted log access
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ownership Control -->
+                <div class="scenario-card" data-category="ownership">
+                    <div class="scenario-header">
+                        <h3 class="scenario-title">
+                            👑 File Ownership Control
+                        </h3>
+                        <p class="scenario-description">
+                            Manage file and directory ownership using chown and chgrp for proper access control and system security.
+                        </p>
+                    </div>
+                    <div class="scenario-body">
+                        <div class="command-section">
+                            <div class="command-header">
+                                <span class="command-title">Ownership Commands</span>
+                                <span class="command-tag">User & Group</span>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">chown alice:developers project.txt</span>
+                                <button class="copy-btn" onclick="copyCommand('chown alice:developers project.txt')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">chown -R webuser:www-data /var/www/</span>
+                                <button class="copy-btn" onclick="copyCommand('chown -R webuser:www-data /var/www/')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">chgrp security logs/</span>
+                                <button class="copy-btn" onclick="copyCommand('chgrp security logs/')">📋</button>
+                            </div>
+                        </div>
+
+                        <div class="workflow-container">
+                            <div class="workflow-title">👑 Ownership Management Workflow:</div>
+                            <div class="workflow-steps">
+                                <div class="workflow-step">
+                                    <div class="step-number">1</div>
+                                    <div>Check current ownership with ls -l command</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">2</div>
+                                    <div>Determine appropriate user and group ownership</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">3</div>
+                                    <div>Use chown user:group for complete ownership change</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">4</div>
+                                    <div>Apply -R flag for recursive directory changes</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">5</div>
+                                    <div>Verify changes and test access permissions</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="explanation-box">
+                            <div class="explanation-title">👑 Ownership Command Syntax:</div>
+                            <div class="explanation-text">
+                                <strong>chown user file:</strong> Change owner only<br>
+                                <strong>chown user:group file:</strong> Change owner and group<br>
+                                <strong>chown :group file:</strong> Change group only (same as chgrp)<br>
+                                <strong>chown -R user:group dir/:</strong> Recursive change for directories<br>
+                                <strong>chgrp group file:</strong> Change group ownership only
+                            </div>
+                        </div>
+
+                        <div class="security-box">
+                            <div class="security-title">🛡️ Security Considerations:</div>
+                            <div class="explanation-text">
+                                <strong>Principle of Least Privilege:</strong> Give minimal necessary access<br>
+                                <strong>Service Account Ownership:</strong> Use dedicated users for services<br>
+                                <strong>Group-Based Access:</strong> Use groups for team-based permissions<br>
+                                <strong>Root Ownership:</strong> Protect system files with root ownership<br>
+                                <strong>Audit Ownership:</strong> Regular review of file ownership patterns
+                            </div>
+                        </div>
+
+                        <div class="example-grid">
+                            <div class="example-box">
+                                <div class="example-title">🌐 Web Server Setup</div>
+                                <div class="example-code">chown -R www-data:www-data /var/www/html/
+chown root:root /etc/apache2/</div>
+                                <p style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                    Proper web server file ownership
+                                </p>
+                            </div>
+                            <div class="example-box">
+                                <div class="example-title">🔐 Database Security</div>
+                                <div class="example-code">chown mysql:mysql /var/lib/mysql/
+chown root:mysql /etc/mysql/</div>
+                                <p style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                    Secure database file ownership
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Octal Notation -->
+                <div class="scenario-card" data-category="octal">
+                    <div class="scenario-header">
+                        <h3 class="scenario-title">
+                            🔢 Octal Permission Notation
+                        </h3>
+                        <p class="scenario-description">
+                            Master numeric permission representation for precise access control and efficient permission management.
+                        </p>
+                    </div>
+                    <div class="scenario-body">
+                        <div class="command-section">
+                            <div class="command-header">
+                                <span class="command-title">Octal Commands</span>
+                                <span class="command-tag">Numeric Mode</span>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">chmod 644 document.txt</span>
+                                <button class="copy-btn" onclick="copyCommand('chmod 644 document.txt')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">chmod 755 executable</span>
+                                <button class="copy-btn" onclick="copyCommand('chmod 755 executable')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">chmod 600 private.key</span>
+                                <button class="copy-btn" onclick="copyCommand('chmod 600 private.key')">📋</button>
+                            </div>
+                        </div>
+
+                        <div class="permission-grid">
+                            <div class="permission-section" style="border: 2px solid var(--octal-orange);">
+                                <div class="permission-label">Common File Permissions</div>
+                                <div style="margin: 1rem 0; font-family: 'Source Code Pro', monospace;">
+                                    <div style="margin: 0.5rem 0; color: var(--terminal-cyan);">644 = rw-r--r--</div>
+                                    <div style="margin: 0.5rem 0; color: var(--terminal-cyan);">600 = rw-------</div>
+                                    <div style="margin: 0.5rem 0; color: var(--terminal-cyan);">755 = rwxr-xr-x</div>
+                                    <div style="margin: 0.5rem 0; color: var(--terminal-cyan);">700 = rwx------</div>
+                                </div>
+                            </div>
+                            <div class="permission-section" style="border: 2px solid var(--octal-orange);">
+                                <div class="permission-label">Directory Permissions</div>
+                                <div style="margin: 1rem 0; font-family: 'Source Code Pro', monospace;">
+                                    <div style="margin: 0.5rem 0; color: var(--terminal-cyan);">755 = rwxr-xr-x</div>
+                                    <div style="margin: 0.5rem 0; color: var(--terminal-cyan);">750 = rwxr-x---</div>
+                                    <div style="margin: 0.5rem 0; color: var(--terminal-cyan);">700 = rwx------</div>
+                                    <div style="margin: 0.5rem 0; color: var(--terminal-cyan);">555 = r-xr-xr-x</div>
+                                </div>
+                            </div>
+                            <div class="permission-section" style="border: 2px solid var(--octal-orange);">
+                                <div class="permission-label">Security Permissions</div>
+                                <div style="margin: 1rem 0; font-family: 'Source Code Pro', monospace;">
+                                    <div style="margin: 0.5rem 0; color: var(--terminal-cyan);">600 = rw-------</div>
+                                    <div style="margin: 0.5rem 0; color: var(--terminal-cyan);">400 = r--------</div>
+                                    <div style="margin: 0.5rem 0; color: var(--terminal-cyan);">000 = ---------</div>
+                                    <div style="margin: 0.5rem 0; color: var(--terminal-cyan);">444 = r--r--r--</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="explanation-box">
+                            <div class="explanation-title">🔢 Octal Calculation Method:</div>
+                            <div class="explanation-text">
+                                <strong>Binary to Octal:</strong> rwx = 111₂ = 7₈, r-x = 101₂ = 5₈, r-- = 100₂ = 4₈<br>
+                                <strong>Addition Method:</strong> r(4) + w(2) + x(1) = total octal digit<br>
+                                <strong>Three Digits:</strong> User, Group, Others permissions<br>
+                                <strong>Examples:</strong> 755 = rwxr-xr-x, 644 = rw-r--r--<br>
+                                <strong>Quick Reference:</strong> 0=---, 1=--x, 2=-w-, 3=-wx, 4=r--, 5=r-x, 6=rw-, 7=rwx
+                            </div>
+                        </div>
+
+                        <div class="use-case-box">
+                            <div class="use-case-title">🎯 Common Octal Use Cases:</div>
+                            <div class="explanation-text">
+                                <strong>Web Files (644):</strong> HTML, CSS, images - readable by all<br>
+                                <strong>Scripts (755):</strong> Executable files - owner can modify, all can execute<br>
+                                <strong>Config Files (600):</strong> Sensitive configs - owner only<br>
+                                <strong>Log Directories (750):</strong> Owner full access, group read/execute<br>
+                                <strong>Public Directories (755):</strong> Shared folders with proper access
+                            </div>
+                        </div>
+
+                        <div class="example-grid">
+                            <div class="example-box">
+                                <div class="example-title">📝 Document Security Levels</div>
+                                <div class="example-code">chmod 644 public_doc.txt
+chmod 640 internal_memo.txt
+chmod 600 confidential.txt</div>
+                                <p style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                    Different security levels for documents
+                                </p>
+                            </div>
+                            <div class="example-box">
+                                <div class="example-title">⚙️ System File Permissions</div>
+                                <div class="example-code">chmod 755 /usr/local/bin/script
+chmod 644 /etc/config.conf
+chmod 600 /etc/ssl/private/key.pem</div>
+                                <p style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                    Appropriate permissions for system files
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Special Permissions -->
+                <div class="scenario-card" data-category="special">
+                    <div class="scenario-header">
+                        <h3 class="scenario-title">
+                            ⭐ Special Permissions
+                        </h3>
+                        <p class="scenario-description">
+                            Advanced permission bits including SUID, SGID, and Sticky Bit for specialized security and access control scenarios.
+                        </p>
+                    </div>
+                    <div class="scenario-body">
+                        <div class="command-section">
+                            <div class="command-header">
+                                <span class="command-title">Special Permission Commands</span>
+                                <span class="command-tag">Advanced Security</span>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">chmod 4755 program</span>
+                                <button class="copy-btn" onclick="copyCommand('chmod 4755 program')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">chmod g+s shared_directory</span>
+                                <button class="copy-btn" onclick="copyCommand('chmod g+s shared_directory')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">chmod +t /tmp</span>
+                                <button class="copy-btn" onclick="copyCommand('chmod +t /tmp')">📋</button>
+                            </div>
+                        </div>
+
+                        <div class="special-permissions-grid">
+                            <div class="special-permission">
+                                <div class="special-name">SUID (Set User ID)</div>
+                                <div class="special-octal">4000</div>
+                                <div class="special-symbol">s (user execute)</div>
+                                <div class="special-desc">Execute as file owner</div>
+                            </div>
+                            <div class="special-permission">
+                                <div class="special-name">SGID (Set Group ID)</div>
+                                <div class="special-octal">2000</div>
+                                <div class="special-symbol">s (group execute)</div>
+                                <div class="special-desc">Execute as file group or inherit group</div>
+                            </div>
+                            <div class="special-permission">
+                                <div class="special-name">Sticky Bit</div>
+                                <div class="special-octal">1000</div>
+                                <div class="special-symbol">t (others execute)</div>
+                                <div class="special-desc">Only owner can delete files</div>
+                            </div>
+                        </div>
+
+                        <div class="danger-box">
+                            <div class="danger-title">⚠️ SUID/SGID Security Warnings:</div>
+                            <div class="explanation-text">
+                                <strong>Privilege Escalation Risk:</strong> SUID programs run with owner privileges<br>
+                                <strong>Regular Audits Required:</strong> Monitor for unauthorized SUID files<br>
+                                <strong>Minimal Usage:</strong> Only set on trusted, necessary programs<br>
+                                <strong>Script Restrictions:</strong> Many shells ignore SUID on scripts<br>
+                                <strong>Security Scanning:</strong> Use find to locate SUID/SGID files regularly
+                            </div>
+                        </div>
+
+                        <div class="explanation-box">
+                            <div class="explanation-title">⭐ Special Permission Effects:</div>
+                            <div class="explanation-text">
+                                <strong>SUID on Files:</strong> Execute with owner's privileges (e.g., passwd command)<br>
+                                <strong>SGID on Files:</strong> Execute with group's privileges<br>
+                                <strong>SGID on Directories:</strong> New files inherit directory's group<br>
+                                <strong>Sticky Bit on Directories:</strong> Only file owner can delete their files<br>
+                                <strong>Combined Usage:</strong> Can combine multiple special bits (e.g., 6755 = SUID+SGID)
+                            </div>
+                        </div>
+
+                        <div class="workflow-container">
+                            <div class="workflow-title">🔍 Special Permissions Audit Process:</div>
+                            <div class="workflow-steps">
+                                <div class="workflow-step">
+                                    <div class="step-number">1</div>
+                                    <div>Find all SUID files: find / -perm -4000 -type f 2>/dev/null</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">2</div>
+                                    <div>Find all SGID files: find / -perm -2000 -type f 2>/dev/null</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">3</div>
+                                    <div>Review each file's necessity and security implications</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">4</div>
+                                    <div>Remove unnecessary special permissions</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">5</div>
+                                    <div>Document legitimate special permission files</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="example-grid">
+                            <div class="example-box">
+                                <div class="example-title">🔍 Security Audit Commands</div>
+                                <div class="example-code">find / -perm -4000 -ls 2>/dev/null
+find / -perm -2000 -ls 2>/dev/null
+ls -l /tmp | grep "t"</div>
+                                <p style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                    Find and examine special permission files
+                                </p>
+                            </div>
+                            <div class="example-box">
+                                <div class="example-title">👥 Shared Project Directory</div>
+                                <div class="example-code">mkdir /shared/project
+chmod 2775 /shared/project
+chgrp developers /shared/project</div>
+                                <p style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                    SGID directory for team collaboration
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Umask & Defaults -->
+                <div class="scenario-card" data-category="umask">
+                    <div class="scenario-header">
+                        <h3 class="scenario-title">
+                            🎭 Umask & Default Permissions
+                        </h3>
+                        <p class="scenario-description">
+                            Control default permissions for newly created files and directories using umask for consistent security policies.
+                        </p>
+                    </div>
+                    <div class="scenario-body">
+                        <div class="command-section">
+                            <div class="command-header">
+                                <span class="command-title">Umask Commands</span>
+                                <span class="command-tag">Default Permissions</span>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">umask</span>
+                                <button class="copy-btn" onclick="copyCommand('umask')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">umask 022</span>
+                                <button class="copy-btn" onclick="copyCommand('umask 022')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">umask 077</span>
+                                <button class="copy-btn" onclick="copyCommand('umask 077')">📋</button>
+                            </div>
+                        </div>
+
+                        <div class="octal-calculator">
+                            <div class="calculator-title">🧮 Umask Calculator</div>
+                            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin: 1rem 0;">
+                                <div>
+                                    <div style="color: var(--umask-purple); margin-bottom: 0.5rem;">Files (666 - umask):</div>
+                                    <div class="calculator-display" id="fileUmaskResult">
+                                        666 - 022 = 644 (rw-r--r--)
+                                    </div>
+                                </div>
+                                <div>
+                                    <div style="color: var(--umask-purple); margin-bottom: 0.5rem;">Directories (777 - umask):</div>
+                                    <div class="calculator-display" id="dirUmaskResult">
+                                        777 - 022 = 755 (rwxr-xr-x)
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <input type="text" id="umaskInput" placeholder="Enter umask value (e.g., 022)" 
+                                       style="width: 100%; padding: 0.5rem; margin: 0.5rem 0; background: var(--terminal-bg); color: var(--umask-purple); border: 1px solid var(--terminal-border); border-radius: 4px;"
+                                       oninput="calculateUmask()">
+                            </div>
+                        </div>
+
+                        <div class="explanation-box">
+                            <div class="explanation-title">🎭 Umask Calculation Process:</div>
+                            <div class="explanation-text">
+                                <strong>File Defaults:</strong> Start with 666 (rw-rw-rw-)<br>
+                                <strong>Directory Defaults:</strong> Start with 777 (rwxrwxrwx)<br>
+                                <strong>Subtraction:</strong> Default permissions - umask = final permissions<br>
+                                <strong>Common Umasks:</strong> 022 (standard), 002 (group writable), 077 (user only)<br>
+                                <strong>System vs User:</strong> System default often 022, can be customized per user
+                            </div>
+                        </div>
+
+                        <div class="use-case-box">
+                            <div class="use-case-title">🎯 Umask Security Strategies:</div>
+                            <div class="explanation-text">
+                                <strong>Conservative (077):</strong> User-only access for sensitive environments<br>
+                                <strong>Standard (022):</strong> Owner write, others read - most common<br>
+                                <strong>Team (002):</strong> Group writable for collaborative work<br>
+                                <strong>Public (000):</strong> Full permissions - rarely recommended<br>
+                                <strong>Service Accounts:</strong> Often use 077 for security
+                            </div>
+                        </div>
+
+                        <div class="workflow-container">
+                            <div class="workflow-title">⚙️ Umask Configuration Workflow:</div>
+                            <div class="workflow-steps">
+                                <div class="workflow-step">
+                                    <div class="step-number">1</div>
+                                    <div>Check current umask setting with umask command</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">2</div>
+                                    <div>Determine appropriate umask based on security requirements</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">3</div>
+                                    <div>Set temporary umask for testing: umask 022</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">4</div>
+                                    <div>Test by creating files and directories</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">5</div>
+                                    <div>Make permanent by adding to ~/.bashrc or system profile</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="example-grid">
+                            <div class="example-box">
+                                <div class="example-title">🔒 Security Environment Setup</div>
+                                <div class="example-code">umask 077
+touch test_file.txt
+mkdir test_dir
+ls -la</div>
+                                <p style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                    Test umask 077 (user-only permissions)
+                                </p>
+                            </div>
+                            <div class="example-box">
+                                <div class="example-title">👥 Team Environment Setup</div>
+                                <div class="example-code">umask 002
+touch shared_file.txt
+mkdir shared_dir
+ls -la</div>
+                                <p style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                    Test umask 002 (group writable)
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Security Best Practices -->
+                <div class="scenario-card" data-category="security">
+                    <div class="scenario-header">
+                        <h3 class="scenario-title">
+                            🛡️ File Security Best Practices
+                        </h3>
+                        <p class="scenario-description">
+                            Implement comprehensive file security strategies for enterprise environments and cybersecurity compliance.
+                        </p>
+                    </div>
+                    <div class="scenario-body">
+                        <div class="command-section">
+                            <div class="command-header">
+                                <span class="command-title">Security Audit Commands</span>
+                                <span class="command-tag">System Hardening</span>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">find / -perm -002 -type f 2>/dev/null</span>
+                                <button class="copy-btn" onclick="copyCommand('find / -perm -002 -type f 2>/dev/null')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">find /home -perm 777 2>/dev/null</span>
+                                <button class="copy-btn" onclick="copyCommand('find /home -perm 777 2>/dev/null')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">stat -c "%a %n" important_file.txt</span>
+                                <button class="copy-btn" onclick="copyCommand('stat -c \"%a %n\" important_file.txt')">📋</button>
+                            </div>
+                        </div>
+
+                        <div class="security-box">
+                            <div class="security-title">🛡️ Enterprise Security Guidelines:</div>
+                            <div class="explanation-text">
+                                <strong>Principle of Least Privilege:</strong> Grant minimum necessary access<br>
+                                <strong>Regular Audits:</strong> Scan for overpermissive files and directories<br>
+                                <strong>Group-Based Access:</strong> Use groups instead of broad permissions<br>
+                                <strong>Sensitive File Protection:</strong> Use 600 or 640 for critical files<br>
+                                <strong>Directory Traversal:</strong> Ensure proper directory execute permissions
+                            </div>
+                        </div>
+
+                        <div class="danger-box">
+                            <div class="danger-title">⚠️ Common Security Vulnerabilities:</div>
+                            <div class="explanation-text">
+                                <strong>World-Writable Files:</strong> Files with 666 or 777 permissions<br>
+                                <strong>Unnecessary SUID:</strong> SUID bits on non-system programs<br>
+                                <strong>Weak Directory Permissions:</strong> Directories with 777 permissions<br>
+                                <strong>Config File Exposure:</strong> Readable config files with passwords<br>
+                                <strong>Log File Access:</strong> Overly permissive log file permissions
+                            </div>
+                        </danger-box>
+
+                        <div class="workflow-container">
+                            <div class="workflow-title">🔍 Security Audit Process:</div>
+                            <div class="workflow-steps">
+                                <div class="workflow-step">
+                                    <div class="step-number">1</div>
+                                    <div>Scan for world-writable files and directories</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">2</div>
+                                    <div>Identify files with overly permissive permissions</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">3</div>
+                                    <div>Review SUID and SGID files for necessity</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">4</div>
+                                    <div>Audit sensitive directory permissions</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">5</div>
+                                    <div>Document and remediate security issues found</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="use-case-box">
+                            <div class="use-case-title">🎯 Security Hardening Recommendations:</div>
+                            <div class="explanation-text">
+                                <strong>System Files:</strong> 644 for configs, 600 for sensitive data<br>
+                                <strong>Executables:</strong> 755 for programs, 750 for admin tools<br>
+                                <strong>Log Directories:</strong> 750 with appropriate group ownership<br>
+                                <strong>Web Content:</strong> 644 for files, 755 for directories<br>
+                                <strong>Private Keys:</strong> 600 with root or service user ownership
+                            </div>
+                        </div>
+
+                        <div class="example-grid">
+                            <div class="example-box">
+                                <div class="example-title">🔍 Comprehensive Security Scan</div>
+                                <div class="example-code">find / -type f -perm -o+w 2>/dev/null
+find / -type f -perm -4000 -ls 2>/dev/null
+find /var/log -type f ! -perm 640 2>/dev/null</div>
+                                <p style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                    Multi-layered security vulnerability assessment
+                                </p>
+                            </div>
+                            <div class="example-box">
+                                <div class="example-title">🔧 Permission Remediation</div>
+                                <div class="example-code">chmod 644 /etc/*.conf
+chmod 600 /etc/ssl/private/*
+chmod 750 /var/log</div>
+                                <p style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                    Apply secure permissions to common file types
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer">
+                <p>© 2025 College of DuPage - Computer Information Technology Department</p>
+                <p>CIT 1450 Linux/Unix Systems | AI Cybersecurity Program</p>
+                <p><em>"Control access, control security!" 🔐⚡</em></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // Initialize variables
+        const searchInput = document.getElementById('searchInput');
+        const filterTabs = document.querySelectorAll('.filter-tab');
+        const scenarioCards = document.querySelectorAll('.scenario-card');
+        let currentFilter = 'all';
+
+        // Search functionality
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            filterScenarios(searchTerm, currentFilter);
+        });
+
+        // Filter tab functionality
+        filterTabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                // Update active tab
+                filterTabs.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                
+                currentFilter = this.dataset.category;
+                const searchTerm = searchInput.value.toLowerCase();
+                filterScenarios(searchTerm, currentFilter);
+            });
+        });
+
+        // Filter scenarios based on search and category
+        function filterScenarios(searchTerm, category) {
+            scenarioCards.forEach(card => {
+                const cardCategory = card.dataset.category;
+                const cardText = card.textContent.toLowerCase();
+                
+                const matchesCategory = category === 'all' || category === cardCategory;
+                const matchesSearch = !searchTerm || cardText.includes(searchTerm);
+                
+                if (matchesCategory && matchesSearch) {
+                    card.classList.remove('hidden');
+                } else {
+                    card.classList.add('hidden');
+                }
+            });
+        }
+
+        // Copy command to clipboard
+        function copyCommand(command) {
+            // Clean up command text (remove HTML and extra whitespace)
+            const cleanCommand = command.replace(/<[^>]*>/g, '').trim();
+            
+            navigator.clipboard.writeText(cleanCommand).then(() => {
+                showToast(`Copied: ${cleanCommand.substring(0, 60)}${cleanCommand.length > 60 ? '...' : ''}`);
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+                showToast('Copy failed - try selecting manually');
+            });
+        }
+
+        // Show toast notification
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2500);
+        }
+
+        // Permission demonstration functionality
+        function togglePermissionDemo(section) {
+            const bits = document.querySelectorAll(`.permission-section:nth-child(${section === 'user' ? '1' : section === 'group' ? '2' : '3'}) .permission-bit`);
+            bits.forEach(bit => {
+                bit.classList.toggle('active');
+            });
+            updatePermissionDisplay();
+        }
+
+        function updatePermissionDisplay() {
+            const userBits = document.querySelectorAll('.permission-section:nth-child(1) .permission-bit.active');
+            const groupBits = document.querySelectorAll('.permission-section:nth-child(2) .permission-bit.active');
+            const othersBits = document.querySelectorAll('.permission-section:nth-child(3) .permission-bit.active');
+
+            const userValue = calculateOctalValue(userBits);
+            const groupValue = calculateOctalValue(groupBits);
+            const othersValue = calculateOctalValue(othersBits);
+
+            const symbolic = getSymbolic(userBits) + getSymbolic(groupBits) + getSymbolic(othersBits);
+            const octal = userValue + groupValue + othersValue;
+
+            document.getElementById('permissionDisplay').textContent = `${symbolic} = ${octal}`;
+        }
+
+        function calculateOctalValue(activeBits) {
+            let value = 0;
+            activeBits.forEach(bit => {
+                const perm = bit.dataset.perm;
+                if (perm === 'r') value += 4;
+                if (perm === 'w') value += 2;
+                if (perm === 'x') value += 1;
+            });
+            return value;
+        }
+
+        function getSymbolic(activeBits) {
+            const perms = ['r', 'w', 'x'];
+            let symbolic = '';
+            perms.forEach(perm => {
+                let found = false;
+                activeBits.forEach(bit => {
+                    if (bit.dataset.perm === perm) found = true;
+                });
+                symbolic += found ? perm : '-';
+            });
+            return symbolic;
+        }
+
+        // Umask calculator
+        function calculateUmask() {
+            const umaskValue = document.getElementById('umaskInput').value.trim();
+            if (!/^\d{3}$/.test(umaskValue)) {
+                document.getElementById('fileUmaskResult').textContent = 'Enter valid 3-digit umask';
+                document.getElementById('dirUmaskResult').textContent = 'Enter valid 3-digit umask';
+                return;
+            }
+
+            const umaskNum = parseInt(umaskValue, 8);
+            const fileResult = 0o666 & ~umaskNum;
+            const dirResult = 0o777 & ~umaskNum;
+
+            const fileSymbolic = octalToSymbolic(fileResult);
+            const dirSymbolic = octalToSymbolic(dirResult);
+
+            document.getElementById('fileUmaskResult').textContent = 
+                `666 - ${umaskValue} = ${fileResult.toString(8).padStart(3, '0')} (${fileSymbolic})`;
+            document.getElementById('dirUmaskResult').textContent = 
+                `777 - ${umaskValue} = ${dirResult.toString(8).padStart(3, '0')} (${dirSymbolic})`;
+        }
+
+        function octalToSymbolic(octal) {
+            const digits = octal.toString(8).padStart(3, '0').split('').map(Number);
+            return digits.map(digit => {
+                let symbolic = '';
+                symbolic += (digit & 4) ? 'r' : '-';
+                symbolic += (digit & 2) ? 'w' : '-';
+                symbolic += (digit & 1) ? 'x' : '-';
+                return symbolic;
+            }).join('');
+        }
+
+        // Interactive permission bits
+        const permissionBits = document.querySelectorAll('.permission-bit');
+        permissionBits.forEach(bit => {
+            bit.addEventListener('click', function() {
+                this.classList.toggle('active');
+                updatePermissionDisplay();
+            });
+        });
+
+        // Interactive special permissions
+        const specialPermissions = document.querySelectorAll('.special-permission');
+        specialPermissions.forEach(permission => {
+            permission.addEventListener('click', function() {
+                const specialName = this.querySelector('.special-name').textContent;
+                const specialOctal = this.querySelector('.special-octal').textContent;
+                showToast(`Special Permission: ${specialName} (${specialOctal})`);
+                
+                // Animate selection
+                this.style.transform = 'scale(1.05)';
+                setTimeout(() => {
+                    this.style.transform = 'scale(1)';
+                }, 300);
+            });
+        });
+
+        // Interactive workflow steps
+        const workflowSteps = document.querySelectorAll('.workflow-step');
+        workflowSteps.forEach(step => {
+            step.addEventListener('click', function() {
+                const stepText = this.textContent.trim();
+                showToast(`Workflow: ${stepText}`);
+                
+                // Animate selection
+                this.style.transform = 'scale(1.02)';
+                setTimeout(() => {
+                    this.style.transform = 'scale(1)';
+                }, 300);
+            });
+        });
+
+        // Interactive example boxes
+        const exampleBoxes = document.querySelectorAll('.example-box');
+        exampleBoxes.forEach(box => {
+            box.addEventListener('click', function() {
+                const exampleTitle = this.querySelector('.example-title').textContent;
+                showToast(`Example: ${exampleTitle}`);
+                
+                // Animate example
+                this.style.boxShadow = '0 0 20px rgba(0, 255, 65, 0.3)';
+                setTimeout(() => {
+                    this.style.boxShadow = '';
+                }, 500);
+            });
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl/Cmd + K to focus search
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                searchInput.focus();
+                searchInput.select();
+            }
+            
+            // Escape to clear search
+            if (e.key === 'Escape') {
+                searchInput.value = '';
+                filterScenarios('', currentFilter);
+                searchInput.blur();
+            }
+        });
+
+        // Initialize page with file permissions themed animations
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animated search placeholder
+            const searchPlaceholder = "$ search chmod, chown, umask, SUID, permissions...";
+            let i = 0;
+            const typeInterval = setInterval(() => {
+                if (i < searchPlaceholder.length) {
+                    searchInput.placeholder = searchPlaceholder.substring(0, i + 1);
+                    i++;
+                } else {
+                    clearInterval(typeInterval);
+                }
+            }, 50);
+
+            // Setup cards for animation
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, observerOptions);
+
+            scenarioCards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                card.style.transition = `opacity 0.6s ease ${index * 0.1}s, transform 0.6s ease ${index * 0.1}s`;
+                observer.observe(card);
+            });
+
+            // Animate permission sections
+            const permissionSections = document.querySelectorAll('.permission-section');
+            permissionSections.forEach((section, index) => {
+                setTimeout(() => {
+                    section.style.transform = 'scale(1.05)';
+                    setTimeout(() => {
+                        section.style.transform = 'scale(1)';
+                    }, 300);
+                }, index * 400 + 1000);
+            });
+
+            // Animate special permissions
+            specialPermissions.forEach((permission, index) => {
+                setTimeout(() => {
+                    permission.style.transform = 'scale(1.05)';
+                    setTimeout(() => {
+                        permission.style.transform = 'scale(1)';
+                    }, 200);
+                }, index * 300 + 2500);
+            });
+
+            // Initialize default permission display
+            updatePermissionDisplay();
+        });
+    </script>
+</body>
+</html>

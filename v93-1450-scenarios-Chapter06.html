@@ -1,0 +1,1617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chapter 06 Beginner's Guide - Manage Local Users and Groups</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;500;700&family=Source+Code+Pro:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --terminal-bg: #0c0c0c;
+            --terminal-secondary: #1a1a1a;
+            --terminal-accent: #2a2a2a;
+            --terminal-border: #404040;
+            --terminal-green: #00ff41;
+            --terminal-blue: #00bfff;
+            --terminal-yellow: #ffff00;
+            --terminal-orange: #ff8c00;
+            --terminal-red: #ff4444;
+            --terminal-purple: #cc99ff;
+            --terminal-cyan: #00ffff;
+            --terminal-white: #f0f0f0;
+            --terminal-gray: #808080;
+            --terminal-dark-gray: #404040;
+            --user-green: #00ff41;
+            --group-blue: #00bfff;
+            --password-orange: #ff8c00;
+            --sudo-red: #ff4444;
+            --security-purple: #cc99ff;
+            --query-cyan: #00ffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto Mono', 'Source Code Pro', monospace;
+            background: var(--terminal-bg);
+            color: var(--terminal-white);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .terminal-window {
+            background: var(--terminal-secondary);
+            margin: 1rem;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 255, 65, 0.1);
+            border: 1px solid var(--terminal-border);
+            overflow: hidden;
+        }
+
+        .terminal-header {
+            background: linear-gradient(135deg, #333, #444);
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            border-bottom: 1px solid var(--terminal-border);
+        }
+
+        .terminal-button {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .close { background: #ff5f56; }
+        .minimize { background: #ffbd2e; }
+        .maximize { background: #27ca3f; }
+
+        .terminal-title {
+            color: var(--terminal-white);
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-left: 1rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background: var(--terminal-secondary);
+            border-radius: 12px;
+            border: 1px solid var(--terminal-border);
+        }
+
+        .title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--user-green);
+            margin-bottom: 0.5rem;
+            text-shadow: 0 0 20px rgba(0, 255, 65, 0.3);
+        }
+
+        .subtitle {
+            color: var(--group-blue);
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+        }
+
+        .course-info {
+            color: var(--terminal-gray);
+            font-size: 0.95rem;
+        }
+
+        .beginner-notice {
+            background: linear-gradient(135deg, #2a4a2a, #1a3a1a);
+            border: 1px solid var(--user-green);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            text-align: center;
+        }
+
+        .beginner-notice h3 {
+            color: var(--terminal-yellow);
+            margin-bottom: 0.5rem;
+            font-size: 1.3rem;
+        }
+
+        .beginner-notice p {
+            color: var(--terminal-white);
+        }
+
+        .search-terminal {
+            background: var(--terminal-secondary);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            position: sticky;
+            top: 1rem;
+            z-index: 100;
+        }
+
+        .search-input {
+            width: 100%;
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 6px;
+            padding: 0.75rem 1rem;
+            color: var(--user-green);
+            font-family: inherit;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--user-green);
+            box-shadow: 0 0 10px rgba(0, 255, 65, 0.2);
+        }
+
+        .search-input::placeholder {
+            color: var(--terminal-gray);
+        }
+
+        .filter-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-tab {
+            background: var(--terminal-accent);
+            border: 1px solid var(--terminal-border);
+            border-radius: 6px;
+            padding: 0.5rem 1rem;
+            color: var(--terminal-gray);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            font-size: 0.9rem;
+        }
+
+        .filter-tab:hover {
+            background: var(--terminal-border);
+            color: var(--terminal-white);
+        }
+
+        .filter-tab.active {
+            background: var(--user-green);
+            color: var(--terminal-bg);
+            border-color: var(--user-green);
+        }
+
+        .scenario-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 2rem;
+        }
+
+        .scenario-card {
+            background: var(--terminal-secondary);
+            border: 1px solid var(--terminal-border);
+            border-radius: 12px;
+            padding: 0;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .scenario-card:hover {
+            border-color: var(--section-color);
+            box-shadow: 0 10px 30px rgba(0, 255, 65, 0.1);
+        }
+
+        .scenario-card.hidden {
+            display: none;
+        }
+
+        .scenario-header {
+            background: var(--terminal-accent);
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--terminal-border);
+        }
+
+        .scenario-title {
+            color: var(--section-color);
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .scenario-description {
+            color: var(--terminal-gray);
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .scenario-body {
+            padding: 1.5rem;
+        }
+
+        .command-section {
+            margin-bottom: 2rem;
+        }
+
+        .command-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .command-title {
+            color: var(--section-color);
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .command-tag {
+            background: var(--section-color);
+            color: var(--terminal-bg);
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .command-block {
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            position: relative;
+            overflow-x: auto;
+        }
+
+        .command-prompt {
+            color: var(--section-color);
+            font-weight: 500;
+        }
+
+        .command-text {
+            color: var(--terminal-cyan);
+            font-family: 'Source Code Pro', monospace;
+            white-space: pre-wrap;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: var(--terminal-accent);
+            border: 1px solid var(--terminal-border);
+            color: var(--terminal-gray);
+            padding: 0.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .copy-btn:hover {
+            background: var(--section-color);
+            color: var(--terminal-bg);
+            border-color: var(--section-color);
+        }
+
+        .explanation-box {
+            background: rgba(0, 191, 255, 0.1);
+            border: 1px solid var(--group-blue);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .explanation-title {
+            color: var(--group-blue);
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .explanation-text {
+            color: var(--terminal-white);
+            line-height: 1.6;
+        }
+
+        .security-box {
+            background: rgba(204, 153, 255, 0.1);
+            border: 1px solid var(--security-purple);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .security-title {
+            color: var(--security-purple);
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .danger-box {
+            background: rgba(255, 68, 68, 0.1);
+            border: 1px solid var(--sudo-red);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .danger-title {
+            color: var(--sudo-red);
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .use-case-box {
+            background: rgba(255, 140, 0, 0.1);
+            border: 1px solid var(--password-orange);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .use-case-title {
+            color: var(--password-orange);
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .workflow-container {
+            background: rgba(0, 255, 255, 0.1);
+            border: 1px solid var(--query-cyan);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .workflow-title {
+            color: var(--query-cyan);
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .workflow-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .workflow-step {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem;
+            background: var(--terminal-accent);
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .workflow-step:hover {
+            background: var(--terminal-border);
+        }
+
+        .step-number {
+            background: var(--query-cyan);
+            color: var(--terminal-bg);
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .user-flow {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .user-step {
+            background: var(--terminal-accent);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .user-step:hover {
+            border-color: var(--section-color);
+            box-shadow: 0 5px 15px rgba(0, 255, 65, 0.1);
+        }
+
+        .step-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .step-title {
+            color: var(--section-color);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .step-value {
+            color: var(--terminal-gray);
+            font-size: 0.9rem;
+        }
+
+        .privilege-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .privilege-card {
+            background: var(--terminal-accent);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .privilege-card:hover {
+            border-color: var(--sudo-red);
+            box-shadow: 0 5px 15px rgba(255, 68, 68, 0.1);
+        }
+
+        .privilege-level {
+            color: var(--sudo-red);
+            font-weight: 600;
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .privilege-desc {
+            color: var(--terminal-gray);
+            font-size: 0.9rem;
+        }
+
+        .password-policy-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .policy-card {
+            background: var(--terminal-accent);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .policy-card:hover {
+            border-color: var(--password-orange);
+            box-shadow: 0 5px 15px rgba(255, 140, 0, 0.1);
+        }
+
+        .policy-name {
+            color: var(--password-orange);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .policy-desc {
+            color: var(--terminal-gray);
+            font-size: 0.9rem;
+        }
+
+        .example-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .example-box {
+            background: var(--terminal-accent);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .example-box:hover {
+            border-color: var(--section-color);
+            box-shadow: 0 5px 15px rgba(0, 255, 65, 0.1);
+        }
+
+        .example-title {
+            color: var(--section-color);
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .example-code {
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 6px;
+            padding: 1rem;
+            margin: 0.75rem 0;
+            font-family: 'Source Code Pro', monospace;
+            color: var(--terminal-cyan);
+            position: relative;
+        }
+
+        .toast {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            background: var(--user-green);
+            color: var(--terminal-bg);
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 500;
+            transform: translateX(400px);
+            transition: all 0.3s ease;
+            z-index: 1000;
+            max-width: 400px;
+            font-family: inherit;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 4rem;
+            padding: 2rem;
+            border-top: 1px solid var(--terminal-border);
+            color: var(--terminal-gray);
+        }
+
+        /* Section-specific colors */
+        .scenario-card[data-category="users"] {
+            --section-color: var(--user-green);
+        }
+
+        .scenario-card[data-category="groups"] {
+            --section-color: var(--group-blue);
+        }
+
+        .scenario-card[data-category="passwords"] {
+            --section-color: var(--password-orange);
+        }
+
+        .scenario-card[data-category="privileges"] {
+            --section-color: var(--sudo-red);
+        }
+
+        .scenario-card[data-category="security"] {
+            --section-color: var(--security-purple);
+        }
+
+        .scenario-card[data-category="queries"] {
+            --section-color: var(--query-cyan);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .scenario-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .user-flow {
+                grid-template-columns: 1fr;
+            }
+            
+            .example-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .privilege-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .password-policy-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="terminal-window">
+        <div class="terminal-header">
+            <div class="terminal-button close"></div>
+            <div class="terminal-button minimize"></div>
+            <div class="terminal-button maximize"></div>
+            <span class="terminal-title">student@cod-cybersec:~/chapter06$ ./user_management_guide.sh</span>
+        </div>
+        
+        <div class="container">
+            <div class="header">
+                <h1 class="title">👥 Chapter 06: Manage Local Users and Groups</h1>
+                <p class="subtitle">Master User & Group Security Administration</p>
+                <p class="course-info">College of DuPage | CIT 1450 Linux/Unix Systems | AI Cybersecurity Program</p>
+            </div>
+
+            <div class="beginner-notice">
+                <h3>🔐 Essential Access Control</h3>
+                <p>User and group management is fundamental to cybersecurity. Control who has access, what they can do, and monitor their activities for comprehensive system security.</p>
+            </div>
+
+            <div class="search-terminal">
+                <input type="text" id="searchInput" class="search-input" placeholder="">
+                <div class="filter-tabs">
+                    <button class="filter-tab active" data-category="all">All Operations</button>
+                    <button class="filter-tab" data-category="users">User Management</button>
+                    <button class="filter-tab" data-category="groups">Group Management</button>
+                    <button class="filter-tab" data-category="passwords">Password Security</button>
+                    <button class="filter-tab" data-category="privileges">Sudo & Privileges</button>
+                    <button class="filter-tab" data-category="security">Account Security</button>
+                    <button class="filter-tab" data-category="queries">User Queries</button>
+                </div>
+            </div>
+
+            <div class="scenario-grid">
+                <!-- User Management -->
+                <div class="scenario-card" data-category="users">
+                    <div class="scenario-header">
+                        <h3 class="scenario-title">
+                            👤 User Account Management
+                        </h3>
+                        <p class="scenario-description">
+                            Create, modify, and manage user accounts with proper security configurations for system access control.
+                        </p>
+                    </div>
+                    <div class="scenario-body">
+                        <div class="command-section">
+                            <div class="command-header">
+                                <span class="command-title">User Commands</span>
+                                <span class="command-tag">Account Control</span>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">useradd username</span>
+                                <button class="copy-btn" onclick="copyCommand('useradd username')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">useradd -u 1500 -m -s /bin/bash alice</span>
+                                <button class="copy-btn" onclick="copyCommand('useradd -u 1500 -m -s /bin/bash alice')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">usermod -aG developers alice</span>
+                                <button class="copy-btn" onclick="copyCommand('usermod -aG developers alice')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">userdel -r olduser</span>
+                                <button class="copy-btn" onclick="copyCommand('userdel -r olduser')">📋</button>
+                            </div>
+                        </div>
+
+                        <div class="user-flow">
+                            <div class="user-step">
+                                <div class="step-icon">➕</div>
+                                <div class="step-title">useradd</div>
+                                <div class="step-value">Create User</div>
+                            </div>
+                            <div class="user-step">
+                                <div class="step-icon">⚙️</div>
+                                <div class="step-title">usermod</div>
+                                <div class="step-value">Modify User</div>
+                            </div>
+                            <div class="user-step">
+                                <div class="step-icon">🗑️</div>
+                                <div class="step-title">userdel</div>
+                                <div class="step-value">Delete User</div>
+                            </div>
+                            <div class="user-step">
+                                <div class="step-icon">🔒</div>
+                                <div class="step-title">usermod -L</div>
+                                <div class="step-value">Lock Account</div>
+                            </div>
+                        </div>
+
+                        <div class="explanation-box">
+                            <div class="explanation-title">👤 User Management Options:</div>
+                            <div class="explanation-text">
+                                <strong>-u UID:</strong> Specify user ID number<br>
+                                <strong>-m:</strong> Create home directory<br>
+                                <strong>-s shell:</strong> Set login shell<br>
+                                <strong>-G groups:</strong> Set supplementary groups<br>
+                                <strong>-aG groups:</strong> Add to groups (usermod)<br>
+                                <strong>-r:</strong> Remove home directory (userdel)<br>
+                                <strong>-L:</strong> Lock user account (usermod)
+                            </div>
+                        </div>
+
+                        <div class="security-box">
+                            <div class="security-title">🛡️ Security Best Practices:</div>
+                            <div class="explanation-text">
+                                <strong>UID Assignment:</strong> Use UIDs above 1000 for regular users<br>
+                                <strong>Home Directory:</strong> Always create with -m for proper permissions<br>
+                                <strong>Shell Assignment:</strong> Use /sbin/nologin for service accounts<br>
+                                <strong>Group Membership:</strong> Follow principle of least privilege<br>
+                                <strong>Account Lifecycle:</strong> Lock before deletion for forensic purposes
+                            </div>
+                        </div>
+
+                        <div class="example-grid">
+                            <div class="example-box">
+                                <div class="example-title">🏢 Corporate User Setup</div>
+                                <div class="example-code">useradd -u 1500 -m -G developers,security jsmith
+passwd jsmith</div>
+                                <p style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                    Create user with specific UID and group memberships
+                                </p>
+                            </div>
+                            <div class="example-box">
+                                <div class="example-title">🔧 Service Account Creation</div>
+                                <div class="example-code">useradd -r -s /sbin/nologin -d /var/lib/webapp webapp</div>
+                                <p style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                    Create system service account with no login
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Group Management -->
+                <div class="scenario-card" data-category="groups">
+                    <div class="scenario-header">
+                        <h3 class="scenario-title">
+                            👥 Group Management & Access Control
+                        </h3>
+                        <p class="scenario-description">
+                            Create and manage groups for organizing users and controlling access to resources and permissions.
+                        </p>
+                    </div>
+                    <div class="scenario-body">
+                        <div class="command-section">
+                            <div class="command-header">
+                                <span class="command-title">Group Commands</span>
+                                <span class="command-tag">Access Organization</span>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">groupadd groupname</span>
+                                <button class="copy-btn" onclick="copyCommand('groupadd groupname')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">groupadd -g 2000 security</span>
+                                <button class="copy-btn" onclick="copyCommand('groupadd -g 2000 security')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">gpasswd -a username groupname</span>
+                                <button class="copy-btn" onclick="copyCommand('gpasswd -a username groupname')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">gpasswd -d username groupname</span>
+                                <button class="copy-btn" onclick="copyCommand('gpasswd -d username groupname')">📋</button>
+                            </div>
+                        </div>
+
+                        <div class="workflow-container">
+                            <div class="workflow-title">🏗️ Group-Based Access Control Workflow:</div>
+                            <div class="workflow-steps">
+                                <div class="workflow-step">
+                                    <div class="step-number">1</div>
+                                    <div>Analyze access requirements and create security groups</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">2</div>
+                                    <div>Assign specific GIDs for organizational consistency</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">3</div>
+                                    <div>Add users to appropriate groups based on job function</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">4</div>
+                                    <div>Set file and directory permissions by group ownership</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">5</div>
+                                    <div>Regularly audit group memberships for compliance</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="explanation-box">
+                            <div class="explanation-title">👥 Group Management Options:</div>
+                            <div class="explanation-text">
+                                <strong>groupadd:</strong> Create new groups<br>
+                                <strong>-g GID:</strong> Specify group ID number<br>
+                                <strong>gpasswd -a user group:</strong> Add user to group<br>
+                                <strong>gpasswd -d user group:</strong> Remove user from group<br>
+                                <strong>groupmod -n new old:</strong> Rename group<br>
+                                <strong>groupdel groupname:</strong> Delete group
+                            </div>
+                        </div>
+
+                        <div class="use-case-box">
+                            <div class="use-case-title">🎯 Cybersecurity Group Strategy:</div>
+                            <div class="explanation-text">
+                                <strong>Security Team:</strong> Group for SOC analysts and incident responders<br>
+                                <strong>Audit Group:</strong> Read-only access to logs and configurations<br>
+                                <strong>Admin Group:</strong> System administration privileges<br>
+                                <strong>Developer Group:</strong> Access to development environments<br>
+                                <strong>Contractor Group:</strong> Limited access with expiration monitoring
+                            </div>
+                        </div>
+
+                        <div class="example-grid">
+                            <div class="example-box">
+                                <div class="example-title">🔐 Security Groups Setup</div>
+                                <div class="example-code">groupadd -g 3001 security-team
+groupadd -g 3002 audit-team
+gpasswd -a alice security-team</div>
+                                <p style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                    Create security-focused groups with specific GIDs
+                                </p>
+                            </div>
+                            <div class="example-box">
+                                <div class="example-title">🎯 Role-Based Access</div>
+                                <div class="example-code">groupadd developers
+groupadd contractors
+gpasswd -a bob developers</div>
+                                <p style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                    Organize users by job function and access level
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Password Security -->
+                <div class="scenario-card" data-category="passwords">
+                    <div class="scenario-header">
+                        <h3 class="scenario-title">
+                            🔑 Password Security & Aging
+                        </h3>
+                        <p class="scenario-description">
+                            Implement strong password policies, manage password aging, and enforce security compliance through password management.
+                        </p>
+                    </div>
+                    <div class="scenario-body">
+                        <div class="command-section">
+                            <div class="command-header">
+                                <span class="command-title">Password Commands</span>
+                                <span class="command-tag">Security Policy</span>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">passwd username</span>
+                                <button class="copy-btn" onclick="copyCommand('passwd username')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">chage -l username</span>
+                                <button class="copy-btn" onclick="copyCommand('chage -l username')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">chage -M 90 -W 7 username</span>
+                                <button class="copy-btn" onclick="copyCommand('chage -M 90 -W 7 username')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">chage -d 0 username</span>
+                                <button class="copy-btn" onclick="copyCommand('chage -d 0 username')">📋</button>
+                            </div>
+                        </div>
+
+                        <div class="password-policy-grid">
+                            <div class="policy-card">
+                                <div class="policy-name">-M days</div>
+                                <div class="policy-desc">Max age before expiry</div>
+                            </div>
+                            <div class="policy-card">
+                                <div class="policy-name">-m days</div>
+                                <div class="policy-desc">Min days between changes</div>
+                            </div>
+                            <div class="policy-card">
+                                <div class="policy-name">-W days</div>
+                                <div class="policy-desc">Warning before expiry</div>
+                            </div>
+                            <div class="policy-card">
+                                <div class="policy-name">-I days</div>
+                                <div class="policy-desc">Inactive after expiry</div>
+                            </div>
+                            <div class="policy-card">
+                                <div class="policy-name">-E date</div>
+                                <div class="policy-desc">Account expiration</div>
+                            </div>
+                            <div class="policy-card">
+                                <div class="policy-name">-d 0</div>
+                                <div class="policy-desc">Force change next login</div>
+                            </div>
+                        </div>
+
+                        <div class="security-box">
+                            <div class="security-title">🔐 Enterprise Password Policy:</div>
+                            <div class="explanation-text">
+                                <strong>Password Complexity:</strong> Minimum 12 characters, mixed case, numbers, symbols<br>
+                                <strong>Aging Policy:</strong> 90-day maximum age, 7-day warning period<br>
+                                <strong>Account Lockout:</strong> Lock after failed attempts, unlock procedures<br>
+                                <strong>History Enforcement:</strong> Prevent reuse of last 12 passwords<br>
+                                <strong>Initial Setup:</strong> Force change on first login for new accounts
+                            </div>
+                        </div>
+
+                        <div class="workflow-container">
+                            <div class="workflow-title">🛡️ Password Security Implementation:</div>
+                            <div class="workflow-steps">
+                                <div class="workflow-step">
+                                    <div class="step-number">1</div>
+                                    <div>Configure system-wide password complexity requirements</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">2</div>
+                                    <div>Set appropriate aging policies for different user types</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">3</div>
+                                    <div>Force password changes for new accounts and compromises</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">4</div>
+                                    <div>Monitor password expiration and send early warnings</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">5</div>
+                                    <div>Audit compliance and document policy adherence</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="example-grid">
+                            <div class="example-box">
+                                <div class="example-title">📅 Corporate Password Policy</div>
+                                <div class="example-code">chage -M 90 -m 1 -W 14 -I 30 alice
+chage -l alice</div>
+                                <p style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                    Set comprehensive password aging policy
+                                </p>
+                            </div>
+                            <div class="example-box">
+                                <div class="example-title">🔄 Force Password Reset</div>
+                                <div class="example-code">chage -d 0 compromised_user
+passwd compromised_user</div>
+                                <p style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                    Force immediate password change for security incidents
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sudo & Privileges -->
+                <div class="scenario-card" data-category="privileges">
+                    <div class="scenario-header">
+                        <h3 class="scenario-title">
+                            ⚡ Sudo & Privilege Escalation
+                        </h3>
+                        <p class="scenario-description">
+                            Configure and manage sudo access for secure privilege escalation and administrative task delegation.
+                        </p>
+                    </div>
+                    <div class="scenario-body">
+                        <div class="command-section">
+                            <div class="command-header">
+                                <span class="command-title">Privilege Commands</span>
+                                <span class="command-tag">Administrative Access</span>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">su - username</span>
+                                <button class="copy-btn" onclick="copyCommand('su - username')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">sudo command</span>
+                                <button class="copy-btn" onclick="copyCommand('sudo command')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">visudo</span>
+                                <button class="copy-btn" onclick="copyCommand('visudo')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">sudo -l</span>
+                                <button class="copy-btn" onclick="copyCommand('sudo -l')">📋</button>
+                            </div>
+                        </div>
+
+                        <div class="privilege-grid">
+                            <div class="privilege-card">
+                                <div class="privilege-level">su -</div>
+                                <div class="privilege-desc">Full root shell</div>
+                            </div>
+                            <div class="privilege-card">
+                                <div class="privilege-level">sudo</div>
+                                <div class="privilege-desc">Execute as another user</div>
+                            </div>
+                            <div class="privilege-card">
+                                <div class="privilege-level">sudo -i</div>
+                                <div class="privilege-desc">Interactive root shell</div>
+                            </div>
+                            <div class="privilege-card">
+                                <div class="privilege-level">sudo -u user</div>
+                                <div class="privilege-desc">Run as specific user</div>
+                            </div>
+                            <div class="privilege-card">
+                                <div class="privilege-level">visudo</div>
+                                <div class="privilege-desc">Edit sudo configuration</div>
+                            </div>
+                            <div class="privilege-card">
+                                <div class="privilege-level">sudo -l</div>
+                                <div class="privilege-desc">List user permissions</div>
+                            </div>
+                        </div>
+
+                        <div class="danger-box">
+                            <div class="danger-title">⚠️ Sudo Security Best Practices:</div>
+                            <div class="explanation-text">
+                                <strong>Principle of Least Privilege:</strong> Grant minimal necessary access<br>
+                                <strong>Command Restrictions:</strong> Limit to specific commands, not ALL<br>
+                                <strong>NOPASSWD Caution:</strong> Avoid password-less sudo except for specific cases<br>
+                                <strong>Logging & Auditing:</strong> Monitor sudo usage in /var/log/auth.log<br>
+                                <strong>Regular Review:</strong> Audit sudoers file and remove unnecessary access
+                            </div>
+                        </div>
+
+                        <div class="explanation-box">
+                            <div class="explanation-title">⚡ Sudo Configuration Examples:</div>
+                            <div class="explanation-text">
+                                <strong>%wheel ALL=(ALL) ALL:</strong> Wheel group full sudo access<br>
+                                <strong>alice ALL=(ALL) NOPASSWD: /bin/systemctl:</strong> Service control only<br>
+                                <strong>%security ALL=(ALL) /usr/sbin/tcpdump:</strong> Network monitoring access<br>
+                                <strong>bob ALL=(alice) ALL:</strong> Run commands as user alice<br>
+                                <strong>%backup ALL=NOPASSWD: /usr/local/bin/backup.sh:</strong> Backup script access
+                            </div>
+                        </div>
+
+                        <div class="example-grid">
+                            <div class="example-box">
+                                <div class="example-title">⚙️ Security Team Sudo Rules</div>
+                                <div class="example-code">%security-team ALL=(ALL) /bin/netstat, /usr/sbin/tcpdump, /bin/journalctl</div>
+                                <p style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                    Grant specific monitoring tools to security team
+                                </p>
+                            </div>
+                            <div class="example-box">
+                                <div class="example-title">🔧 Service Management Access</div>
+                                <div class="example-code">alice ALL=(ALL) NOPASSWD: /bin/systemctl restart httpd, /bin/systemctl status httpd</div>
+                                <p style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                    Allow specific service control without password
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Account Security -->
+                <div class="scenario-card" data-category="security">
+                    <div class="scenario-header">
+                        <h3 class="scenario-title">
+                            🛡️ Account Security & Monitoring
+                        </h3>
+                        <p class="scenario-description">
+                            Implement security measures including account locking, monitoring, and access controls for threat prevention and incident response.
+                        </p>
+                    </div>
+                    <div class="scenario-body">
+                        <div class="command-section">
+                            <div class="command-header">
+                                <span class="command-title">Security Commands</span>
+                                <span class="command-tag">Access Control</span>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">usermod -L username</span>
+                                <button class="copy-btn" onclick="copyCommand('usermod -L username')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">usermod -U username</span>
+                                <button class="copy-btn" onclick="copyCommand('usermod -U username')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">passwd -l username</span>
+                                <button class="copy-btn" onclick="copyCommand('passwd -l username')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">last -f /var/log/wtmp</span>
+                                <button class="copy-btn" onclick="copyCommand('last -f /var/log/wtmp')">📋</button>
+                            </div>
+                        </div>
+
+                        <div class="user-flow">
+                            <div class="user-step">
+                                <div class="step-icon">🔒</div>
+                                <div class="step-title">Lock</div>
+                                <div class="step-value">usermod -L</div>
+                            </div>
+                            <div class="user-step">
+                                <div class="step-icon">🔓</div>
+                                <div class="step-title">Unlock</div>
+                                <div class="step-value">usermod -U</div>
+                            </div>
+                            <div class="user-step">
+                                <div class="step-icon">🔍</div>
+                                <div class="step-title">Monitor</div>
+                                <div class="step-value">last, who</div>
+                            </div>
+                            <div class="user-step">
+                                <div class="step-icon">📊</div>
+                                <div class="step-title">Audit</div>
+                                <div class="step-value">Log Analysis</div>
+                            </div>
+                        </div>
+
+                        <div class="security-box">
+                            <div class="security-title">🛡️ Account Security Monitoring:</div>
+                            <div class="explanation-text">
+                                <strong>Login Monitoring:</strong> Track user sessions with last, who, w commands<br>
+                                <strong>Failed Attempts:</strong> Monitor /var/log/auth.log for failed logins<br>
+                                <strong>Privilege Usage:</strong> Audit sudo usage and privilege escalations<br>
+                                <strong>Account Status:</strong> Regular checks of locked/disabled accounts<br>
+                                <strong>Session Management:</strong> Monitor active sessions and terminate suspicious ones
+                            </div>
+                        </div>
+
+                        <div class="workflow-container">
+                            <div class="workflow-title">🚨 Incident Response Workflow:</div>
+                            <div class="workflow-steps">
+                                <div class="workflow-step">
+                                    <div class="step-number">1</div>
+                                    <div>Immediately lock compromised or suspicious accounts</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">2</div>
+                                    <div>Review login history and recent account activity</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">3</div>
+                                    <div>Analyze system logs for unauthorized access attempts</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">4</div>
+                                    <div>Force password reset after security incident resolution</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">5</div>
+                                    <div>Document incident and implement additional controls</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="example-grid">
+                            <div class="example-box">
+                                <div class="example-title">🚨 Emergency Account Lockdown</div>
+                                <div class="example-code">usermod -L suspicious_user
+passwd -l suspicious_user
+who | grep suspicious_user</div>
+                                <p style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                    Immediately secure compromised accounts
+                                </p>
+                            </div>
+                            <div class="example-box">
+                                <div class="example-title">📊 Security Audit Commands</div>
+                                <div class="example-code">last -n 20
+grep "Failed password" /var/log/auth.log | tail -10</div>
+                                <p style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                    Review recent login activity and failures
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- User Queries -->
+                <div class="scenario-card" data-category="queries">
+                    <div class="scenario-header">
+                        <h3 class="scenario-title">
+                            🔍 User & Group Information Queries
+                        </h3>
+                        <p class="scenario-description">
+                            Query user information, group memberships, and account details for system administration and security auditing.
+                        </p>
+                    </div>
+                    <div class="scenario-body">
+                        <div class="command-section">
+                            <div class="command-header">
+                                <span class="command-title">Query Commands</span>
+                                <span class="command-tag">Information Gathering</span>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">id username</span>
+                                <button class="copy-btn" onclick="copyCommand('id username')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">groups username</span>
+                                <button class="copy-btn" onclick="copyCommand('groups username')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">getent passwd username</span>
+                                <button class="copy-btn" onclick="copyCommand('getent passwd username')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">who -a</span>
+                                <button class="copy-btn" onclick="copyCommand('who -a')">📋</button>
+                            </div>
+                        </div>
+
+                        <div class="user-flow">
+                            <div class="user-step">
+                                <div class="step-icon">🆔</div>
+                                <div class="step-title">id</div>
+                                <div class="step-value">User & Group IDs</div>
+                            </div>
+                            <div class="user-step">
+                                <div class="step-icon">👥</div>
+                                <div class="step-title">groups</div>
+                                <div class="step-value">Group Membership</div>
+                            </div>
+                            <div class="user-step">
+                                <div class="step-icon">📋</div>
+                                <div class="step-title">getent</div>
+                                <div class="step-value">Database Lookup</div>
+                            </div>
+                            <div class="user-step">
+                                <div class="step-icon">👁️</div>
+                                <div class="step-title">who</div>
+                                <div class="step-value">Current Sessions</div>
+                            </div>
+                        </div>
+
+                        <div class="explanation-box">
+                            <div class="explanation-title">🔍 Information Query Commands:</div>
+                            <div class="explanation-text">
+                                <strong>id:</strong> Display UID, GID, and group memberships<br>
+                                <strong>groups:</strong> Show all groups a user belongs to<br>
+                                <strong>getent passwd:</strong> Get user info from name service database<br>
+                                <strong>who -a:</strong> Show all logged-in users with details<br>
+                                <strong>w:</strong> Show current users and their activities<br>
+                                <strong>last:</strong> Display login history from wtmp log
+                            </div>
+                        </div>
+
+                        <div class="use-case-box">
+                            <div class="use-case-title">🎯 Security Auditing Applications:</div>
+                            <div class="explanation-text">
+                                <strong>Access Review:</strong> Verify user group memberships and permissions<br>
+                                <strong>Compliance Checking:</strong> Audit user accounts against security policies<br>
+                                <strong>Incident Investigation:</strong> Track user activity and session history<br>
+                                <strong>Identity Verification:</strong> Confirm user identity and account status<br>
+                                <strong>Privilege Analysis:</strong> Assess user privileges and potential risks
+                            </div>
+                        </div>
+
+                        <div class="workflow-container">
+                            <div class="workflow-title">📋 User Audit Checklist:</div>
+                            <div class="workflow-steps">
+                                <div class="workflow-step">
+                                    <div class="step-number">1</div>
+                                    <div>Check user identity and basic account information</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">2</div>
+                                    <div>Verify group memberships and access permissions</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">3</div>
+                                    <div>Review password aging and account expiration status</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">4</div>
+                                    <div>Analyze login history and session patterns</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">5</div>
+                                    <div>Document findings and recommend security improvements</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="example-grid">
+                            <div class="example-box">
+                                <div class="example-title">🔍 Comprehensive User Audit</div>
+                                <div class="example-code">id alice
+groups alice
+chage -l alice
+last alice | head -5</div>
+                                <p style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                    Complete user information and activity review
+                                </p>
+                            </div>
+                            <div class="example-box">
+                                <div class="example-title">👥 Active Session Monitoring</div>
+                                <div class="example-code">who -a
+w
+last -n 10</div>
+                                <p style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                    Monitor current sessions and recent logins
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer">
+                <p>© 2025 College of DuPage - Computer Information Technology Department</p>
+                <p>CIT 1450 Linux/Unix Systems | AI Cybersecurity Program</p>
+                <p><em>"Secure users, secure systems!" 👥🔐</em></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // Initialize variables
+        const searchInput = document.getElementById('searchInput');
+        const filterTabs = document.querySelectorAll('.filter-tab');
+        const scenarioCards = document.querySelectorAll('.scenario-card');
+        let currentFilter = 'all';
+
+        // Search functionality
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            filterScenarios(searchTerm, currentFilter);
+        });
+
+        // Filter tab functionality
+        filterTabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                // Update active tab
+                filterTabs.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                
+                currentFilter = this.dataset.category;
+                const searchTerm = searchInput.value.toLowerCase();
+                filterScenarios(searchTerm, currentFilter);
+            });
+        });
+
+        // Filter scenarios based on search and category
+        function filterScenarios(searchTerm, category) {
+            scenarioCards.forEach(card => {
+                const cardCategory = card.dataset.category;
+                const cardText = card.textContent.toLowerCase();
+                
+                const matchesCategory = category === 'all' || category === cardCategory;
+                const matchesSearch = !searchTerm || cardText.includes(searchTerm);
+                
+                if (matchesCategory && matchesSearch) {
+                    card.classList.remove('hidden');
+                } else {
+                    card.classList.add('hidden');
+                }
+            });
+        }
+
+        // Copy command to clipboard
+        function copyCommand(command) {
+            // Clean up command text (remove HTML and extra whitespace)
+            const cleanCommand = command.replace(/<[^>]*>/g, '').trim();
+            
+            navigator.clipboard.writeText(cleanCommand).then(() => {
+                showToast(`Copied: ${cleanCommand.substring(0, 60)}${cleanCommand.length > 60 ? '...' : ''}`);
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+                showToast('Copy failed - try selecting manually');
+            });
+        }
+
+        // Show toast notification
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2500);
+        }
+
+        // Interactive user flow steps
+        const userSteps = document.querySelectorAll('.user-step');
+        userSteps.forEach((step, index) => {
+            step.addEventListener('click', function() {
+                const stepValue = this.querySelector('.step-value').textContent;
+                showToast(`User Operation ${index + 1}: ${stepValue}`);
+                
+                // Animate step
+                const icon = this.querySelector('.step-icon');
+                icon.style.transform = 'scale(1.1) rotate(5deg)';
+                setTimeout(() => {
+                    icon.style.transform = 'scale(1) rotate(0deg)';
+                }, 300);
+            });
+        });
+
+        // Interactive privilege cards
+        const privilegeCards = document.querySelectorAll('.privilege-card');
+        privilegeCards.forEach(card => {
+            card.addEventListener('click', function() {
+                const privilegeLevel = this.querySelector('.privilege-level').textContent;
+                const privilegeDesc = this.querySelector('.privilege-desc').textContent;
+                showToast(`Privilege: ${privilegeLevel} - ${privilegeDesc}`);
+                
+                // Animate selection
+                this.style.transform = 'scale(1.05)';
+                setTimeout(() => {
+                    this.style.transform = 'scale(1)';
+                }, 300);
+            });
+        });
+
+        // Interactive password policy cards
+        const policyCards = document.querySelectorAll('.policy-card');
+        policyCards.forEach(card => {
+            card.addEventListener('click', function() {
+                const policyName = this.querySelector('.policy-name').textContent;
+                const policyDesc = this.querySelector('.policy-desc').textContent;
+                showToast(`Password Policy: ${policyName} - ${policyDesc}`);
+                
+                // Animate selection
+                this.style.transform = 'scale(1.05)';
+                setTimeout(() => {
+                    this.style.transform = 'scale(1)';
+                }, 300);
+            });
+        });
+
+        // Interactive workflow steps
+        const workflowSteps = document.querySelectorAll('.workflow-step');
+        workflowSteps.forEach(step => {
+            step.addEventListener('click', function() {
+                const stepText = this.textContent.trim();
+                showToast(`Workflow: ${stepText}`);
+                
+                // Animate selection
+                this.style.transform = 'scale(1.02)';
+                setTimeout(() => {
+                    this.style.transform = 'scale(1)';
+                }, 300);
+            });
+        });
+
+        // Interactive example boxes
+        const exampleBoxes = document.querySelectorAll('.example-box');
+        exampleBoxes.forEach(box => {
+            box.addEventListener('click', function() {
+                const exampleTitle = this.querySelector('.example-title').textContent;
+                showToast(`Example: ${exampleTitle}`);
+                
+                // Animate example
+                this.style.boxShadow = '0 0 20px rgba(0, 255, 65, 0.3)';
+                setTimeout(() => {
+                    this.style.boxShadow = '';
+                }, 500);
+            });
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl/Cmd + K to focus search
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                searchInput.focus();
+                searchInput.select();
+            }
+            
+            // Escape to clear search
+            if (e.key === 'Escape') {
+                searchInput.value = '';
+                filterScenarios('', currentFilter);
+                searchInput.blur();
+            }
+        });
+
+        // Initialize page with user management themed animations
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animated search placeholder
+            const searchPlaceholder = "$ search useradd, usermod, groupadd, passwd, sudo, chage...";
+            let i = 0;
+            const typeInterval = setInterval(() => {
+                if (i < searchPlaceholder.length) {
+                    searchInput.placeholder = searchPlaceholder.substring(0, i + 1);
+                    i++;
+                } else {
+                    clearInterval(typeInterval);
+                }
+            }, 50);
+
+            // Setup cards for animation
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, observerOptions);
+
+            scenarioCards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                card.style.transition = `opacity 0.6s ease ${index * 0.1}s, transform 0.6s ease ${index * 0.1}s`;
+                observer.observe(card);
+            });
+
+            // Animate user flow steps
+            userSteps.forEach((step, index) => {
+                setTimeout(() => {
+                    const icon = step.querySelector('.step-icon');
+                    icon.style.transform = 'scale(1.1) rotate(5deg)';
+                    setTimeout(() => {
+                        icon.style.transform = 'scale(1) rotate(0deg)';
+                    }, 300);
+                }, index * 400 + 1000);
+            });
+
+            // Animate privilege cards
+            privilegeCards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.style.transform = 'scale(1.02)';
+                    setTimeout(() => {
+                        card.style.transform = 'scale(1)';
+                    }, 200);
+                }, index * 200 + 2000);
+            });
+
+            // Animate password policy cards
+            policyCards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.style.transform = 'scale(1.02)';
+                    setTimeout(() => {
+                        card.style.transform = 'scale(1)';
+                    }, 200);
+                }, index * 150 + 3000);
+            });
+        });
+    </script>
+</body>
+</html>

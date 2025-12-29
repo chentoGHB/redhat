@@ -1,0 +1,1242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chapter 11 Beginner's Guide - Network Management for Cybersecurity Operations</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;500;700&family=Source+Code+Pro:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --terminal-bg: #0c0c0c;
+            --terminal-secondary: #1a1a1a;
+            --terminal-accent: #2a2a2a;
+            --terminal-border: #404040;
+            --terminal-green: #00ff41;
+            --terminal-blue: #00bfff;
+            --terminal-yellow: #ffff00;
+            --terminal-orange: #ff8c00;
+            --terminal-red: #ff4444;
+            --terminal-purple: #cc99ff;
+            --terminal-cyan: #00ffff;
+            --terminal-white: #f0f0f0;
+            --terminal-gray: #808080;
+            --terminal-dark-gray: #404040;
+            --network-green: #00ff41;
+            --interface-blue: #00bfff;
+            --connectivity-orange: #ff8c00;
+            --nmcli-purple: #cc99ff;
+            --dns-cyan: #00ffff;
+            --troubleshoot-red: #ff4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto Mono', 'Source Code Pro', monospace;
+            background: var(--terminal-bg);
+            color: var(--terminal-white);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .terminal-window {
+            background: var(--terminal-secondary);
+            margin: 1rem;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 255, 65, 0.1);
+            border: 1px solid var(--terminal-border);
+            overflow: hidden;
+        }
+
+        .terminal-header {
+            background: var(--terminal-accent);
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--terminal-border);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .terminal-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .terminal-button {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .terminal-button.close {
+            background: var(--troubleshoot-red);
+        }
+
+        .terminal-button.minimize {
+            background: var(--terminal-yellow);
+        }
+
+        .terminal-button.maximize {
+            background: var(--network-green);
+        }
+
+        .terminal-title {
+            color: var(--terminal-white);
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        .header-section {
+            padding: 2rem 1.5rem;
+            text-align: center;
+            background: linear-gradient(135deg, var(--terminal-secondary), var(--terminal-accent));
+        }
+
+        .main-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--network-green);
+            margin-bottom: 1rem;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: var(--terminal-gray);
+            margin-bottom: 2rem;
+        }
+
+        .college-branding {
+            background: var(--terminal-accent);
+            border: 1px solid var(--network-green);
+            border-radius: 8px;
+            padding: 1rem;
+            display: inline-block;
+            margin-bottom: 2rem;
+        }
+
+        .college-name {
+            color: var(--network-green);
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .course-info {
+            color: var(--terminal-gray);
+            font-size: 0.9rem;
+        }
+
+        .search-section {
+            padding: 1.5rem;
+            background: var(--terminal-accent);
+            border-bottom: 1px solid var(--terminal-border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .search-container {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .search-input {
+            flex: 1;
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            color: var(--terminal-white);
+            font-family: 'Source Code Pro', monospace;
+            font-size: 1rem;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--network-green);
+            box-shadow: 0 0 0 2px rgba(0, 255, 65, 0.2);
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 6px;
+            padding: 0.5rem 1rem;
+            color: var(--terminal-gray);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.8rem;
+        }
+
+        .filter-btn:hover {
+            border-color: var(--network-green);
+            color: var(--network-green);
+        }
+
+        .filter-btn.active {
+            background: var(--network-green);
+            color: var(--terminal-bg);
+            border-color: var(--network-green);
+        }
+
+        .scenarios-grid {
+            padding: 2rem 1.5rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 2rem;
+        }
+
+        .scenario-card {
+            background: var(--terminal-secondary);
+            border: 1px solid var(--terminal-border);
+            border-radius: 12px;
+            padding: 0;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .scenario-card:hover {
+            border-color: var(--section-color);
+            box-shadow: 0 10px 30px rgba(0, 255, 65, 0.1);
+        }
+
+        .scenario-header {
+            background: var(--terminal-accent);
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--terminal-border);
+        }
+
+        .scenario-title {
+            color: var(--section-color);
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .scenario-icon {
+            font-size: 1.2rem;
+        }
+
+        .scenario-description {
+            color: var(--terminal-gray);
+            font-size: 0.95rem;
+            margin-bottom: 1rem;
+        }
+
+        .difficulty-level {
+            background: var(--terminal-bg);
+            border: 1px solid var(--section-color);
+            border-radius: 4px;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.8rem;
+            color: var(--section-color);
+            display: inline-block;
+        }
+
+        .scenario-content {
+            padding: 1.5rem;
+        }
+
+        .real-world-example {
+            background: linear-gradient(135deg, #2a1a1a, #3a2a2a);
+            border: 1px solid var(--troubleshoot-red);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .real-world-title {
+            color: var(--troubleshoot-red);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .real-world-text {
+            color: var(--terminal-white);
+            font-size: 0.9rem;
+        }
+
+        .command-example {
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--terminal-dark-gray);
+        }
+
+        .command-example:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .command-syntax {
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .command-syntax:hover {
+            border-color: var(--section-color);
+            background: rgba(0, 191, 255, 0.05);
+        }
+
+        .command-text {
+            font-family: 'Source Code Pro', monospace;
+            font-size: 1rem;
+            color: var(--terminal-cyan);
+            word-break: break-word;
+        }
+
+        .command-prompt {
+            color: var(--network-green);
+            margin-right: 0.5rem;
+        }
+
+        .copy-indicator {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: var(--terminal-accent);
+            color: var(--terminal-gray);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .command-syntax:hover .copy-indicator {
+            opacity: 1;
+        }
+
+        .command-description {
+            color: var(--terminal-white);
+            font-size: 0.95rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .command-notes {
+            color: var(--terminal-yellow);
+            font-size: 0.85rem;
+            font-style: italic;
+        }
+
+        .explanation-box {
+            background: var(--terminal-accent);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .explanation-title {
+            color: var(--network-green);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .explanation-text {
+            color: var(--terminal-gray);
+            font-size: 0.9rem;
+        }
+
+        /* Category-specific colors */
+        .category-interfaces .scenario-card {
+            --section-color: var(--interface-blue);
+        }
+
+        .category-connectivity .scenario-card {
+            --section-color: var(--connectivity-orange);
+        }
+
+        .category-nmcli .scenario-card {
+            --section-color: var(--nmcli-purple);
+        }
+
+        .category-configuration .scenario-card {
+            --section-color: var(--network-green);
+        }
+
+        .category-dns .scenario-card {
+            --section-color: var(--dns-cyan);
+        }
+
+        .category-troubleshoot .scenario-card {
+            --section-color: var(--troubleshoot-red);
+        }
+
+        /* Syntax highlighting */
+        .cmd { color: var(--terminal-cyan); }
+        .option { color: var(--terminal-yellow); }
+        .path { color: var(--terminal-purple); }
+        .ip-addr { color: var(--interface-blue); }
+        .interface { color: var(--connectivity-orange); }
+        .hostname { color: var(--dns-cyan); }
+        .config { color: var(--network-green); }
+
+        /* Toast notification */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--network-green);
+            color: var(--terminal-bg);
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 500;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Chapter Quote Section */
+        .chapter-quote {
+            margin: 3rem 1.5rem;
+            padding: 2rem;
+            background: linear-gradient(135deg, var(--terminal-accent), var(--terminal-secondary));
+            border: 1px solid var(--network-green);
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .quote-text {
+            font-size: 1.3rem;
+            color: var(--terminal-white);
+            font-style: italic;
+            margin-bottom: 1rem;
+            line-height: 1.8;
+        }
+
+        .quote-author {
+            color: var(--network-green);
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .scenarios-grid {
+                grid-template-columns: 1fr;
+                padding: 1rem;
+            }
+            
+            .search-container {
+                flex-direction: column;
+            }
+            
+            .filter-buttons {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="terminal-window">
+        <div class="terminal-header">
+            <div class="terminal-buttons">
+                <div class="terminal-button close"></div>
+                <div class="terminal-button minimize"></div>
+                <div class="terminal-button maximize"></div>
+            </div>
+            <div class="terminal-title">student@cybersec-lab:~/network-management$</div>
+        </div>
+
+        <div class="header-section">
+            <h1 class="main-title">🌐 Network Management</h1>
+            <p class="subtitle">Comprehensive Command Reference for Cybersecurity Professionals</p>
+            
+            <div class="college-branding">
+                <div class="college-name">College of DuPage</div>
+                <div class="course-info">CIT 1450 - Linux/Unix Systems • AI Cybersecurity Program</div>
+            </div>
+        </div>
+
+        <div class="search-section">
+            <div class="search-container">
+                <input type="text" class="search-input" id="searchInput" 
+                       placeholder="$ search interfaces, connectivity, nmcli, dns, or troubleshooting...">
+                <div class="filter-buttons">
+                    <button class="filter-btn active" data-filter="all">All</button>
+                    <button class="filter-btn" data-filter="interfaces">Interfaces</button>
+                    <button class="filter-btn" data-filter="connectivity">Connectivity</button>
+                    <button class="filter-btn" data-filter="nmcli">nmcli</button>
+                    <button class="filter-btn" data-filter="configuration">Config</button>
+                    <button class="filter-btn" data-filter="dns">DNS</button>
+                    <button class="filter-btn" data-filter="troubleshoot">Debug</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="scenarios-grid" id="scenariosGrid">
+            <!-- Network Interface Discovery -->
+            <div class="scenario-card category-interfaces" data-category="interfaces" 
+                 data-keywords="ip interface discovery status link addr show network devices">
+                <div class="scenario-header">
+                    <h3 class="scenario-title">
+                        <span class="scenario-icon">🔍</span>
+                        Network Interface Discovery & Status
+                    </h3>
+                    <p class="scenario-description">Discover and analyze network interfaces and their configuration</p>
+                    <span class="difficulty-level">Beginner Level</span>
+                </div>
+                <div class="scenario-content">
+                    <div class="real-world-example">
+                        <div class="real-world-title">
+                            🖥️ Infrastructure Assessment Scenario
+                        </div>
+                        <div class="real-world-text">
+                            Security engineer conducting network assessment needs to identify all network interfaces, their status, IP addresses, and link state for vulnerability analysis
+                        </div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">ip</span> <span class="option">link show</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Display all network interfaces and their physical status</div>
+                        <div class="command-notes">Shows interface names (ens3, eth0), MAC addresses, and link state (UP/DOWN)</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">ip</span> <span class="option">addr show</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Display IP addresses assigned to all interfaces</div>
+                        <div class="command-notes">Shows IPv4/IPv6 addresses, subnet masks, and address scopes</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">ip</span> <span class="option">-br addr show</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Brief listing of interfaces with IP addresses only</div>
+                        <div class="command-notes">Compact view showing interface name, state, and IP addresses</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">ip</span> <span class="option">addr show dev</span> <span class="interface">eth0</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Display configuration for specific network interface</div>
+                        <div class="command-notes">Focused view of single interface including IPv6 link-local addresses</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">ip</span> <span class="option">-s link show</span> <span class="interface">eth0</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Display network statistics for interface</div>
+                        <div class="command-notes">Shows RX/TX packets, bytes, errors, and dropped packet counters</div>
+                    </div>
+
+                    <div class="explanation-box">
+                        <div class="explanation-title">Modern Interface Naming</div>
+                        <div class="explanation-text">
+                            <strong>en:</strong> Ethernet • <strong>wl:</strong> WLAN • <strong>ww:</strong> WWAN • 
+                            <strong>o1:</strong> On-board device • <strong>s3:</strong> PCI slot • <strong>p4s0:</strong> PCI bus/slot
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Network Connectivity Testing -->
+            <div class="scenario-card category-connectivity" data-category="connectivity" 
+                 data-keywords="ping ping6 traceroute tracepath connectivity test network reachability">
+                <div class="scenario-header">
+                    <h3 class="scenario-title">
+                        <span class="scenario-icon">📡</span>
+                        Network Connectivity Testing
+                    </h3>
+                    <p class="scenario-description">Test network connectivity and trace network paths</p>
+                    <span class="difficulty-level">Beginner Level</span>
+                </div>
+                <div class="scenario-content">
+                    <div class="real-world-example">
+                        <div class="real-world-title">
+                            🔧 Network Diagnostics Scenario
+                        </div>
+                        <div class="real-world-text">
+                            Network technician investigating connectivity issues between security systems and monitoring servers - need to test reachability and identify network path problems
+                        </div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">ping</span> <span class="option">-c3</span> <span class="ip-addr">192.168.1.1</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Test IPv4 connectivity with 3 packets</div>
+                        <div class="command-notes">Shows packet loss percentage and round-trip time statistics</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">ping6</span> <span class="option">-c3</span> <span class="ip-addr">2001:db8::1</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Test IPv6 connectivity with 3 packets</div>
+                        <div class="command-notes">IPv6 version of ping for testing dual-stack networks</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">ping6</span> <span class="ip-addr">ff02::1%eth0</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Ping IPv6 all-nodes multicast (discover local IPv6 hosts)</div>
+                        <div class="command-notes">Discovers all IPv6-enabled devices on local network segment</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">traceroute</span> <span class="hostname">google.com</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Trace network path to destination</div>
+                        <div class="command-notes">Shows all routers/hops in path with timing information</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">tracepath</span> <span class="ip-addr">8.8.8.8</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Alternative path tracing tool (doesn't require root)</div>
+                        <div class="command-notes">Similar to traceroute but uses different packet types</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">ss</span> <span class="option">-tuln</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Display listening ports and network connections</div>
+                        <div class="command-notes">Shows TCP/UDP ports, listening services, and established connections</div>
+                    </div>
+
+                    <div class="explanation-box">
+                        <div class="explanation-title">Connectivity Testing Strategy</div>
+                        <div class="explanation-text">
+                            <strong>Local:</strong> ping gateway • <strong>DNS:</strong> ping domain names • 
+                            <strong>Internet:</strong> ping public IPs • <strong>Path:</strong> traceroute to identify routing issues
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- NetworkManager CLI (nmcli) -->
+            <div class="scenario-card category-nmcli" data-category="nmcli" 
+                 data-keywords="nmcli networkmanager connection device configuration management static dhcp">
+                <div class="scenario-header">
+                    <h3 class="scenario-title">
+                        <span class="scenario-icon">⚙️</span>
+                        NetworkManager CLI (nmcli)
+                    </h3>
+                    <p class="scenario-description">Manage network connections with NetworkManager command-line interface</p>
+                    <span class="difficulty-level">Intermediate Level</span>
+                </div>
+                <div class="scenario-content">
+                    <div class="real-world-example">
+                        <div class="real-world-title">
+                            🏢 Enterprise Network Management
+                        </div>
+                        <div class="real-world-text">
+                            System administrator configuring network settings on production servers - converting DHCP to static IP, managing multiple connections, and automating network deployment
+                        </div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">nmcli</span> <span class="option">device status</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Show NetworkManager status of all interfaces</div>
+                        <div class="command-notes">Displays device name, type, state, and active connection</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">nmcli</span> <span class="option">connection show</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">List all network connection profiles</div>
+                        <div class="command-notes">Shows connection names, UUIDs, types, and associated devices</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">nmcli</span> <span class="option">con show</span> <span class="config">"System eth0"</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Display detailed settings for specific connection</div>
+                        <div class="command-notes">Shows all configuration parameters including IP settings and DNS</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">#</span><span class="cmd">nmcli</span> <span class="option">con add con-name</span> <span class="config">"static-eth0"</span> <span class="option">ifname</span> <span class="interface">eth0</span> <span class="option">type ethernet</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Create new network connection profile</div>
+                        <div class="command-notes">Creates connection but doesn't configure IP settings yet</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">#</span><span class="cmd">nmcli</span> <span class="option">con mod</span> <span class="config">"static-eth0"</span> <span class="config">ipv4.method manual ipv4.addresses 192.168.1.100/24 ipv4.gateway 192.168.1.1</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Configure static IP address settings</div>
+                        <div class="command-notes">Sets manual IP mode with specific address, netmask, and gateway</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">#</span><span class="cmd">nmcli</span> <span class="option">con mod</span> <span class="config">"static-eth0"</span> <span class="config">+ipv4.dns 8.8.8.8</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Add DNS server to connection (+ adds to list)</div>
+                        <div class="command-notes">Use + to add values, - to remove, no prefix to replace</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">#</span><span class="cmd">nmcli</span> <span class="option">con up</span> <span class="config">"static-eth0"</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Activate network connection profile</div>
+                        <div class="command-notes">Applies configuration and brings connection online</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">#</span><span class="cmd">nmcli</span> <span class="option">con reload</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Reload all connection profiles from disk</div>
+                        <div class="command-notes">Required after manually editing configuration files</div>
+                    </div>
+
+                    <div class="explanation-box">
+                        <div class="explanation-title">Common nmcli Configuration Tasks</div>
+                        <div class="explanation-text">
+                            <strong>Method:</strong> auto (DHCP) or manual (static) • <strong>Addresses:</strong> IP/mask format • 
+                            <strong>DNS:</strong> + prefix to add servers • <strong>Autoconnect:</strong> yes/no for boot startup
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Network Configuration Files -->
+            <div class="scenario-card category-configuration" data-category="configuration" 
+                 data-keywords="configuration files network ifcfg networkmanager system-connections editing manual">
+                <div class="scenario-header">
+                    <h3 class="scenario-title">
+                        <span class="scenario-icon">📝</span>
+                        Network Configuration Files
+                    </h3>
+                    <p class="scenario-description">Direct editing of network configuration files and routing tables</p>
+                    <span class="difficulty-level">Advanced Level</span>
+                </div>
+                <div class="scenario-content">
+                    <div class="real-world-example">
+                        <div class="real-world-title">
+                            ⚡ Advanced Network Configuration
+                        </div>
+                        <div class="real-world-text">
+                            Network architect implementing complex routing scenarios and custom network configurations that require direct file editing for precise control
+                        </div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">cat</span> <span class="path">/etc/NetworkManager/system-connections/</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">View NetworkManager connection configuration directory</div>
+                        <div class="command-notes">Modern location for connection profiles (.nmconnection files)</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">ip</span> <span class="option">route</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Display IPv4 routing table</div>
+                        <div class="command-notes">Shows default gateway, network routes, and routing metrics</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">ip</span> <span class="option">-6 route</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Display IPv6 routing table</div>
+                        <div class="command-notes">Shows IPv6 routes including link-local and default routes</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">#</span><span class="cmd">ip</span> <span class="option">route add</span> <span class="ip-addr">10.0.0.0/8</span> <span class="option">via</span> <span class="ip-addr">192.168.1.1</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Add temporary static route</div>
+                        <div class="command-notes">Route is lost on reboot unless made persistent</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">#</span><span class="cmd">ip</span> <span class="option">addr add</span> <span class="ip-addr">192.168.1.200/24</span> <span class="option">dev</span> <span class="interface">eth0</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Add temporary IP address to interface</div>
+                        <div class="command-notes">Allows multiple IP addresses on single interface</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">cat</span> <span class="path">/etc/resolv.conf</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">View DNS resolver configuration</div>
+                        <div class="command-notes">Shows nameserver and search domain settings</div>
+                    </div>
+
+                    <div class="explanation-box">
+                        <div class="explanation-title">Configuration File Hierarchy</div>
+                        <div class="explanation-text">
+                            <strong>NetworkManager:</strong> /etc/NetworkManager/system-connections/ • <strong>DNS:</strong> /etc/resolv.conf • 
+                            <strong>Hosts:</strong> /etc/hosts • <strong>Hostname:</strong> /etc/hostname
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hostname and DNS Management -->
+            <div class="scenario-card category-dns" data-category="dns" 
+                 data-keywords="hostname hostnamectl dns resolution hosts dig nslookup getent">
+                <div class="scenario-header">
+                    <h3 class="scenario-title">
+                        <span class="scenario-icon">🏷️</span>
+                        Hostname & DNS Management
+                    </h3>
+                    <p class="scenario-description">Configure system hostnames and manage DNS resolution</p>
+                    <span class="difficulty-level">Intermediate Level</span>
+                </div>
+                <div class="scenario-content">
+                    <div class="real-world-example">
+                        <div class="real-world-title">
+                            🏗️ Infrastructure Identity Management
+                        </div>
+                        <div class="real-world-text">
+                            System administrator deploying new servers with proper hostname conventions and DNS resolution for automated monitoring and management systems
+                        </div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">hostnamectl</span> <span class="option">status</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Display current hostname and system information</div>
+                        <div class="command-notes">Shows static, transient hostname, and hardware details</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">#</span><span class="cmd">hostnamectl</span> <span class="option">hostname</span> <span class="hostname">server1.company.local</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Set persistent system hostname</div>
+                        <div class="command-notes">Updates /etc/hostname and sets static hostname permanently</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">#</span><span class="cmd">hostname</span> <span class="hostname">temp-hostname</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Set temporary hostname (until reboot)</div>
+                        <div class="command-notes">Changes current hostname but doesn't persist across reboots</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">host</span> <span class="hostname">server1.example.com</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">DNS lookup for hostname to IP address</div>
+                        <div class="command-notes">Queries DNS servers to resolve hostname</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">dig</span> <span class="hostname">example.com</span> <span class="option">A</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Detailed DNS query for A records</div>
+                        <div class="command-notes">Shows full DNS response including TTL and authoritative servers</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">getent</span> <span class="option">hosts</span> <span class="hostname">localhost</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Test name resolution including /etc/hosts file</div>
+                        <div class="command-notes">Uses system resolver (includes /etc/hosts, not just DNS)</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">#</span><span class="cmd">echo</span> <span class="config">"192.168.1.100 server1.company.local server1"</span> <span class="cmd">>></span> <span class="path">/etc/hosts</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Add hostname entry to local hosts file</div>
+                        <div class="command-notes">Creates local name resolution independent of DNS</div>
+                    </div>
+
+                    <div class="explanation-box">
+                        <div class="explanation-title">Name Resolution Order</div>
+                        <div class="explanation-text">
+                            <strong>1. /etc/hosts:</strong> Local static entries • <strong>2. DNS:</strong> Network nameservers • 
+                            <strong>3. mDNS:</strong> Local network discovery • <strong>Search domains:</strong> /etc/resolv.conf
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Network Troubleshooting -->
+            <div class="scenario-card category-troubleshoot" data-category="troubleshoot" 
+                 data-keywords="troubleshooting debug netstat ss tcpdump wireshark network problems diagnosis">
+                <div class="scenario-header">
+                    <h3 class="scenario-title">
+                        <span class="scenario-icon">🔧</span>
+                        Network Troubleshooting & Analysis
+                    </h3>
+                    <p class="scenario-description">Advanced network problem diagnosis and traffic analysis</p>
+                    <span class="difficulty-level">Expert Level</span>
+                </div>
+                <div class="scenario-content">
+                    <div class="real-world-example">
+                        <div class="real-world-title">
+                            🚨 Network Incident Response
+                        </div>
+                        <div class="real-world-text">
+                            Security analyst investigating network connectivity issues and potential security incidents - analyzing traffic patterns, connection states, and routing problems
+                        </div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">ss</span> <span class="option">-tuln</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Show all listening TCP and UDP ports</div>
+                        <div class="command-notes">Modern replacement for netstat, shows listening services</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">ss</span> <span class="option">-tuap</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Show all TCP/UDP connections with process names</div>
+                        <div class="command-notes">Includes established connections and associated processes</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">ss</span> <span class="option">-i</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Show detailed socket information</div>
+                        <div class="command-notes">Displays TCP window sizes, retransmissions, and connection metrics</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">ip</span> <span class="option">neigh</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Display ARP table (neighbor cache)</div>
+                        <div class="command-notes">Shows MAC addresses of devices on local network segment</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">#</span><span class="cmd">tcpdump</span> <span class="option">-i</span> <span class="interface">eth0</span> <span class="option">-n</span> <span class="config">host 192.168.1.100</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Capture packets to/from specific host</div>
+                        <div class="command-notes">Real-time packet capture for traffic analysis</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">nmcli</span> <span class="option">general status</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Show NetworkManager overall status</div>
+                        <div class="command-notes">Displays networking state and connectivity status</div>
+                    </div>
+
+                    <div class="command-example">
+                        <div class="command-syntax" onclick="copyCommand(this)">
+                            <div class="command-text">
+                                <span class="command-prompt">$</span><span class="cmd">nmcli</span> <span class="option">general permissions</span>
+                            </div>
+                            <div class="copy-indicator">Click to copy</div>
+                        </div>
+                        <div class="command-description">Check NetworkManager permissions for current user</div>
+                        <div class="command-notes">Shows what network operations user is authorized to perform</div>
+                    </div>
+
+                    <div class="explanation-box">
+                        <div class="explanation-title">Troubleshooting Methodology</div>
+                        <div class="explanation-text">
+                            <strong>Layer 1:</strong> Physical/link status • <strong>Layer 2:</strong> ARP/neighbor cache • 
+                            <strong>Layer 3:</strong> IP/routing • <strong>Layer 4:</strong> TCP/UDP ports • <strong>Application:</strong> Service status
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chapter Quote -->
+        <div class="chapter-quote">
+            <div class="quote-text">
+                "In the realm of cybersecurity, network management is the foundation upon which digital trust is built. Every interface configured, every route established, every hostname resolved—these are the threads that weave the fabric of secure communication. Master the network layer, and you command the pathways through which information flows and threats are contained."
+            </div>
+            <div class="quote-author">— Chapter 11: Manage Networking</div>
+        </div>
+    </div>
+
+    <!-- Toast notification -->
+    <div id="toast" class="toast"></div>
+
+    <script>
+        const searchInput = document.getElementById('searchInput');
+        const scenariosGrid = document.getElementById('scenariosGrid');
+        const filterButtons = document.querySelectorAll('.filter-btn');
+        
+        let currentFilter = 'all';
+
+        // Search and filter functionality
+        function filterCommands(searchTerm, category) {
+            const cards = scenariosGrid.querySelectorAll('.scenario-card');
+            searchTerm = searchTerm.toLowerCase();
+
+            cards.forEach(card => {
+                const keywords = card.getAttribute('data-keywords').toLowerCase();
+                const cardCategory = card.getAttribute('data-category');
+                const title = card.querySelector('.scenario-title').textContent.toLowerCase();
+                const description = card.querySelector('.scenario-description').textContent.toLowerCase();
+
+                const matchesSearch = keywords.includes(searchTerm) || 
+                                    title.includes(searchTerm) || 
+                                    description.includes(searchTerm);
+                const matchesCategory = category === 'all' || cardCategory === category;
+
+                if (matchesSearch && matchesCategory) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        // Search input handler
+        searchInput.addEventListener('input', (e) => {
+            filterCommands(e.target.value, currentFilter);
+        });
+
+        // Filter button handlers
+        filterButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                // Update active button
+                filterButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                
+                // Update current filter
+                currentFilter = button.getAttribute('data-filter');
+                
+                // Apply filter
+                filterCommands(searchInput.value, currentFilter);
+            });
+        });
+
+        // Copy command functionality
+        function copyCommand(element) {
+            const commandText = element.querySelector('.command-text').textContent;
+            
+            // Remove the prompt symbol for cleaner copying
+            const cleanCommand = commandText.replace(/^\$\s*/, '').replace(/^#\s*/, '');
+            
+            navigator.clipboard.writeText(cleanCommand).then(() => {
+                showToast('Command copied to clipboard!');
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+                showToast('Copy failed - try selecting manually');
+            });
+        }
+
+        // Show toast notification
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2500);
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl/Cmd + K to focus search
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                searchInput.focus();
+                searchInput.select();
+            }
+            
+            // Escape to clear search
+            if (e.key === 'Escape') {
+                searchInput.value = '';
+                filterCommands('', currentFilter);
+                searchInput.blur();
+            }
+        });
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Focus search on page load
+            setTimeout(() => {
+                searchInput.focus();
+            }, 1000);
+
+            // Show typing animation in search
+            const searchPlaceholder = "$ search interfaces, connectivity, nmcli, dns, or troubleshooting...";
+            let i = 0;
+            const typeInterval = setInterval(() => {
+                if (i < searchPlaceholder.length) {
+                    searchInput.placeholder = searchPlaceholder.substring(0, i + 1);
+                    i++;
+                } else {
+                    clearInterval(typeInterval);
+                }
+            }, 50);
+        });
+    </script>
+</body>
+</html>

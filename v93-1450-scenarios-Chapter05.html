@@ -1,0 +1,1400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chapter 05 Beginner's Guide - Create, View, and Edit Text Files</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;500;700&family=Source+Code+Pro:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --terminal-bg: #0c0c0c;
+            --terminal-secondary: #1a1a1a;
+            --terminal-accent: #2a2a2a;
+            --terminal-border: #404040;
+            --terminal-green: #00ff41;
+            --terminal-blue: #00bfff;
+            --terminal-yellow: #ffff00;
+            --terminal-orange: #ff8c00;
+            --terminal-red: #ff4444;
+            --terminal-purple: #cc99ff;
+            --terminal-cyan: #00ffff;
+            --terminal-white: #f0f0f0;
+            --terminal-gray: #808080;
+            --terminal-dark-gray: #404040;
+            --text-green: #00ff41;
+            --redirect-blue: #00bfff;
+            --vim-orange: #ff8c00;
+            --pipe-purple: #cc99ff;
+            --env-cyan: #00ffff;
+            --process-red: #ff4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto Mono', 'Source Code Pro', monospace;
+            background: var(--terminal-bg);
+            color: var(--terminal-white);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .terminal-window {
+            background: var(--terminal-secondary);
+            margin: 1rem;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 255, 65, 0.1);
+            border: 1px solid var(--terminal-border);
+            overflow: hidden;
+        }
+
+        .terminal-header {
+            background: linear-gradient(135deg, #333, #444);
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            border-bottom: 1px solid var(--terminal-border);
+        }
+
+        .terminal-button {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .close { background: #ff5f56; }
+        .minimize { background: #ffbd2e; }
+        .maximize { background: #27ca3f; }
+
+        .terminal-title {
+            color: var(--terminal-white);
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-left: 1rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background: var(--terminal-secondary);
+            border-radius: 12px;
+            border: 1px solid var(--terminal-border);
+        }
+
+        .title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--text-green);
+            margin-bottom: 0.5rem;
+            text-shadow: 0 0 20px rgba(0, 255, 65, 0.3);
+        }
+
+        .subtitle {
+            color: var(--redirect-blue);
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+        }
+
+        .course-info {
+            color: var(--terminal-gray);
+            font-size: 0.95rem;
+        }
+
+        .beginner-notice {
+            background: linear-gradient(135deg, #2a4a2a, #1a3a1a);
+            border: 1px solid var(--text-green);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            text-align: center;
+        }
+
+        .beginner-notice h3 {
+            color: var(--terminal-yellow);
+            margin-bottom: 0.5rem;
+            font-size: 1.3rem;
+        }
+
+        .beginner-notice p {
+            color: var(--terminal-white);
+        }
+
+        .search-terminal {
+            background: var(--terminal-secondary);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            position: sticky;
+            top: 1rem;
+            z-index: 100;
+        }
+
+        .search-input {
+            width: 100%;
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 6px;
+            padding: 0.75rem 1rem;
+            color: var(--text-green);
+            font-family: inherit;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--text-green);
+            box-shadow: 0 0 10px rgba(0, 255, 65, 0.2);
+        }
+
+        .search-input::placeholder {
+            color: var(--terminal-gray);
+        }
+
+        .filter-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-tab {
+            background: var(--terminal-accent);
+            border: 1px solid var(--terminal-border);
+            border-radius: 6px;
+            padding: 0.5rem 1rem;
+            color: var(--terminal-gray);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            font-size: 0.9rem;
+        }
+
+        .filter-tab:hover {
+            background: var(--terminal-border);
+            color: var(--terminal-white);
+        }
+
+        .filter-tab.active {
+            background: var(--text-green);
+            color: var(--terminal-bg);
+            border-color: var(--text-green);
+        }
+
+        .scenario-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 2rem;
+        }
+
+        .scenario-card {
+            background: var(--terminal-secondary);
+            border: 1px solid var(--terminal-border);
+            border-radius: 12px;
+            padding: 0;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .scenario-card:hover {
+            border-color: var(--section-color);
+            box-shadow: 0 10px 30px rgba(0, 255, 65, 0.1);
+        }
+
+        .scenario-card.hidden {
+            display: none;
+        }
+
+        .scenario-header {
+            background: var(--terminal-accent);
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--terminal-border);
+        }
+
+        .scenario-title {
+            color: var(--section-color);
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .scenario-description {
+            color: var(--terminal-gray);
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .scenario-body {
+            padding: 1.5rem;
+        }
+
+        .command-section {
+            margin-bottom: 2rem;
+        }
+
+        .command-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .command-title {
+            color: var(--section-color);
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .command-tag {
+            background: var(--section-color);
+            color: var(--terminal-bg);
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .command-block {
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            position: relative;
+            overflow-x: auto;
+        }
+
+        .command-prompt {
+            color: var(--section-color);
+            font-weight: 500;
+        }
+
+        .command-text {
+            color: var(--terminal-cyan);
+            font-family: 'Source Code Pro', monospace;
+            white-space: pre-wrap;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: var(--terminal-accent);
+            border: 1px solid var(--terminal-border);
+            color: var(--terminal-gray);
+            padding: 0.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .copy-btn:hover {
+            background: var(--section-color);
+            color: var(--terminal-bg);
+            border-color: var(--section-color);
+        }
+
+        .explanation-box {
+            background: rgba(0, 191, 255, 0.1);
+            border: 1px solid var(--redirect-blue);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .explanation-title {
+            color: var(--redirect-blue);
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .explanation-text {
+            color: var(--terminal-white);
+            line-height: 1.6;
+        }
+
+        .vim-box {
+            background: rgba(255, 140, 0, 0.1);
+            border: 1px solid var(--vim-orange);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .vim-title {
+            color: var(--vim-orange);
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .use-case-box {
+            background: rgba(0, 255, 255, 0.1);
+            border: 1px solid var(--env-cyan);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .use-case-title {
+            color: var(--env-cyan);
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .workflow-container {
+            background: rgba(204, 153, 255, 0.1);
+            border: 1px solid var(--pipe-purple);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .workflow-title {
+            color: var(--pipe-purple);
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .workflow-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .workflow-step {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem;
+            background: var(--terminal-accent);
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .workflow-step:hover {
+            background: var(--terminal-border);
+        }
+
+        .step-number {
+            background: var(--pipe-purple);
+            color: var(--terminal-bg);
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .text-flow {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .text-step {
+            background: var(--terminal-accent);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .text-step:hover {
+            border-color: var(--section-color);
+            box-shadow: 0 5px 15px rgba(0, 255, 65, 0.1);
+        }
+
+        .step-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .step-title {
+            color: var(--section-color);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .step-value {
+            color: var(--terminal-gray);
+            font-size: 0.9rem;
+        }
+
+        .vim-keys-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .vim-key {
+            background: var(--terminal-accent);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .vim-key:hover {
+            border-color: var(--vim-orange);
+            box-shadow: 0 5px 15px rgba(255, 140, 0, 0.1);
+        }
+
+        .key-command {
+            color: var(--vim-orange);
+            font-weight: 600;
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+            font-family: 'Source Code Pro', monospace;
+        }
+
+        .key-description {
+            color: var(--terminal-gray);
+            font-size: 0.9rem;
+        }
+
+        .example-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .example-box {
+            background: var(--terminal-accent);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .example-box:hover {
+            border-color: var(--section-color);
+            box-shadow: 0 5px 15px rgba(0, 255, 65, 0.1);
+        }
+
+        .example-title {
+            color: var(--section-color);
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .example-code {
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 6px;
+            padding: 1rem;
+            margin: 0.75rem 0;
+            font-family: 'Source Code Pro', monospace;
+            color: var(--terminal-cyan);
+            position: relative;
+        }
+
+        .toast {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            background: var(--text-green);
+            color: var(--terminal-bg);
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 500;
+            transform: translateX(400px);
+            transition: all 0.3s ease;
+            z-index: 1000;
+            max-width: 400px;
+            font-family: inherit;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 4rem;
+            padding: 2rem;
+            border-top: 1px solid var(--terminal-border);
+            color: var(--terminal-gray);
+        }
+
+        /* Section-specific colors */
+        .scenario-card[data-category="creation"] {
+            --section-color: var(--text-green);
+        }
+
+        .scenario-card[data-category="redirection"] {
+            --section-color: var(--redirect-blue);
+        }
+
+        .scenario-card[data-category="vim"] {
+            --section-color: var(--vim-orange);
+        }
+
+        .scenario-card[data-category="pipes"] {
+            --section-color: var(--pipe-purple);
+        }
+
+        .scenario-card[data-category="environment"] {
+            --section-color: var(--env-cyan);
+        }
+
+        .scenario-card[data-category="processing"] {
+            --section-color: var(--process-red);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .scenario-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .text-flow {
+                grid-template-columns: 1fr;
+            }
+            
+            .example-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .vim-keys-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="terminal-window">
+        <div class="terminal-header">
+            <div class="terminal-button close"></div>
+            <div class="terminal-button minimize"></div>
+            <div class="terminal-button maximize"></div>
+            <span class="terminal-title">student@cod-cybersec:~/chapter05$ ./text_files_guide.sh</span>
+        </div>
+        
+        <div class="container">
+            <div class="header">
+                <h1 class="title">📝 Chapter 05: Create, View, and Edit Text Files</h1>
+                <p class="subtitle">Master Text File Operations for System Administration</p>
+                <p class="course-info">College of DuPage | CIT 1450 Linux/Unix Systems | AI Cybersecurity Program</p>
+            </div>
+
+            <div class="beginner-notice">
+                <h3>📋 Essential Text File Skills</h3>
+                <p>Text file manipulation is fundamental to Linux system administration. Learn to create, view, edit, and process text files efficiently using command-line tools and text editors.</p>
+            </div>
+
+            <div class="search-terminal">
+                <input type="text" id="searchInput" class="search-input" placeholder="">
+                <div class="filter-tabs">
+                    <button class="filter-tab active" data-category="all">All Operations</button>
+                    <button class="filter-tab" data-category="creation">File Creation & Viewing</button>
+                    <button class="filter-tab" data-category="redirection">Redirection & Output</button>
+                    <button class="filter-tab" data-category="vim">Vim Text Editor</button>
+                    <button class="filter-tab" data-category="pipes">Pipes & Filtering</button>
+                    <button class="filter-tab" data-category="environment">Environment Variables</button>
+                    <button class="filter-tab" data-category="processing">Text Processing</button>
+                </div>
+            </div>
+
+            <div class="scenario-grid">
+                <!-- File Creation & Viewing -->
+                <div class="scenario-card" data-category="creation">
+                    <div class="scenario-header">
+                        <h3 class="scenario-title">
+                            📄 File Creation & Viewing
+                        </h3>
+                        <p class="scenario-description">
+                            Master basic file creation and viewing operations essential for managing text files in Linux environments.
+                        </p>
+                    </div>
+                    <div class="scenario-body">
+                        <div class="command-section">
+                            <div class="command-header">
+                                <span class="command-title">File Creation Commands</span>
+                                <span class="command-tag">Basic Operations</span>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">touch newfile.txt</span>
+                                <button class="copy-btn" onclick="copyCommand('touch newfile.txt')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">cat > document.txt</span>
+                                <button class="copy-btn" onclick="copyCommand('cat > document.txt')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">echo "Hello World" > hello.txt</span>
+                                <button class="copy-btn" onclick="copyCommand('echo \"Hello World\" > hello.txt')">📋</button>
+                            </div>
+                        </div>
+
+                        <div class="text-flow">
+                            <div class="text-step">
+                                <div class="step-icon">📝</div>
+                                <div class="step-title">Create</div>
+                                <div class="step-value">touch, cat ></div>
+                            </div>
+                            <div class="text-step">
+                                <div class="step-icon">👀</div>
+                                <div class="step-title">View</div>
+                                <div class="step-value">cat, less, more</div>
+                            </div>
+                            <div class="text-step">
+                                <div class="step-icon">✏️</div>
+                                <div class="step-title">Edit</div>
+                                <div class="step-value">vim, nano</div>
+                            </div>
+                            <div class="text-step">
+                                <div class="step-icon">💾</div>
+                                <div class="step-title">Save</div>
+                                <div class="step-value">Ctrl+O, :w</div>
+                            </div>
+                        </div>
+
+                        <div class="use-case-box">
+                            <div class="use-case-title">🎯 System Administration Uses:</div>
+                            <div class="explanation-text">
+                                <strong>Configuration Files:</strong> Create and modify system configuration files<br>
+                                <strong>Log Analysis:</strong> View and analyze log files for troubleshooting<br>
+                                <strong>Script Creation:</strong> Write shell scripts for automation<br>
+                                <strong>Documentation:</strong> Create README files and system documentation<br>
+                                <strong>Data Collection:</strong> Capture command output for reporting
+                            </div>
+                        </div>
+
+                        <div class="example-grid">
+                            <div class="example-box">
+                                <div class="example-title">📋 Quick Note Creation</div>
+                                <div class="example-code">echo "System maintenance scheduled for tonight" > maintenance_note.txt</div>
+                                <p style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                    Create a quick maintenance notification
+                                </p>
+                            </div>
+                            <div class="example-box">
+                                <div class="example-title">📖 File Content Display</div>
+                                <div class="example-code">cat /etc/hostname</div>
+                                <p style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                    View system hostname configuration
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Redirection & Output -->
+                <div class="scenario-card" data-category="redirection">
+                    <div class="scenario-header">
+                        <h3 class="scenario-title">
+                            ➡️ Redirection & Output Control
+                        </h3>
+                        <p class="scenario-description">
+                            Control command output flow using redirection operators to save results to files or append to existing content.
+                        </p>
+                    </div>
+                    <div class="scenario-body">
+                        <div class="command-section">
+                            <div class="command-header">
+                                <span class="command-title">Redirection Operators</span>
+                                <span class="command-tag">Output Control</span>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">ls -l > listing.txt</span>
+                                <button class="copy-btn" onclick="copyCommand('ls -l > listing.txt')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">date >> logfile.txt</span>
+                                <button class="copy-btn" onclick="copyCommand('date >> logfile.txt')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">command 2> error.log</span>
+                                <button class="copy-btn" onclick="copyCommand('command 2> error.log')">📋</button>
+                            </div>
+                        </div>
+
+                        <div class="explanation-box">
+                            <div class="explanation-title">🎯 Redirection Operators Explained:</div>
+                            <div class="explanation-text">
+                                <strong>> (Redirect):</strong> Send output to file, overwrite existing content<br>
+                                <strong>>> (Append):</strong> Add output to end of file, preserve existing content<br>
+                                <strong>2> (Error Redirect):</strong> Redirect error messages to file<br>
+                                <strong>&> (All Output):</strong> Redirect both stdout and stderr to file<br>
+                                <strong>< (Input Redirect):</strong> Use file as input for command
+                            </div>
+                        </div>
+
+                        <div class="workflow-container">
+                            <div class="workflow-title">📊 Log Management Workflow:</div>
+                            <div class="workflow-steps">
+                                <div class="workflow-step">
+                                    <div class="step-number">1</div>
+                                    <div>Create initial log entry with current timestamp</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">2</div>
+                                    <div>Append new entries using >> operator</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">3</div>
+                                    <div>Separate error logs from standard output</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">4</div>
+                                    <div>Analyze logs using text processing tools</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">5</div>
+                                    <div>Archive and rotate log files as needed</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="example-grid">
+                            <div class="example-box">
+                                <div class="example-title">📊 System Status Report</div>
+                                <div class="example-code">uptime > system_status.txt
+df -h >> system_status.txt
+free -h >> system_status.txt</div>
+                                <p style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                    Create comprehensive system status report
+                                </p>
+                            </div>
+                            <div class="example-box">
+                                <div class="example-title">🚨 Error Logging</div>
+                                <div class="example-code">find /var -name "*.log" 2> find_errors.txt</div>
+                                <p style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                    Capture error messages during file searches
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Vim Text Editor -->
+                <div class="scenario-card" data-category="vim">
+                    <div class="scenario-header">
+                        <h3 class="scenario-title">
+                            ✏️ Vim Text Editor Mastery
+                        </h3>
+                        <p class="scenario-description">
+                            Master the powerful Vim editor for efficient text editing, essential for system configuration and script development.
+                        </p>
+                    </div>
+                    <div class="scenario-body">
+                        <div class="command-section">
+                            <div class="command-header">
+                                <span class="command-title">Vim Basic Operations</span>
+                                <span class="command-tag">Text Editor</span>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">vim filename.txt</span>
+                                <button class="copy-btn" onclick="copyCommand('vim filename.txt')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">:</span><span class="command-text">wq</span>
+                                <button class="copy-btn" onclick="copyCommand(':wq')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">:</span><span class="command-text">q!</span>
+                                <button class="copy-btn" onclick="copyCommand(':q!')">📋</button>
+                            </div>
+                        </div>
+
+                        <div class="vim-keys-grid">
+                            <div class="vim-key">
+                                <div class="key-command">i</div>
+                                <div class="key-description">Enter insert mode</div>
+                            </div>
+                            <div class="vim-key">
+                                <div class="key-command">Esc</div>
+                                <div class="key-description">Exit to normal mode</div>
+                            </div>
+                            <div class="vim-key">
+                                <div class="key-command">dd</div>
+                                <div class="key-description">Delete entire line</div>
+                            </div>
+                            <div class="vim-key">
+                                <div class="key-command">yy</div>
+                                <div class="key-description">Copy entire line</div>
+                            </div>
+                            <div class="vim-key">
+                                <div class="key-command">p</div>
+                                <div class="key-description">Paste copied content</div>
+                            </div>
+                            <div class="vim-key">
+                                <div class="key-command">u</div>
+                                <div class="key-description">Undo last change</div>
+                            </div>
+                            <div class="vim-key">
+                                <div class="key-command">Ctrl+r</div>
+                                <div class="key-description">Redo last undo</div>
+                            </div>
+                            <div class="vim-key">
+                                <div class="key-command">/pattern</div>
+                                <div class="key-description">Search for pattern</div>
+                            </div>
+                        </div>
+
+                        <div class="vim-box">
+                            <div class="vim-title">⚡ Advanced Vim Techniques:</div>
+                            <div class="explanation-text">
+                                <strong>3yy:</strong> Copy 3 lines starting from current position<br>
+                                <strong>:%s/old/new/g:</strong> Replace all occurrences of 'old' with 'new'<br>
+                                <strong>Ctrl+v:</strong> Enter visual block mode for column editing<br>
+                                <strong>:set number:</strong> Show line numbers<br>
+                                <strong>G:</strong> Go to end of file, gg: Go to beginning<br>
+                                <strong>:w filename:</strong> Save as new filename
+                            </div>
+                        </div>
+
+                        <div class="example-grid">
+                            <div class="example-box">
+                                <div class="example-title">⚙️ Configuration Editing</div>
+                                <div class="example-code">sudo vim /etc/ssh/sshd_config</div>
+                                <p style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                    Edit SSH server configuration safely
+                                </p>
+                            </div>
+                            <div class="example-box">
+                                <div class="example-title">📝 Script Development</div>
+                                <div class="example-code">vim backup_script.sh</div>
+                                <p style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                    Create and edit system administration scripts
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pipes & Filtering -->
+                <div class="scenario-card" data-category="pipes">
+                    <div class="scenario-header">
+                        <h3 class="scenario-title">
+                            🔄 Pipes & Command Chaining
+                        </h3>
+                        <p class="scenario-description">
+                            Connect commands using pipes to create powerful data processing workflows and filter information efficiently.
+                        </p>
+                    </div>
+                    <div class="scenario-body">
+                        <div class="command-section">
+                            <div class="command-header">
+                                <span class="command-title">Pipe Operations</span>
+                                <span class="command-tag">Data Flow</span>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">ps aux | grep apache</span>
+                                <button class="copy-btn" onclick="copyCommand('ps aux | grep apache')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">cat /var/log/messages | head -20</span>
+                                <button class="copy-btn" onclick="copyCommand('cat /var/log/messages | head -20')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">ls -la | wc -l</span>
+                                <button class="copy-btn" onclick="copyCommand('ls -la | wc -l')">📋</button>
+                            </div>
+                        </div>
+
+                        <div class="text-flow">
+                            <div class="text-step">
+                                <div class="step-icon">📊</div>
+                                <div class="step-title">Input</div>
+                                <div class="step-value">Command Output</div>
+                            </div>
+                            <div class="text-step">
+                                <div class="step-icon">🔄</div>
+                                <div class="step-title">Pipe |</div>
+                                <div class="step-value">Data Transfer</div>
+                            </div>
+                            <div class="text-step">
+                                <div class="step-icon">🔍</div>
+                                <div class="step-title">Filter</div>
+                                <div class="step-value">Process Data</div>
+                            </div>
+                            <div class="text-step">
+                                <div class="step-icon">📋</div>
+                                <div class="step-title">Output</div>
+                                <div class="step-value">Filtered Result</div>
+                            </div>
+                        </div>
+
+                        <div class="workflow-container">
+                            <div class="workflow-title">🔍 System Analysis Pipeline:</div>
+                            <div class="workflow-steps">
+                                <div class="workflow-step">
+                                    <div class="step-number">1</div>
+                                    <div>Generate raw system data with commands like ps, ls, or cat</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">2</div>
+                                    <div>Filter data using grep for specific patterns</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">3</div>
+                                    <div>Sort results using sort command for organization</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">4</div>
+                                    <div>Count or summarize using wc, uniq, or awk</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">5</div>
+                                    <div>Save processed results using tee or redirection</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="example-grid">
+                            <div class="example-box">
+                                <div class="example-title">🔍 Process Monitoring</div>
+                                <div class="example-code">ps aux | grep -v grep | grep httpd | wc -l</div>
+                                <p style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                    Count running Apache processes
+                                </p>
+                            </div>
+                            <div class="example-box">
+                                <div class="example-title">📊 Log Analysis</div>
+                                <div class="example-code">cat access.log | grep "404" | wc -l | tee 404_count.txt</div>
+                                <p style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                    Count 404 errors and save result
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Environment Variables -->
+                <div class="scenario-card" data-category="environment">
+                    <div class="scenario-header">
+                        <h3 class="scenario-title">
+                            🌍 Environment Variables
+                        </h3>
+                        <p class="scenario-description">
+                            Manage system and user environment variables that control shell behavior and application settings.
+                        </p>
+                    </div>
+                    <div class="scenario-body">
+                        <div class="command-section">
+                            <div class="command-header">
+                                <span class="command-title">Environment Management</span>
+                                <span class="command-tag">System Config</span>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">env</span>
+                                <button class="copy-btn" onclick="copyCommand('env')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">echo $PATH</span>
+                                <button class="copy-btn" onclick="copyCommand('echo $PATH')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">export MYVAR="value"</span>
+                                <button class="copy-btn" onclick="copyCommand('export MYVAR=\"value\"')">📋</button>
+                            </div>
+                        </div>
+
+                        <div class="use-case-box">
+                            <div class="use-case-title">🎯 Common Environment Variables:</div>
+                            <div class="explanation-text">
+                                <strong>PATH:</strong> Directories searched for executable commands<br>
+                                <strong>HOME:</strong> User's home directory location<br>
+                                <strong>USER:</strong> Current username<br>
+                                <strong>SHELL:</strong> Default shell program<br>
+                                <strong>PWD:</strong> Present working directory<br>
+                                <strong>LANG:</strong> System language and locale settings
+                            </div>
+                        </div>
+
+                        <div class="workflow-container">
+                            <div class="workflow-title">⚙️ Environment Configuration Workflow:</div>
+                            <div class="workflow-steps">
+                                <div class="workflow-step">
+                                    <div class="step-number">1</div>
+                                    <div>View current environment variables with env command</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">2</div>
+                                    <div>Set temporary variables for current session</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">3</div>
+                                    <div>Add permanent variables to ~/.bashrc</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">4</div>
+                                    <div>Reload configuration with source command</div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">5</div>
+                                    <div>Verify changes take effect in new sessions</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="example-grid">
+                            <div class="example-box">
+                                <div class="example-title">📍 PATH Management</div>
+                                <div class="example-code">export PATH=$PATH:/usr/local/bin</div>
+                                <p style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                    Add directory to executable path
+                                </p>
+                            </div>
+                            <div class="example-box">
+                                <div class="example-title">🔄 Configuration Reload</div>
+                                <div class="example-code">source ~/.bashrc</div>
+                                <p style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                    Reload bash configuration file
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Text Processing -->
+                <div class="scenario-card" data-category="processing">
+                    <div class="scenario-header">
+                        <h3 class="scenario-title">
+                            🔍 Text Processing & Analysis
+                        </h3>
+                        <p class="scenario-description">
+                            Process and analyze text files using powerful command-line tools for data extraction and system monitoring.
+                        </p>
+                    </div>
+                    <div class="scenario-body">
+                        <div class="command-section">
+                            <div class="command-header">
+                                <span class="command-title">Text Analysis Tools</span>
+                                <span class="command-tag">Data Processing</span>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">wc -l filename.txt</span>
+                                <button class="copy-btn" onclick="copyCommand('wc -l filename.txt')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">grep "error" /var/log/syslog</span>
+                                <button class="copy-btn" onclick="copyCommand('grep \"error\" /var/log/syslog')">📋</button>
+                            </div>
+                            <div class="command-block">
+                                <span class="command-prompt">$ </span><span class="command-text">sort data.txt | uniq -c</span>
+                                <button class="copy-btn" onclick="copyCommand('sort data.txt | uniq -c')">📋</button>
+                            </div>
+                        </div>
+
+                        <div class="text-flow">
+                            <div class="text-step">
+                                <div class="step-icon">📊</div>
+                                <div class="step-title">Count</div>
+                                <div class="step-value">wc command</div>
+                            </div>
+                            <div class="text-step">
+                                <div class="step-icon">🔍</div>
+                                <div class="step-title">Search</div>
+                                <div class="step-value">grep patterns</div>
+                            </div>
+                            <div class="text-step">
+                                <div class="step-icon">🔄</div>
+                                <div class="step-title">Sort</div>
+                                <div class="step-value">organize data</div>
+                            </div>
+                            <div class="text-step">
+                                <div class="step-icon">📋</div>
+                                <div class="step-title">Output</div>
+                                <div class="step-value">tee to files</div>
+                            </div>
+                        </div>
+
+                        <div class="explanation-box">
+                            <div class="explanation-title">🔧 Essential Text Processing Commands:</div>
+                            <div class="explanation-text">
+                                <strong>wc (word count):</strong> Count lines, words, and characters in files<br>
+                                <strong>grep:</strong> Search for patterns and regular expressions<br>
+                                <strong>sort:</strong> Organize text lines in alphabetical or numerical order<br>
+                                <strong>uniq:</strong> Remove or count duplicate lines<br>
+                                <strong>tee:</strong> Write output to both file and stdout simultaneously<br>
+                                <strong>head/tail:</strong> Display first or last lines of files
+                            </div>
+                        </div>
+
+                        <div class="example-grid">
+                            <div class="example-box">
+                                <div class="example-title">📈 Log Statistics</div>
+                                <div class="example-code">grep "Failed" /var/log/auth.log | wc -l | tee failed_logins.txt</div>
+                                <p style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                    Count failed login attempts and save result
+                                </p>
+                            </div>
+                            <div class="example-box">
+                                <div class="example-title">🎯 Data Extraction</div>
+                                <div class="example-code">grep "error" logfile.txt > errors.txt</div>
+                                <p style="color: var(--terminal-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                                    Extract error messages to separate file
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer">
+                <p>© 2025 College of DuPage - Computer Information Technology Department</p>
+                <p>CIT 1450 Linux/Unix Systems | AI Cybersecurity Program</p>
+                <p><em>"Master text files, master the system!" 📝⚡</em></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // Initialize variables
+        const searchInput = document.getElementById('searchInput');
+        const filterTabs = document.querySelectorAll('.filter-tab');
+        const scenarioCards = document.querySelectorAll('.scenario-card');
+        let currentFilter = 'all';
+
+        // Search functionality
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            filterScenarios(searchTerm, currentFilter);
+        });
+
+        // Filter tab functionality
+        filterTabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                // Update active tab
+                filterTabs.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                
+                currentFilter = this.dataset.category;
+                const searchTerm = searchInput.value.toLowerCase();
+                filterScenarios(searchTerm, currentFilter);
+            });
+        });
+
+        // Filter scenarios based on search and category
+        function filterScenarios(searchTerm, category) {
+            scenarioCards.forEach(card => {
+                const cardCategory = card.dataset.category;
+                const cardText = card.textContent.toLowerCase();
+                
+                const matchesCategory = category === 'all' || category === cardCategory;
+                const matchesSearch = !searchTerm || cardText.includes(searchTerm);
+                
+                if (matchesCategory && matchesSearch) {
+                    card.classList.remove('hidden');
+                } else {
+                    card.classList.add('hidden');
+                }
+            });
+        }
+
+        // Copy command to clipboard
+        function copyCommand(command) {
+            // Clean up command text (remove HTML and extra whitespace)
+            const cleanCommand = command.replace(/<[^>]*>/g, '').trim();
+            
+            navigator.clipboard.writeText(cleanCommand).then(() => {
+                showToast(`Copied: ${cleanCommand.substring(0, 60)}${cleanCommand.length > 60 ? '...' : ''}`);
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+                showToast('Copy failed - try selecting manually');
+            });
+        }
+
+        // Show toast notification
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2500);
+        }
+
+        // Interactive text flow steps
+        const textSteps = document.querySelectorAll('.text-step');
+        textSteps.forEach((step, index) => {
+            step.addEventListener('click', function() {
+                const stepValue = this.querySelector('.step-value').textContent;
+                showToast(`Text Processing Step ${index + 1}: ${stepValue}`);
+                
+                // Animate step
+                const icon = this.querySelector('.step-icon');
+                icon.style.transform = 'scale(1.1) rotate(5deg)';
+                setTimeout(() => {
+                    icon.style.transform = 'scale(1) rotate(0deg)';
+                }, 300);
+            });
+        });
+
+        // Interactive vim keys
+        const vimKeys = document.querySelectorAll('.vim-key');
+        vimKeys.forEach(key => {
+            key.addEventListener('click', function() {
+                const keyCommand = this.querySelector('.key-command').textContent;
+                const keyDescription = this.querySelector('.key-description').textContent;
+                showToast(`Vim: ${keyCommand} - ${keyDescription}`);
+                
+                // Animate selection
+                this.style.transform = 'scale(1.05)';
+                setTimeout(() => {
+                    this.style.transform = 'scale(1)';
+                }, 300);
+            });
+        });
+
+        // Interactive workflow steps
+        const workflowSteps = document.querySelectorAll('.workflow-step');
+        workflowSteps.forEach(step => {
+            step.addEventListener('click', function() {
+                const stepText = this.textContent.trim();
+                showToast(`Workflow: ${stepText}`);
+                
+                // Animate selection
+                this.style.transform = 'scale(1.02)';
+                setTimeout(() => {
+                    this.style.transform = 'scale(1)';
+                }, 300);
+            });
+        });
+
+        // Interactive example boxes
+        const exampleBoxes = document.querySelectorAll('.example-box');
+        exampleBoxes.forEach(box => {
+            box.addEventListener('click', function() {
+                const exampleTitle = this.querySelector('.example-title').textContent;
+                showToast(`Example: ${exampleTitle}`);
+                
+                // Animate example
+                this.style.boxShadow = '0 0 20px rgba(0, 255, 65, 0.3)';
+                setTimeout(() => {
+                    this.style.boxShadow = '';
+                }, 500);
+            });
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl/Cmd + K to focus search
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                searchInput.focus();
+                searchInput.select();
+            }
+            
+            // Escape to clear search
+            if (e.key === 'Escape') {
+                searchInput.value = '';
+                filterScenarios('', currentFilter);
+                searchInput.blur();
+            }
+        });
+
+        // Initialize page with text file themed animations
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animated search placeholder
+            const searchPlaceholder = "$ search vim, redirection, pipes, environment, text...";
+            let i = 0;
+            const typeInterval = setInterval(() => {
+                if (i < searchPlaceholder.length) {
+                    searchInput.placeholder = searchPlaceholder.substring(0, i + 1);
+                    i++;
+                } else {
+                    clearInterval(typeInterval);
+                }
+            }, 50);
+
+            // Setup cards for animation
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, observerOptions);
+
+            scenarioCards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                card.style.transition = `opacity 0.6s ease ${index * 0.1}s, transform 0.6s ease ${index * 0.1}s`;
+                observer.observe(card);
+            });
+
+            // Animate text processing flow
+            textSteps.forEach((step, index) => {
+                setTimeout(() => {
+                    const icon = step.querySelector('.step-icon');
+                    icon.style.transform = 'scale(1.1) rotate(5deg)';
+                    setTimeout(() => {
+                        icon.style.transform = 'scale(1) rotate(0deg)';
+                    }, 300);
+                }, index * 400 + 1000);
+            });
+
+            // Animate vim keys
+            vimKeys.forEach((key, index) => {
+                setTimeout(() => {
+                    key.style.transform = 'scale(1.02)';
+                    setTimeout(() => {
+                        key.style.transform = 'scale(1)';
+                    }, 200);
+                }, index * 100 + 2000);
+            });
+        });
+    </script>
+</body>
+</html>
