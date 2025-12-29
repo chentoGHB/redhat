@@ -1,0 +1,1590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linux Fundamentals for Cybersecurity - Chapter 1</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-bg: #0a0e1a;
+            --secondary-bg: #1a1f2e;
+            --accent-bg: #242b3d;
+            --border-color: #2d3748;
+            --primary-color: #e2e8f0;
+            --secondary-color: #a0aec0;
+            --muted-color: #718096;
+            --success-color: #48bb78;
+            --warning-color: #ed8936;
+            --danger-color: #f56565;
+            --info-color: #4299e1;
+            --purple-color: #9f7aea;
+            --cyan-color: #00d4aa;
+            --linux-blue: #4299e1;
+            --opensource-green: #48bb78;
+            --security-orange: #ed8936;
+            --enterprise-purple: #9f7aea;
+            --redhat-red: #f56565;
+            --compliance-gold: #ecc94b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, var(--primary-bg) 0%, #0f1419 100%);
+            color: var(--primary-color);
+            line-height: 1.7;
+            min-height: 100vh;
+            font-size: 16px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            position: relative;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -30px;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--linux-blue), var(--opensource-green), var(--enterprise-purple), transparent);
+            animation: pulse 3s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; transform: scaleX(0.8); }
+            50% { opacity: 1; transform: scaleX(1); }
+        }
+
+        .title {
+            font-size: clamp(2.5rem, 6vw, 3.8rem);
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--linux-blue), var(--opensource-green), var(--enterprise-purple));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+        }
+
+        .subtitle {
+            font-size: 1.4rem;
+            color: var(--secondary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .course-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: linear-gradient(135deg, var(--accent-bg), var(--secondary-bg));
+            border: 1px solid var(--border-color);
+            border-radius: 50px;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            color: var(--linux-blue);
+            margin-top: 1rem;
+        }
+
+        .intro-text {
+            background: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 3rem;
+            text-align: center;
+        }
+
+        .intro-text h3 {
+            color: var(--linux-blue);
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+        }
+
+        .intro-text p {
+            color: var(--secondary-color);
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        .company-scenario {
+            background: rgba(66, 153, 225, 0.1);
+            border: 1px solid rgba(66, 153, 225, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 3rem;
+            text-align: center;
+        }
+
+        .company-scenario h3 {
+            color: var(--linux-blue);
+            font-size: 1.2rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .company-scenario p {
+            color: var(--secondary-color);
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        .linux-guide {
+            background: var(--accent-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 3rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        .linux-card {
+            background: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .linux-card h4 {
+            color: var(--opensource-green);
+            margin-bottom: 0.5rem;
+        }
+
+        .linux-example {
+            font-family: 'Roboto Mono', monospace;
+            color: var(--compliance-gold);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .linux-desc {
+            color: var(--secondary-color);
+            font-size: 0.9rem;
+        }
+
+        .search-controls {
+            position: sticky;
+            top: 2rem;
+            z-index: 100;
+            background: rgba(26, 31, 46, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 1rem 1.25rem;
+            background: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            color: var(--primary-color);
+            font-family: inherit;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--linux-blue);
+            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.15);
+        }
+
+        .search-input::placeholder {
+            color: var(--muted-color);
+        }
+
+        .filter-tags {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .filter-tag {
+            padding: 0.6rem 1.2rem;
+            background: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 25px;
+            color: var(--secondary-color);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        .filter-tag:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .filter-tag.active {
+            background: linear-gradient(135deg, var(--linux-blue), var(--opensource-green));
+            color: var(--primary-bg);
+            border-color: var(--linux-blue);
+            box-shadow: 0 4px 20px rgba(66, 153, 225, 0.3);
+        }
+
+        .scenario-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 2.5rem;
+        }
+
+        .scenario-card {
+            background: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            overflow: hidden;
+            transition: all 0.4s ease;
+            position: relative;
+            opacity: 0;
+            animation: fadeInUp 0.8s ease forwards;
+        }
+
+        .scenario-card:nth-child(odd) { animation-delay: 0.1s; }
+        .scenario-card:nth-child(even) { animation-delay: 0.2s; }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .scenario-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.4);
+            border-color: var(--scenario-color, var(--linux-blue));
+        }
+
+        .scenario-header {
+            padding: 2rem;
+            background: linear-gradient(135deg, var(--accent-bg), var(--secondary-bg));
+            border-bottom: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        .scenario-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--scenario-color, var(--linux-blue));
+            border-radius: 16px 16px 0 0;
+        }
+
+        .scenario-title {
+            font-size: 1.6rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .scenario-icon {
+            font-size: 2rem;
+            color: var(--scenario-color, var(--linux-blue));
+        }
+
+        .scenario-description {
+            color: var(--secondary-color);
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        .company-context {
+            background: rgba(245, 101, 101, 0.1);
+            border: 1px solid rgba(245, 101, 101, 0.3);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .company-context h4 {
+            color: var(--redhat-red);
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .company-context p {
+            color: var(--secondary-color);
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .scenario-content {
+            padding: 2rem;
+        }
+
+        .knowledge-workflow {
+            margin-bottom: 2rem;
+        }
+
+        .workflow-step {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            align-items: flex-start;
+        }
+
+        .step-number {
+            flex-shrink: 0;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--scenario-color, var(--linux-blue));
+            color: var(--primary-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        .step-content {
+            flex: 1;
+        }
+
+        .step-title {
+            color: var(--primary-color);
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .step-description {
+            color: var(--secondary-color);
+            margin-bottom: 1rem;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        .concept-block {
+            background: var(--primary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            font-family: 'Inter', sans-serif;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .concept-block::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--scenario-color, var(--linux-blue));
+        }
+
+        .concept-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .concept-item:hover {
+            background: rgba(66, 153, 225, 0.05);
+        }
+
+        .concept-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .concept-icon {
+            color: var(--opensource-green);
+            margin-right: 1rem;
+            font-size: 1.2rem;
+            margin-top: 0.2rem;
+        }
+
+        .concept-content {
+            flex: 1;
+        }
+
+        .concept-title {
+            color: var(--cyan-color);
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            font-size: 1rem;
+        }
+
+        .concept-explanation {
+            color: var(--secondary-color);
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .tips-section {
+            background: rgba(66, 153, 225, 0.1);
+            border: 1px solid rgba(66, 153, 225, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .tips-title {
+            color: var(--linux-blue);
+            font-weight: 600;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .tip-list {
+            list-style: none;
+            color: var(--secondary-color);
+            font-size: 1rem;
+        }
+
+        .tip-list li {
+            margin-bottom: 0.5rem;
+            padding-left: 1.5rem;
+            position: relative;
+            line-height: 1.5;
+        }
+
+        .tip-list li::before {
+            content: '🐧';
+            position: absolute;
+            left: 0;
+            font-size: 0.9rem;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--linux-blue);
+            color: var(--primary-bg);
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            font-family: 'Roboto Mono', monospace;
+            font-weight: 500;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .footer {
+            margin-top: 4rem;
+            text-align: center;
+            color: var(--muted-color);
+            font-size: 1rem;
+            padding: 2rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .college-brand {
+            color: var(--linux-blue);
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .container { padding: 1rem; }
+            .scenario-grid { grid-template-columns: 1fr; }
+            .title { font-size: 2.5rem; }
+            .search-controls { position: static; }
+            .filter-tags { justify-content: flex-start; }
+            .scenario-header { padding: 1.5rem; }
+            .scenario-content { padding: 1.5rem; }
+            .workflow-step { gap: 1rem; }
+            .step-number { width: 32px; height: 32px; }
+            .linux-guide { grid-template-columns: 1fr; }
+        }
+
+        .hidden { display: none !important; }
+
+        /* Scenario-specific colors */
+        .linux-fundamentals { --scenario-color: var(--linux-blue); }
+        .opensource-security { --scenario-color: var(--opensource-green); }
+        .distribution-selection { --scenario-color: var(--security-orange); }
+        .redhat-ecosystem { --scenario-color: var(--enterprise-purple); }
+        .licensing-compliance { --scenario-color: var(--compliance-gold); }
+        .enterprise-deployment { --scenario-color: var(--redhat-red); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1 class="title">Linux Fundamentals for Cybersecurity</h1>
+            <p class="subtitle">Your First Day: Understanding Enterprise Linux Landscape</p>
+            <div class="course-badge">
+                <span>🐧</span>
+                <span>College of DuPage - AI Cybersecurity Program</span>
+            </div>
+        </header>
+
+        <div class="intro-text">
+            <h3>Welcome to Enterprise Linux for Cybersecurity!</h3>
+            <p>Welcome to your first day at TechCorp Solutions! You're joining as a junior cybersecurity analyst, and Linux knowledge is essential for protecting enterprise infrastructure. Learn why Linux dominates cybersecurity, understand open source security advantages, and master the enterprise Linux ecosystem that powers modern security operations.</p>
+        </div>
+
+        <div class="company-scenario">
+            <h3>🎯 Your First Day at TechCorp Solutions</h3>
+            <p><strong>Day 1 Orientation:</strong> Enterprise cybersecurity operations powered by Linux infrastructure | <strong>Learning Mission:</strong> Understanding why 90% of enterprise security tools run on Linux, how open source enhances security, and which distributions protect critical business assets across global operations</p>
+        </div>
+
+        <div class="linux-guide">
+            <div class="linux-card">
+                <h4>Linux Foundation</h4>
+                <div class="linux-example">Open Source Security</div>
+                <div class="linux-desc">Transparency and community-driven security validation</div>
+            </div>
+            <div class="linux-card">
+                <h4>Enterprise Distributions</h4>
+                <div class="linux-example">RHEL CentOS Fedora</div>
+                <div class="linux-desc">Production-grade Linux for cybersecurity operations</div>
+            </div>
+            <div class="linux-card">
+                <h4>Security Architecture</h4>
+                <div class="linux-example">CLI Scripting Automation</div>
+                <div class="linux-desc">Command-line security automation and monitoring</div>
+            </div>
+            <div class="linux-card">
+                <h4>Compliance Management</h4>
+                <div class="linux-example">Licensing Governance</div>
+                <div class="linux-desc">Enterprise compliance and open source governance</div>
+            </div>
+        </div>
+
+        <div class="search-controls">
+            <input type="text" class="search-input" placeholder="🔍 Search for Linux fundamentals and cybersecurity concepts..." id="searchInput">
+            <div class="filter-tags">
+                <button class="filter-tag active" data-category="all">All Concepts</button>
+                <button class="filter-tag" data-category="linux-fundamentals">Linux Fundamentals</button>
+                <button class="filter-tag" data-category="opensource-security">Open Source Security</button>
+                <button class="filter-tag" data-category="distribution-selection">Distribution Selection</button>
+                <button class="filter-tag" data-category="redhat-ecosystem">Red Hat Ecosystem</button>
+                <button class="filter-tag" data-category="licensing-compliance">Licensing & Compliance</button>
+                <button class="filter-tag" data-category="enterprise-deployment">Enterprise Deployment</button>
+            </div>
+        </div>
+
+        <div class="scenario-grid">
+            <!-- Linux Fundamentals and Cybersecurity Foundation -->
+            <div class="scenario-card linux-fundamentals" data-category="linux-fundamentals">
+                <div class="scenario-header">
+                    <div class="scenario-title">
+                        <span class="scenario-icon">🐧</span>
+                        Linux Fundamentals and Cybersecurity Foundation
+                    </div>
+                    <div class="scenario-description">
+                        Understand why Linux dominates enterprise cybersecurity! Learn how Linux powers security infrastructure, why command-line interfaces are essential for cybersecurity, and how Linux's architecture provides superior security capabilities for protecting critical business assets.
+                    </div>
+                </div>
+                <div class="scenario-content">
+                    <div class="company-context">
+                        <h4>🏢 TechCorp Security Infrastructure Overview</h4>
+                        <p><strong>Security Landscape:</strong> "90% of our security infrastructure runs on Linux! Firewalls, SIEM systems, incident response tools, vulnerability scanners. Understanding Linux is fundamental to protecting our enterprise - it's the backbone of modern cybersecurity operations."</p>
+                    </div>
+                    <div class="knowledge-workflow">
+                        <div class="workflow-step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <div class="step-title">Linux in Enterprise Cybersecurity Infrastructure</div>
+                                <div class="step-description">Understand Linux's critical role in cybersecurity operations and security tool ecosystem.</div>
+                                <div class="concept-block">
+                                    <div class="concept-item">
+                                        <span class="concept-icon">🔒</span>
+                                        <div class="concept-content">
+                                            <div class="concept-title">Security Infrastructure Platform</div>
+                                            <div class="concept-explanation">Linux runs 90% of cybersecurity tools: firewalls, SIEM, IDS/IPS, vulnerability scanners, and incident response platforms</div>
+                                        </div>
+                                    </div>
+                                    <div class="concept-item">
+                                        <span class="concept-icon">🌐</span>
+                                        <div class="concept-content">
+                                            <div class="concept-title">Internet and Cloud Security</div>
+                                            <div class="concept-explanation">Powers web servers, cloud instances, containers, and microservices that form modern security architecture</div>
+                                        </div>
+                                    </div>
+                                    <div class="concept-item">
+                                        <span class="concept-icon">📱</span>
+                                        <div class="concept-content">
+                                            <div class="concept-title">IoT and Mobile Security</div>
+                                            <div class="concept-explanation">Secures Internet of Things devices, mobile applications, and embedded security systems across enterprise networks</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <div class="step-title">Command-Line Interface for Security Operations</div>
+                                <div class="step-description">Learn why CLI mastery is essential for cybersecurity professionals and security automation.</div>
+                                <div class="concept-block">
+                                    <div class="concept-item">
+                                        <span class="concept-icon">⚡</span>
+                                        <div class="concept-content">
+                                            <div class="concept-title">Security Automation and Scripting</div>
+                                            <div class="concept-explanation">CLI enables rapid incident response, automated threat hunting, and security orchestration across enterprise infrastructure</div>
+                                        </div>
+                                    </div>
+                                    <div class="concept-item">
+                                        <span class="concept-icon">🔍</span>
+                                        <div class="concept-content">
+                                            <div class="concept-title">Log Analysis and Forensics</div>
+                                            <div class="concept-explanation">Command-line tools provide powerful log analysis, digital forensics capabilities, and real-time security monitoring</div>
+                                        </div>
+                                    </div>
+                                    <div class="concept-item">
+                                        <span class="concept-icon">🌍</span>
+                                        <div class="concept-content">
+                                            <div class="concept-title">Remote Security Management</div>
+                                            <div class="concept-explanation">SSH and CLI enable secure remote administration of security systems across global enterprise infrastructure</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <div class="step-title">Linux Security Architecture Advantages</div>
+                                <div class="step-description">Understand Linux's modular design and security benefits for enterprise cybersecurity.</div>
+                                <div class="concept-block">
+                                    <div class="concept-item">
+                                        <span class="concept-icon">🧩</span>
+                                        <div class="concept-content">
+                                            <div class="concept-title">Modular Security Components</div>
+                                            <div class="concept-explanation">Replace and upgrade security components independently: firewalls, authentication systems, encryption modules</div>
+                                        </div>
+                                    </div>
+                                    <div class="concept-item">
+                                        <span class="concept-icon">⚖️</span>
+                                        <div class="concept-content">
+                                            <div class="concept-title">Scalable Security Infrastructure</div>
+                                            <div class="concept-explanation">Scale from minimal embedded security devices to comprehensive enterprise security appliances</div>
+                                        </div>
+                                    </div>
+                                    <div class="concept-item">
+                                        <span class="concept-icon">🛡️</span>
+                                        <div class="concept-content">
+                                            <div class="concept-title">Built-in Security Philosophy</div>
+                                            <div class="concept-explanation">Security designed into architecture from the start: user permissions, process isolation, network security</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">4</div>
+                            <div class="step-content">
+                                <div class="step-title">Enterprise Cybersecurity Career Advantages</div>
+                                <div class="step-description">Learn why Linux skills are essential for cybersecurity career advancement and specialization.</div>
+                                <div class="concept-block">
+                                    <div class="concept-item">
+                                        <span class="concept-icon">📈</span>
+                                        <div class="concept-content">
+                                            <div class="concept-title">High Demand Security Skills</div>
+                                            <div class="concept-explanation">Linux cybersecurity expertise is in critical demand: incident response, penetration testing, security engineering</div>
+                                        </div>
+                                    </div>
+                                    <div class="concept-item">
+                                        <span class="concept-icon">☁️</span>
+                                        <div class="concept-content">
+                                            <div class="concept-title">Cloud Security Opportunities</div>
+                                            <div class="concept-explanation">Cloud security roles require Linux expertise: AWS, Azure, Google Cloud security implementations</div>
+                                        </div>
+                                    </div>
+                                    <div class="concept-item">
+                                        <span class="concept-icon">🔬</span>
+                                        <div class="concept-content">
+                                            <div class="concept-title">Advanced Security Specializations</div>
+                                            <div class="concept-explanation">Enable specialization in malware analysis, digital forensics, red team operations, and security research</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tips-section">
+                        <div class="tips-title">🐧 Linux Fundamentals Knowledge Gained</div>
+                        <ul class="tip-list">
+                            <li>Understood Linux's critical role in powering enterprise cybersecurity infrastructure</li>
+                            <li>Learned why command-line mastery is essential for security automation and incident response</li>
+                            <li>Explored Linux's modular architecture and built-in security advantages</li>
+                            <li>Recognized Linux skills as fundamental for cybersecurity career advancement</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Open Source Security and Transparency Benefits -->
+            <div class="scenario-card opensource-security" data-category="opensource-security">
+                <div class="scenario-header">
+                    <div class="scenario-title">
+                        <span class="scenario-icon">🔓</span>
+                        Open Source Security and Transparency Benefits
+                    </div>
+                    <div class="scenario-description">
+                        Discover why open source software enhances enterprise security! Learn how transparency improves security validation, understand community-driven security research, explore open source license types for cybersecurity tools, and master security advantages of open source development.
+                    </div>
+                </div>
+                <div class="scenario-content">
+                    <div class="company-context">
+                        <h4>🏢 TechCorp Open Source Security Strategy</h4>
+                        <p><strong>Security Philosophy:</strong> "Open source provides transparent security validation impossible with proprietary tools. Thousands of security researchers examine our code, identify vulnerabilities faster, and contribute security enhancements - creating stronger protection for our enterprise."</p>
+                    </div>
+                    <div class="knowledge-workflow">
+                        <div class="workflow-step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <div class="step-title">Open Source Security Transparency Advantages</div>
+                                <div class="step-description">Understand how source code transparency enhances security validation and vulnerability discovery.</div>
+                                <div class="concept-block">
+                                    <div class="concept-item">
+                                        <span class="concept-icon">🔍</span>
+                                        <div class="concept-content">
+                                            <div class="concept-title">Security Code Inspection</div>
+                                            <div class="concept-explanation">Security researchers can examine every line of code, identify vulnerabilities, and verify security implementations</div>
+                                        </div>
+                                    </div>
+                                    <div class="concept-item">
+                                        <span class="concept-icon">🚫</span>
+                                        <div class="concept-content">
+                                            <div class="concept-title">No Hidden Security Flaws</div>
+                                            <div class="concept-explanation">Transparent development prevents hidden backdoors, undisclosed vulnerabilities, and proprietary security weaknesses</div>
+                                        </div>
+                                    </div>
+                                    <div class="concept-item">
+                                        <span class="concept-icon">⚡</span>
+                                        <div class="concept-content">
+                                            <div class="concept-title">Rapid Security Patching</div>
+                                            <div class="concept-explanation">Community-driven development enables faster security patch development and deployment across all users</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <div class="step-title">Community-Driven Security Research and Innovation</div>
+                                <div class="step-description">Learn how open source communities enhance security through collaborative research and development.</div>
+                                <div class="concept-block">
+                                    <div class="concept-item">
+                                        <span class="concept-icon">🌍</span>
+                                        <div class="concept-content">
+                                            <div class="concept-title">Global Security Expertise</div>
+                                            <div class="concept-explanation">Thousands of security professionals worldwide contribute expertise, identify threats, and develop countermeasures</div>
+                                        </div>
+                                    </div>
+                                    <div class="concept-item">
+                                        <span class="concept-icon">🔬</span>
+                                        <div class="concept-content">
+                                            <div class="concept-title">Collaborative Threat Research</div>
+                                            <div class="concept-explanation">Security researchers share threat intelligence, attack patterns, and defense strategies across the community</div>
+                                        </div>
+                                    </div>
+                                    <div class="concept-item">
+                                        <span class="concept-icon">🏆</span>
+                                        <div class="concept-content">
+                                            <div class="concept-title">Continuous Security Innovation</div>
+                                            <div class="concept-explanation">Open collaboration drives security innovation faster than any single organization could achieve independently</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <div class="step-title">Open Source License Types for Cybersecurity</div>
+                                <div class="step-description">Understand different open source licenses and their implications for cybersecurity implementations.</div>
+                                <div class="concept-block">
+                                    <div class="concept-item">
+                                        <span class="concept-icon">🔄</span>
+                                        <div class="concept-content">
+                                            <div class="concept-title">Copyleft Licenses (GPL/LGPL)</div>
+                                            <div class="concept-explanation">Ensure security enhancements remain open source, preventing proprietary security modifications that could weaken protection</div>
+                                        </div>
+                                    </div>
+                                    <div class="concept-item">
+                                        <span class="concept-icon">🎯</span>
+                                        <div class="concept-content">
+                                            <div class="concept-title">Permissive Licenses (MIT/BSD/Apache)</div>
+                                            <div class="concept-explanation">Enable integration into commercial security products while maintaining open source security foundation</div>
+                                        </div>
+                                    </div>
+                                    <div class="concept-item">
+                                        <span class="concept-icon">⚖️</span>
+                                        <div class="concept-content">
+                                            <div class="concept-title">Enterprise License Selection</div>
+                                            <div class="concept-explanation">Choose appropriate licenses for security tools based on enterprise requirements and compliance needs</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">4</div>
+                            <div class="step-content">
+                                <div class="step-title">Enterprise Open Source Security Benefits</div>
+                                <div class="step-description">Explore comprehensive advantages of open source software for enterprise cybersecurity operations.</div>
+                                <div class="concept-block">
+                                    <div class="concept-item">
+                                        <span class="concept-icon">🎓</span>
+                                        <div class="concept-content">
+                                            <div class="concept-title">Security Skills Development</div>
+                                            <div class="concept-explanation">Learn from real-world security code, understand attack patterns, and develop advanced cybersecurity capabilities</div>
+                                        </div>
+                                    </div>
+                                    <div class="concept-item">
+                                        <span class="concept-icon">🔒</span>
+                                        <div class="concept-content">
+                                            <div class="concept-title">Independent Security Validation</div>
+                                            <div class="concept-explanation">Verify security implementations independently without relying on vendor claims or proprietary assessments</div>
+                                        </div>
+                                    </div>
+                                    <div class="concept-item">
+                                        <span class="concept-icon">💪</span>
+                                        <div class="concept-content">
+                                            <div class="concept-title">Long-term Security Resilience</div>
+                                            <div class="concept-explanation">Security tools remain viable even if original developers discontinue support, ensuring continuous protection</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tips-section">
+                        <div class="tips-title">🐧 Open Source Security Knowledge Developed</div>
+                        <ul class="tip-list">
+                            <li>Understood transparency advantages for security validation and vulnerability discovery</li>
+                            <li>Learned how community-driven research enhances global cybersecurity capabilities</li>
+                            <li>Explored open source license types and their implications for enterprise security</li>
+                            <li>Recognized comprehensive security benefits of open source development model</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Enterprise Linux Distribution Selection for Cybersecurity -->
+            <div class="scenario-card distribution-selection" data-category="distribution-selection">
+                <div class="scenario-header">
+                    <div class="scenario-title">
+                        <span class="scenario-icon">🎯</span>
+                        Enterprise Linux Distribution Selection for Cybersecurity
+                    </div>
+                    <div class="scenario-description">
+                        Master enterprise Linux distribution selection for cybersecurity operations! Compare distribution characteristics, understand security-focused distributions, evaluate enterprise support requirements, and select optimal Linux distributions for cybersecurity infrastructure.
+                    </div>
+                </div>
+                <div class="scenario-content">
+                    <div class="company-context">
+                        <h4>🏢 TechCorp Distribution Strategy Planning</h4>
+                        <p><strong>Infrastructure Decision:</strong> "Choosing the right Linux distribution is critical for our cybersecurity operations. Different distributions serve different security needs - from minimal embedded security appliances to comprehensive enterprise security platforms requiring long-term support."</p>
+                    </div>
+                    <div class="knowledge-workflow">
+                        <div class="workflow-step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <div class="step-title">Linux Distribution Core Components and Architecture</div>
+                                <div class="step-description">Understand how Linux distributions are constructed and their role in cybersecurity infrastructure.</div>
+                                <div class="concept-block">
+                                    <div class="concept-item">
+                                        <span class="concept-icon">🧠</span>
+                                        <div class="concept-content">
+                                            <div class="concept-title">Linux Kernel Foundation</div>
+                                            <div class="concept-explanation">Core system kernel manages hardware, memory, and security processes - foundation of all cybersecurity operations</div>
+                                        </div>
+                                    </div>
+                                    <div class="concept-item">
+                                        <span class="concept-icon">🛠️</span>
+                                        <div class="concept-content">
+                                            <div class="concept-title">Security-Focused User-Space Programs</div>
+                                            <div class="concept-explanation">Security tools, utilities, and applications that provide cybersecurity capabilities: firewalls, intrusion detection, encryption</div>
+                                        </div>
+                                    </div>
+                                    <div class="concept-item">
+                                        <span class="concept-icon">📦</span>
+                                        <div class="concept-content">
+                                            <div class="concept-title">Package Management and Updates</div>
+                                            <div class="concept-explanation">Secure software installation, updates, and vulnerability patching systems for maintaining security posture</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <div class="step-title">Security-Specialized Linux Distribution Types</div>
+                                <div class="step-description">Explore different distribution types and their cybersecurity applications and use cases.</div>
+                                <div class="concept-block">
+                                    <div class="concept-item">
+                                        <span class="concept-icon">🔧</span>
+                                        <div class="concept-content">
+                                            <div class="concept-title">Minimal Security Appliances</div>
+                                            <div class="concept-explanation">Lightweight distributions for dedicated security functions: firewalls, intrusion detection systems, security gateways</div>
+                                        </div>
+                                    </div>
+                                    <div class="concept-item">
+                                        <span class="concept-icon">🎯</span>
+                                        <div class="concept-content">
+                                            <div class="concept-title">Penetration Testing Distributions</div>
+                                            <div class="concept-explanation">Security-focused distributions with pre-installed penetration testing and security assessment tools</div>
+                                        </div>
+                                    </div>
+                                    <div class="concept-item">
+                                        <span class="concept-icon">🏢</span>
+                                        <div class="concept-content">
+                                            <div class="concept-title">Enterprise Security Platforms</div>
+                                            <div class="concept-explanation">Comprehensive distributions for large-scale cybersecurity operations with thousands of security applications</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <div class="step-title">Enterprise Support and Security Lifecycle Management</div>
+                                <div class="step-description">Understand enterprise requirements for distribution support in cybersecurity environments.</div>
+                                <div class="concept-block">
+                                    <div class="concept-item">
+                                        <span class="concept-icon">🛡️</span>
+                                        <div class="concept-content">
+                                            <div class="concept-title">Long-term Security Support</div>
+                                            <div class="concept-explanation">Enterprise distributions provide extended security patch support and vulnerability management for critical infrastructure</div>
+                                        </div>
+                                    </div>
+                                    <div class="concept-item">
+                                        <span class="concept-icon">📞</span>
+                                        <div class="concept-content">
+                                            <div class="concept-title">Professional Cybersecurity Support</div>
+                                            <div class="concept-explanation">Vendor support for security incidents, compliance requirements, and enterprise cybersecurity implementation</div>
+                                        </div>
+                                    </div>
+                                    <div class="concept-item">
+                                        <span class="concept-icon">🎯</span>
+                                        <div class="concept-content">
+                                            <div class="concept-title">Security Certification and Compliance</div>
+                                            <div class="concept-explanation">Enterprise distributions provide security certifications, compliance validation, and regulatory compliance support</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">4</div>
+                            <div class="step-content">
+                                <div class="step-title">Cybersecurity Distribution Selection Criteria</div>
+                                <div class="step-description">Learn key factors for selecting appropriate Linux distributions for specific cybersecurity use cases.</div>
+                                <div class="concept-block">
+                                    <div class="concept-item">
+                                        <span class="concept-icon">⚖️</span>
+                                        <div class="concept-content">
+                                            <div class="concept-title">Security Requirements Assessment</div>
+                                            <div class="concept-explanation">Match distribution capabilities with specific cybersecurity needs: incident response, forensics, monitoring, compliance</div>
+                                        </div>
+                                    </div>
+                                    <div class="concept-item">
+                                        <span class="concept-icon">🔄</span>
+                                        <div class="concept-content">
+                                            <div class="concept-title">Update and Patch Management</div>
+                                            <div class="concept-explanation">Evaluate distribution update cycles, security patch delivery, and vulnerability response timelines</div>
+                                        </div>
+                                    </div>
+                                    <div class="concept-item">
+                                        <span class="concept-icon">🌐</span>
+                                        <div class="concept-content">
+                                            <div class="concept-title">Ecosystem Integration</div>
+                                            <div class="concept-explanation">Consider integration with existing security tools, enterprise systems, and cybersecurity workflows</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tips-section">
+                        <div class="tips-title">🐧 Distribution Selection Knowledge Applied</div>
+                        <ul class="tip-list">
+                            <li>Understood Linux distribution architecture and cybersecurity component integration</li>
+                            <li>Explored security-specialized distribution types for different cybersecurity applications</li>
+                            <li>Learned enterprise support requirements for cybersecurity infrastructure</li>
+                            <li>Developed criteria for selecting optimal distributions for specific security use cases</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Red Hat Enterprise Linux Ecosystem for Security -->
+            <div class="scenario-card redhat-ecosystem" data-category="redhat-ecosystem">
+                <div class="scenario-header">
+                    <div class="scenario-title">
+                        <span class="scenario-icon">🎯</span>
+                        Red Hat Enterprise Linux Ecosystem for Security
+                    </div>
+                    <div class="scenario-description">
+                        Navigate the Red Hat ecosystem for enterprise cybersecurity! Understand RHEL's role in security operations, explore Fedora security innovation, learn CentOS Stream development, and master Red Hat security product integration for enterprise cybersecurity infrastructure.
+                    </div>
+                </div>
+                <div class="scenario-content">
+                    <div class="company-context">
+                        <h4>🏢 TechCorp Red Hat Security Ecosystem Strategy</h4>
+                        <p><strong>Enterprise Security Platform:</strong> "Red Hat provides our enterprise security foundation - from Fedora security innovation to RHEL production stability. Understanding the ecosystem helps us leverage cutting-edge security research while maintaining enterprise-grade reliability for our cybersecurity operations."</p>
+                    </div>
+                    <div class="knowledge-workflow">
+                        <div class="workflow-step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <div class="step-title">Red Hat Enterprise Linux Security Leadership</div>
+                                <div class="step-description">Understand Red Hat's role in enterprise cybersecurity and open source security community leadership.</div>
+                                <div class="concept-block">
+                                    <div class="concept-item">
+                                        <span class="concept-icon">🌟</span>
+                                        <div class="concept-content">
+                                            <div class="concept-title">Enterprise Security Platform Leader</div>
+                                            <div class="concept-explanation">Red Hat is the leading provider of enterprise Linux security solutions with extensive cybersecurity industry partnerships</div>
+                                        </div>
+                                    </div>
+                                    <div class="concept-item">
+                                        <span class="concept-icon">🤝</span>
+                                        <div class="concept-content">
+                                            <div class="concept-title">Security Community Participation</div>
+                                            <div class="concept-explanation">Active participation in security research, vulnerability disclosure, and cybersecurity standards development</div>
+                                        </div>
+                                    </div>
+                                    <div class="concept-item">
+                                        <span class="concept-icon">🔒</span>
+                                        <div class="concept-content">
+                                            <div class="concept-title">Enterprise Security Integration</div>
+                                            <div class="concept-explanation">Integrates security technologies: SELinux, container security, cloud security, and enterprise identity management</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <div class="step-title">Fedora Security Innovation and Research Platform</div>
+                                <div class="step-description">Explore Fedora's role as a security innovation laboratory and testing ground for emerging cybersecurity technologies.</div>
+                                <div class="concept-block">
+                                    <div class="concept-item">
+                                        <span class="concept-icon">🔬</span>
+                                        <div class="concept-content">
+                                            <div class="concept-title">Cutting-Edge Security Research</div>
+                                            <div class="concept-explanation">Fedora integrates latest security innovations: new encryption algorithms, security frameworks, and threat detection technologies</div>
+                                        </div>
+                                    </div>
+                                    <div class="concept-item">
+                                        <span class="concept-icon">⚡</span>
+                                        <div class="concept-content">
+                                            <div class="concept-title">Rapid Security Development Cycle</div>
+                                            <div class="concept-explanation">Six-month release cycle enables rapid incorporation of security improvements and emerging threat countermeasures</div>
+                                        </div>
+                                    </div>
+                                    <div class="concept-item">
+                                        <span class="concept-icon">🧪</span>
+                                        <div class="concept-content">
+                                            <div class="concept-title">Security Testing Laboratory</div>
+                                            <div class="concept-explanation">Community-driven testing environment for validating security technologies before enterprise deployment</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <div class="step-title">CentOS Stream Security Development and RHEL Pipeline</div>
+                                <div class="step-description">Understand CentOS Stream's role in security development and preparation for RHEL enterprise deployment.</div>
+                                <div class="concept-block">
+                                    <div class="concept-item">
+                                        <span class="concept-icon">🔄</span>
+                                        <div class="concept-content">
+                                            <div class="concept-title">Continuous Security Integration</div>
+                                            <div class="concept-explanation">CentOS Stream provides continuous integration environment for security patches and vulnerability fixes</div>
+                                        </div>
+                                    </div>
+                                    <div class="concept-item">
+                                        <span class="concept-icon">🎯</span>
+                                        <div class="concept-content">
+                                            <div class="concept-title">RHEL Security Preparation</div>
+                                            <div class="concept-explanation">Security features tested in CentOS Stream become production-ready capabilities in RHEL enterprise releases</div>
+                                        </div>
+                                    </div>
+                                    <div class="concept-item">
+                                        <span class="concept-icon">🌍</span>
+                                        <div class="concept-content">
+                                            <div class="concept-title">Community Security Contributions</div>
+                                            <div class="concept-explanation">Global community contributes security enhancements that directly improve enterprise cybersecurity capabilities</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">4</div>
+                            <div class="step-content">
+                                <div class="step-title">Enterprise RHEL Security and Specialized Products</div>
+                                <div class="step-description">Explore RHEL enterprise security features and specialized Red Hat security products for cybersecurity operations.</div>
+                                <div class="concept-block">
+                                    <div class="concept-item">
+                                        <span class="concept-icon">🏢</span>
+                                        <div class="concept-content">
+                                            <div class="concept-title">RHEL Production Security Platform</div>
+                                            <div class="concept-explanation">Enterprise-grade security with long-term support, security certifications, and compliance frameworks</div>
+                                        </div>
+                                    </div>
+                                    <div class="concept-item">
+                                        <span class="concept-icon">📱</span>
+                                        <div class="concept-content">
+                                            <div class="concept-title">RHEL for Edge Security</div>
+                                            <div class="concept-explanation">Optimized security for edge computing, IoT security, and distributed cybersecurity infrastructure</div>
+                                        </div>
+                                    </div>
+                                    <div class="concept-item">
+                                        <span class="concept-icon">🔗</span>
+                                        <div class="concept-content">
+                                            <div class="concept-title">Container and Cloud Security</div>
+                                            <div class="concept-explanation">RHEL CoreOS and UBI provide container security foundation for cloud-native cybersecurity applications</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tips-section">
+                        <div class="tips-title">🐧 Red Hat Ecosystem Knowledge Mastered</div>
+                        <ul class="tip-list">
+                            <li>Understood Red Hat's leadership in enterprise cybersecurity and open source security</li>
+                            <li>Explored Fedora's role as security innovation laboratory for emerging technologies</li>
+                            <li>Learned CentOS Stream's function in security development and RHEL preparation</li>
+                            <li>Mastered RHEL enterprise security features and specialized cybersecurity products</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Open Source Licensing and Enterprise Compliance -->
+            <div class="scenario-card licensing-compliance" data-category="licensing-compliance">
+                <div class="scenario-header">
+                    <div class="scenario-title">
+                        <span class="scenario-icon">⚖️</span>
+                        Open Source Licensing and Enterprise Compliance
+                    </div>
+                    <div class="scenario-description">
+                        Master open source licensing for enterprise cybersecurity compliance! Understand license types and implications, navigate enterprise compliance requirements, manage commercial and open source integration, and establish governance for cybersecurity tool licensing.
+                    </div>
+                </div>
+                <div class="scenario-content">
+                    <div class="company-context">
+                        <h4>🏢 TechCorp Legal and Compliance Framework</h4>
+                        <p><strong>Compliance Strategy:</strong> "Our cybersecurity infrastructure uses hundreds of open source components. Understanding licensing ensures legal compliance while maximizing security capabilities. Wrong licensing choices can create legal risks or limit our ability to enhance security tools."</p>
+                    </div>
+                    <div class="knowledge-workflow">
+                        <div class="workflow-step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <div class="step-title">Copyleft License Security and Collaboration Benefits</div>
+                                <div class="step-description">Understand copyleft licenses and their advantages for cybersecurity tool development and collaboration.</div>
+                                <div class="concept-block">
+                                    <div class="concept-item">
+                                        <span class="concept-icon">🔄</span>
+                                        <div class="concept-content">
+                                            <div class="concept-title">GPL and LGPL Security Advantages</div>
+                                            <div class="concept-explanation">Copyleft ensures security improvements remain open source, preventing proprietary security weaknesses from being introduced</div>
+                                        </div>
+                                    </div>
+                                    <div class="concept-item">
+                                        <span class="concept-icon">🤝</span>
+                                        <div class="concept-content">
+                                            <div class="concept-title">Community Security Collaboration</div>
+                                            <div class="concept-explanation">Share-alike requirements encourage collaborative security development and prevent security fragmentation</div>
+                                        </div>
+                                    </div>
+                                    <div class="concept-item">
+                                        <span class="concept-icon">🛡️</span>
+                                        <div class="concept-content">
+                                            <div class="concept-title">Long-term Security Sustainability</div>
+                                            <div class="concept-explanation">Copyleft licensing ensures security tools remain open and available, preventing vendor lock-in for critical security infrastructure</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <div class="step-title">Permissive License Enterprise Integration Flexibility</div>
+                                <div class="step-description">Explore permissive licenses and their benefits for enterprise cybersecurity product integration.</div>
+                                <div class="concept-block">
+                                    <div class="concept-item">
+                                        <span class="concept-icon">🎯</span>
+                                        <div class="concept-content">
+                                            <div class="concept-title">MIT, BSD, and Apache License Benefits</div>
+                                            <div class="concept-explanation">Permissive licenses enable integration into commercial cybersecurity products and proprietary enterprise solutions</div>
+                                        </div>
+                                    </div>
+                                    <div class="concept-item">
+                                        <span class="concept-icon">🔧</span>
+                                        <div class="concept-content">
+                                            <div class="concept-title">Enterprise Security Customization</div>
+                                            <div class="concept-explanation">Freedom to modify and enhance security tools for specific enterprise requirements without disclosure obligations</div>
+                                        </div>
+                                    </div>
+                                    <div class="concept-item">
+                                        <span class="concept-icon">⚠️</span>
+                                        <div class="concept-content">
+                                            <div class="concept-title">Proprietary Enhancement Risks</div>
+                                            <div class="concept-explanation">Risk of security improvements becoming proprietary, potentially weakening overall community security capabilities</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <div class="step-title">Enterprise Compliance and Legal Risk Management</div>
+                                <div class="step-description">Understand compliance requirements and legal considerations for open source cybersecurity tools in enterprise environments.</div>
+                                <div class="concept-block">
+                                    <div class="concept-item">
+                                        <span class="concept-icon">📋</span>
+                                        <div class="concept-content">
+                                            <div class="concept-title">License Compliance Tracking</div>
+                                            <div class="concept-explanation">Track and manage open source licenses across cybersecurity infrastructure to ensure legal compliance</div>
+                                        </div>
+                                    </div>
+                                    <div class="concept-item">
+                                        <span class="concept-icon">⚖️</span>
+                                        <div class="concept-content">
+                                            <div class="concept-title">Legal Risk Assessment</div>
+                                            <div class="concept-explanation">Evaluate license compatibility, obligation requirements, and potential legal risks in cybersecurity implementations</div>
+                                        </div>
+                                    </div>
+                                    <div class="concept-item">
+                                        <span class="concept-icon">📊</span>
+                                        <div class="concept-content">
+                                            <div class="concept-title">Compliance Documentation</div>
+                                            <div class="concept-explanation">Maintain comprehensive documentation of open source usage, modifications, and license obligations for audit requirements</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">4</div>
+                            <div class="step-content">
+                                <div class="step-title">Commercial Support and Open Source Integration Strategy</div>
+                                <div class="step-description">Develop strategy for combining commercial cybersecurity support with open source security tools effectively.</div>
+                                <div class="concept-block">
+                                    <div class="concept-item">
+                                        <span class="concept-icon">🏢</span>
+                                        <div class="concept-content">
+                                            <div class="concept-title">Commercial Open Source Support</div>
+                                            <div class="concept-explanation">Vendors like Red Hat provide commercial support for open source security tools in enterprise environments</div>
+                                        </div>
+                                    </div>
+                                    <div class="concept-item">
+                                        <span class="concept-icon">🤝</span>
+                                        <div class="concept-content">
+                                            <div class="concept-title">Hybrid Security Architecture</div>
+                                            <div class="concept-explanation">Combine open source security foundations with commercial cybersecurity products for optimal enterprise protection</div>
+                                        </div>
+                                    </div>
+                                    <div class="concept-item">
+                                        <span class="concept-icon">🎯</span>
+                                        <div class="concept-content">
+                                            <div class="concept-title">Strategic License Selection</div>
+                                            <div class="concept-explanation">Choose appropriate licenses based on enterprise security requirements, compliance needs, and business strategy</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tips-section">
+                        <div class="tips-title">🐧 Licensing and Compliance Knowledge Achieved</div>
+                        <ul class="tip-list">
+                            <li>Understood copyleft license advantages for collaborative cybersecurity development</li>
+                            <li>Explored permissive license benefits for enterprise security product integration</li>
+                            <li>Learned compliance requirements and legal risk management for open source security</li>
+                            <li>Developed strategy for combining commercial support with open source security tools</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Enterprise Linux Deployment and Access Strategy -->
+            <div class="scenario-card enterprise-deployment" data-category="enterprise-deployment">
+                <div class="scenario-header">
+                    <div class="scenario-title">
+                        <span class="scenario-icon">🚀</span>
+                        Enterprise Linux Deployment and Access Strategy
+                    </div>
+                    <div class="scenario-description">
+                        Plan comprehensive enterprise Linux deployment for cybersecurity operations! Understand RHEL acquisition methods, explore cloud security deployment options, master container-based security solutions, and develop enterprise Linux deployment strategies for scalable cybersecurity infrastructure.
+                    </div>
+                </div>
+                <div class="scenario-content">
+                    <div class="company-context">
+                        <h4>🏢 TechCorp Enterprise Deployment Planning</h4>
+                        <p><strong>Infrastructure Scaling Strategy:</strong> "Planning Linux deployment across our global cybersecurity operations requires understanding acquisition options, cloud integration, and container strategies. The right deployment approach ensures scalable, secure, and cost-effective cybersecurity infrastructure worldwide."</p>
+                    </div>
+                    <div class="knowledge-workflow">
+                        <div class="workflow-step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <div class="step-title">RHEL Enterprise Acquisition and Evaluation Options</div>
+                                <div class="step-description">Understand different methods for obtaining RHEL for enterprise cybersecurity implementations.</div>
+                                <div class="concept-block">
+                                    <div class="concept-item">
+                                        <span class="concept-icon">🎯</span>
+                                        <div class="concept-content">
+                                            <div class="concept-title">RHEL Evaluation for Security Testing</div>
+                                            <div class="concept-explanation">Free evaluation access enables security testing, proof-of-concept development, and cybersecurity tool validation</div>
+                                        </div>
+                                    </div>
+                                    <div class="concept-item">
+                                        <span class="concept-icon">👩‍💻</span>
+                                        <div class="concept-content">
+                                            <div class="concept-title">Red Hat Developer Subscription</div>
+                                            <div class="concept-explanation">Free developer access for security research, prototype development, and cybersecurity skill development</div>
+                                        </div>
+                                    </div>
+                                    <div class="concept-item">
+                                        <span class="concept-icon">🏢</span>
+                                        <div class="concept-content">
+                                            <div class="concept-title">Enterprise Production Subscriptions</div>
+                                            <div class="concept-explanation">Commercial subscriptions with enterprise support for production cybersecurity infrastructure and compliance requirements</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <div class="step-title">Cloud Security Platform Integration</div>
+                                <div class="step-description">Explore cloud deployment options for Linux-based cybersecurity infrastructure across major cloud providers.</div>
+                                <div class="concept-block">
+                                    <div class="concept-item">
+                                        <span class="concept-icon">☁️</span>
+                                        <div class="concept-content">
+                                            <div class="concept-title">Multi-Cloud Security Deployment</div>
+                                            <div class="concept-explanation">Deploy cybersecurity infrastructure across AWS, Azure, Google Cloud with official RHEL images and security integrations</div>
+                                        </div>
+                                    </div>
+                                    <div class="concept-item">
+                                        <span class="concept-icon">🔄</span>
+                                        <div class="concept-content">
+                                            <div class="concept-title">Hybrid Cloud Security Architecture</div>
+                                            <div class="concept-explanation">Integrate on-premises and cloud security infrastructure with portable RHEL subscriptions and consistent security policies</div>
+                                        </div>
+                                    </div>
+                                    <div class="concept-item">
+                                        <span class="concept-icon">🎯</span>
+                                        <div class="concept-content">
+                                            <div class="concept-title">Cloud Access Security Management</div>
+                                            <div class="concept-explanation">Red Hat Cloud Access service provides subscription portability and centralized security management across cloud environments</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <div class="step-title">Container-Based Security Solution Deployment</div>
+                                <div class="step-description">Understand container deployment options for cybersecurity applications and microservices architectures.</div>
+                                <div class="concept-block">
+                                    <div class="concept-item">
+                                        <span class="concept-icon">📦</span>
+                                        <div class="concept-content">
+                                            <div class="concept-title">Universal Base Image (UBI) Security Foundation</div>
+                                            <div class="concept-explanation">Use Red Hat UBI as secure foundation for containerized cybersecurity applications without subscription requirements</div>
+                                        </div>
+                                    </div>
+                                    <div class="concept-item">
+                                        <span class="concept-icon">🔗</span>
+                                        <div class="concept-content">
+                                            <div class="concept-title">OpenShift Security Platform Integration</div>
+                                            <div class="concept-explanation">Deploy cybersecurity microservices on OpenShift for enterprise container security and orchestration</div>
+                                        </div>
+                                    </div>
+                                    <div class="concept-item">
+                                        <span class="concept-icon">🛡️</span>
+                                        <div class="concept-content">
+                                            <div class="concept-title">Container Security Validation</div>
+                                            <div class="concept-explanation">Leverage Red Hat's security validation and support for containerized cybersecurity workloads on RHEL platforms</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">4</div>
+                            <div class="step-content">
+                                <div class="step-title">Enterprise Deployment Strategy and Cost Optimization</div>
+                                <div class="step-description">Develop comprehensive deployment strategy balancing cybersecurity requirements, cost considerations, and operational efficiency.</div>
+                                <div class="concept-block">
+                                    <div class="concept-item">
+                                        <span class="concept-icon">💰</span>
+                                        <div class="concept-content">
+                                            <div class="concept-title">Cost-Effective Security Deployment</div>
+                                            <div class="concept-explanation">Balance free alternatives, developer subscriptions, and enterprise support based on cybersecurity criticality and requirements</div>
+                                        </div>
+                                    </div>
+                                    <div class="concept-item">
+                                        <span class="concept-icon">📈</span>
+                                        <div class="concept-content">
+                                            <div class="concept-title">Scalable Security Architecture</div>
+                                            <div class="concept-explanation">Design deployment strategy that scales from development environments to global production cybersecurity operations</div>
+                                        </div>
+                                    </div>
+                                    <div class="concept-item">
+                                        <span class="concept-icon">⚖️</span>
+                                        <div class="concept-content">
+                                            <div class="concept-title">Strategic Technology Selection</div>
+                                            <div class="concept-explanation">Choose optimal Linux deployment approach based on security requirements, compliance needs, and business objectives</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tips-section">
+                        <div class="tips-title">🐧 Enterprise Deployment Knowledge Completed</div>
+                        <ul class="tip-list">
+                            <li>Understood RHEL acquisition methods for different cybersecurity implementation needs</li>
+                            <li>Explored cloud security platform integration across major cloud providers</li>
+                            <li>Learned container-based security deployment strategies and UBI foundations</li>
+                            <li>Developed comprehensive deployment strategy for enterprise cybersecurity operations</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>© 2025 <span class="college-brand">College of DuPage</span> - Computer Information Technology Department</p>
+            <p>CIT 1450 Linux/Unix Systems | AI Cybersecurity Program</p>
+            <p><em>Building Linux foundations for cybersecurity professionals</em></p>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // Initialize variables
+        const searchInput = document.getElementById('searchInput');
+        const filterTags = document.querySelectorAll('.filter-tag');
+        const scenarioCards = document.querySelectorAll('.scenario-card');
+        let currentFilter = 'all';
+
+        // Search functionality
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            filterScenarios(searchTerm, currentFilter);
+        });
+
+        // Filter tag functionality
+        filterTags.forEach(tag => {
+            tag.addEventListener('click', function() {
+                // Update active tag
+                filterTags.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                
+                currentFilter = this.dataset.category;
+                const searchTerm = searchInput.value.toLowerCase();
+                filterScenarios(searchTerm, currentFilter);
+            });
+        });
+
+        // Filter scenarios based on search and category
+        function filterScenarios(searchTerm, category) {
+            scenarioCards.forEach(card => {
+                const cardCategory = card.dataset.category;
+                const cardText = card.textContent.toLowerCase();
+                
+                const matchesCategory = category === 'all' || category === cardCategory;
+                const matchesSearch = !searchTerm || cardText.includes(searchTerm);
+                
+                if (matchesCategory && matchesSearch) {
+                    card.classList.remove('hidden');
+                } else {
+                    card.classList.add('hidden');
+                }
+            });
+        }
+
+        // Show toast notification
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2500);
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl/Cmd + K to focus search
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                searchInput.focus();
+                searchInput.select();
+            }
+            
+            // Escape to clear search
+            if (e.key === 'Escape') {
+                searchInput.value = '';
+                filterScenarios('', currentFilter);
+                searchInput.blur();
+            }
+        });
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Focus search on page load
+            setTimeout(() => {
+                searchInput.focus();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
