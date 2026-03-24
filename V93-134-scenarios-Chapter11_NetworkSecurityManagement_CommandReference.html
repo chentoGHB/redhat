@@ -1,0 +1,1395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chapter 11 Beginner's Guide - Network Security for Cybersecurity Operations</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;500;700&family=Source+Code+Pro:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --terminal-bg: #0c0c0c;
+            --terminal-secondary: #1a1a1a;
+            --terminal-accent: #2a2a2a;
+            --terminal-border: #404040;
+            --terminal-green: #00ff41;
+            --terminal-blue: #00bfff;
+            --terminal-yellow: #ffff00;
+            --terminal-orange: #ff8c00;
+            --terminal-red: #ff4444;
+            --terminal-purple: #cc99ff;
+            --terminal-cyan: #00ffff;
+            --terminal-white: #f0f0f0;
+            --terminal-gray: #808080;
+            --terminal-dark-gray: #404040;
+            --firewall-green: #00ff41;
+            --selinux-blue: #00bfff;
+            --zones-orange: #ff8c00;
+            --ports-purple: #cc99ff;
+            --services-cyan: #00ffff;
+            --security-red: #ff4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto Mono', 'Source Code Pro', monospace;
+            background: var(--terminal-bg);
+            color: var(--terminal-white);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .terminal-window {
+            background: var(--terminal-secondary);
+            margin: 1rem;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 255, 65, 0.1);
+            border: 1px solid var(--terminal-border);
+            overflow: hidden;
+        }
+
+        .terminal-header {
+            background: linear-gradient(135deg, #333, #444);
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            border-bottom: 1px solid var(--terminal-border);
+        }
+
+        .terminal-button {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .close { background: #ff5f56; }
+        .minimize { background: #ffbd2e; }
+        .maximize { background: #27ca3f; }
+
+        .terminal-title {
+            color: var(--terminal-white);
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-left: 1rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background: var(--terminal-secondary);
+            border-radius: 12px;
+            border: 1px solid var(--terminal-border);
+        }
+
+        .title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--firewall-green);
+            margin-bottom: 0.5rem;
+            text-shadow: 0 0 20px rgba(0, 255, 65, 0.3);
+        }
+
+        .subtitle {
+            color: var(--selinux-blue);
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+        }
+
+        .course-info {
+            color: var(--terminal-gray);
+            font-size: 0.95rem;
+        }
+
+        .beginner-notice {
+            background: linear-gradient(135deg, #2a4a2a, #1a3a1a);
+            border: 1px solid var(--firewall-green);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            text-align: center;
+        }
+
+        .beginner-notice h3 {
+            color: var(--terminal-yellow);
+            margin-bottom: 0.5rem;
+            font-size: 1.3rem;
+        }
+
+        .beginner-notice p {
+            color: var(--terminal-white);
+        }
+
+        .search-terminal {
+            background: var(--terminal-secondary);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            position: sticky;
+            top: 1rem;
+            z-index: 100;
+        }
+
+        .search-input {
+            width: 100%;
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 6px;
+            padding: 0.75rem 1rem;
+            color: var(--firewall-green);
+            font-family: inherit;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--firewall-green);
+            box-shadow: 0 0 10px rgba(0, 255, 65, 0.2);
+        }
+
+        .search-input::placeholder {
+            color: var(--terminal-gray);
+        }
+
+        .filter-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-tab {
+            background: var(--terminal-accent);
+            border: 1px solid var(--terminal-border);
+            border-radius: 6px;
+            padding: 0.5rem 1rem;
+            color: var(--terminal-gray);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            font-size: 0.9rem;
+        }
+
+        .filter-tab:hover {
+            background: var(--terminal-border);
+            color: var(--terminal-white);
+        }
+
+        .filter-tab.active {
+            background: var(--firewall-green);
+            color: var(--terminal-bg);
+            border-color: var(--firewall-green);
+        }
+
+        .scenario-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 2rem;
+        }
+
+        .scenario-card {
+            background: var(--terminal-secondary);
+            border: 1px solid var(--terminal-border);
+            border-radius: 12px;
+            padding: 0;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .scenario-card:hover {
+            border-color: var(--section-color);
+            box-shadow: 0 10px 30px rgba(0, 255, 65, 0.1);
+        }
+
+        .scenario-header {
+            background: var(--terminal-accent);
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--terminal-border);
+        }
+
+        .scenario-title {
+            color: var(--section-color);
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .scenario-icon {
+            font-size: 1.2rem;
+        }
+
+        .scenario-description {
+            color: var(--terminal-gray);
+            font-size: 0.95rem;
+            margin-bottom: 1rem;
+        }
+
+        .difficulty-level {
+            background: var(--terminal-bg);
+            border: 1px solid var(--section-color);
+            border-radius: 4px;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.8rem;
+            color: var(--section-color);
+            display: inline-block;
+        }
+
+        .scenario-content {
+            padding: 1.5rem;
+        }
+
+        .real-world-example {
+            background: linear-gradient(135deg, #2a1a1a, #3a2a2a);
+            border: 1px solid var(--security-red);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .real-world-title {
+            color: var(--security-red);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .real-world-text {
+            color: var(--terminal-white);
+            font-size: 0.9rem;
+        }
+
+        .command-example {
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--terminal-dark-gray);
+        }
+
+        .command-example:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .command-syntax {
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .command-syntax:hover {
+            border-color: var(--section-color);
+            background: rgba(0, 191, 255, 0.05);
+        }
+
+        .command-text {
+            font-family: 'Source Code Pro', monospace;
+            font-size: 1rem;
+            color: var(--terminal-cyan);
+            word-break: break-word;
+        }
+
+        .command-prompt {
+            color: var(--firewall-green);
+            margin-right: 0.5rem;
+        }
+
+        .copy-indicator {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: var(--terminal-accent);
+            color: var(--terminal-gray);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .command-syntax:hover .copy-indicator {
+            opacity: 1;
+        }
+
+        .command-description {
+            color: var(--terminal-white);
+            font-size: 0.95rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .command-notes {
+            color: var(--terminal-yellow);
+            font-size: 0.85rem;
+            font-style: italic;
+        }
+
+        .explanation-box {
+            background: var(--terminal-accent);
+            border: 1px solid var(--terminal-border);
+            border-radius: 6px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .explanation-title {
+            color: var(--selinux-blue);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .explanation-text {
+            color: var(--terminal-gray);
+            font-size: 0.9rem;
+        }
+
+        .security-layers {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--terminal-accent);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .security-layer {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            flex: 1;
+            min-width: 120px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .security-layer:hover {
+            transform: scale(1.05);
+        }
+
+        .layer-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+            color: var(--terminal-bg);
+            font-weight: 600;
+        }
+
+        .layer-network { background: var(--firewall-green); }
+        .layer-system { background: var(--selinux-blue); }
+        .layer-app { background: var(--zones-orange); }
+        .layer-data { background: var(--ports-purple); }
+
+        .layer-label {
+            font-size: 0.8rem;
+            color: var(--terminal-gray);
+            margin-bottom: 0.25rem;
+        }
+
+        .layer-value {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--terminal-white);
+        }
+
+        .arrow {
+            color: var(--terminal-gray);
+            font-size: 1.5rem;
+        }
+
+        .zones-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .zone-box {
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .zone-box:hover {
+            border-color: var(--section-color);
+            transform: scale(1.02);
+        }
+
+        .zone-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .zone-description {
+            font-size: 0.85rem;
+            color: var(--terminal-gray);
+            line-height: 1.4;
+        }
+
+        .zone-trusted { 
+            border-left: 4px solid var(--firewall-green);
+        }
+        .zone-trusted .zone-title { color: var(--firewall-green); }
+
+        .zone-public { 
+            border-left: 4px solid var(--zones-orange); 
+        }
+        .zone-public .zone-title { color: var(--zones-orange); }
+
+        .zone-internal { 
+            border-left: 4px solid var(--selinux-blue); 
+        }
+        .zone-internal .zone-title { color: var(--selinux-blue); }
+
+        .zone-dmz { 
+            border-left: 4px solid var(--security-red); 
+        }
+        .zone-dmz .zone-title { color: var(--security-red); }
+
+        .firewall-config {
+            background: var(--terminal-bg);
+            border: 1px solid var(--zones-orange);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .config-title {
+            color: var(--zones-orange);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .config-content {
+            font-family: 'Source Code Pro', monospace;
+            font-size: 0.85rem;
+            color: var(--terminal-cyan);
+            background: var(--terminal-accent);
+            padding: 0.75rem;
+            border-radius: 4px;
+            white-space: pre-line;
+        }
+
+        .selinux-context {
+            background: linear-gradient(135deg, #1a2a4a, #2a3a5a);
+            border: 1px solid var(--selinux-blue);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .selinux-context:hover {
+            box-shadow: 0 0 15px rgba(0, 191, 255, 0.3);
+        }
+
+        .selinux-title {
+            color: var(--selinux-blue);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .selinux-content {
+            font-family: 'Source Code Pro', monospace;
+            font-size: 0.85rem;
+            color: var(--terminal-white);
+            background: var(--terminal-bg);
+            padding: 0.75rem;
+            border-radius: 4px;
+            border-left: 3px solid var(--selinux-blue);
+        }
+
+        .example-output {
+            background: var(--terminal-bg);
+            border-left: 3px solid var(--section-color);
+            padding: 0.75rem;
+            margin-top: 0.5rem;
+            font-family: 'Source Code Pro', monospace;
+            color: var(--terminal-gray);
+            font-size: 0.9rem;
+        }
+
+        .security-tip {
+            background: linear-gradient(135deg, #1a2a4a, #2a3a5a);
+            border: 1px solid var(--security-red);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .security-tip-title {
+            color: var(--security-red);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .workflow-steps {
+            background: var(--terminal-accent);
+            border: 1px solid var(--section-color);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .workflow-step {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .step-number {
+            background: var(--section-color);
+            color: var(--terminal-bg);
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            margin-right: 1rem;
+            font-size: 0.8rem;
+        }
+
+        .syntax-highlight {
+            color: var(--terminal-purple);
+        }
+
+        .variable-highlight {
+            color: var(--zones-orange);
+        }
+
+        .string-highlight {
+            color: var(--terminal-yellow);
+        }
+
+        .path-highlight {
+            color: var(--services-cyan);
+        }
+
+        .option-highlight {
+            color: var(--selinux-blue);
+        }
+
+        .service-highlight {
+            color: var(--firewall-green);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--firewall-green);
+            color: var(--terminal-bg);
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 500;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0, 255, 65, 0.3);
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 3rem;
+            padding: 2rem;
+            color: var(--terminal-gray);
+            border-top: 1px solid var(--terminal-border);
+            background: var(--terminal-secondary);
+            border-radius: 12px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @media (max-width: 768px) {
+            .scenario-grid {
+                grid-template-columns: 1fr;
+            }
+            .title {
+                font-size: 2rem;
+            }
+            .filter-tabs {
+                justify-content: center;
+            }
+            .security-layers {
+                flex-direction: column;
+            }
+            .zones-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Section-specific colors */
+        .firewall-basics { --section-color: var(--firewall-green); }
+        .firewall-basics .scenario-header { border-left: 4px solid var(--firewall-green); }
+
+        .firewall-zones { --section-color: var(--zones-orange); }
+        .firewall-zones .scenario-header { border-left: 4px solid var(--zones-orange); }
+
+        .firewall-services { --section-color: var(--services-cyan); }
+        .firewall-services .scenario-header { border-left: 4px solid var(--services-cyan); }
+
+        .selinux-ports { --section-color: var(--selinux-blue); }
+        .selinux-ports .scenario-header { border-left: 4px solid var(--selinux-blue); }
+
+        .security-integration { --section-color: var(--ports-purple); }
+        .security-integration .scenario-header { border-left: 4px solid var(--ports-purple); }
+
+        .enterprise-security { --section-color: var(--security-red); }
+        .enterprise-security .scenario-header { border-left: 4px solid var(--security-red); }
+    </style>
+</head>
+<body>
+    <div class="terminal-window">
+        <div class="terminal-header">
+            <div class="terminal-button close"></div>
+            <div class="terminal-button minimize"></div>
+            <div class="terminal-button maximize"></div>
+            <div class="terminal-title">network_security_management.sh</div>
+        </div>
+
+        <div class="container">
+            <div class="header">
+                <h1 class="title">$ Network Security Management</h1>
+                <div class="subtitle">Master Firewall & SELinux for Cybersecurity Defense</div>
+                <div class="course-info">College of DuPage • CIT 2455 • AI Cybersecurity Program</div>
+            </div>
+
+            <div class="beginner-notice">
+                <h3>🛡️ Defense in Depth = Network Security!</h3>
+                <p>Master multi-layered network security for cybersecurity: firewall rules for perimeter defense, SELinux contexts for application control, zone management for network segmentation, and service hardening for attack surface reduction!</p>
+            </div>
+
+            <div class="search-terminal">
+                <input type="text" class="search-input" placeholder="$ search firewall-cmd, semanage, zones, ports, services, SELinux..." id="searchInput">
+                <div class="filter-tabs">
+                    <button class="filter-tab active" data-category="all">All Scenarios</button>
+                    <button class="filter-tab" data-category="firewall-basics">Firewall Basics</button>
+                    <button class="filter-tab" data-category="firewall-zones">Firewall Zones</button>
+                    <button class="filter-tab" data-category="firewall-services">Firewall Services</button>
+                    <button class="filter-tab" data-category="selinux-ports">SELinux Ports</button>
+                    <button class="filter-tab" data-category="security-integration">Security Integration</button>
+                    <button class="filter-tab" data-category="enterprise-security">Enterprise Security</button>
+                </div>
+            </div>
+
+            <div class="scenario-grid">
+                <!-- Firewall Basics -->
+                <div class="scenario-card firewall-basics" data-category="firewall-basics">
+                    <div class="scenario-header">
+                        <div class="scenario-title">
+                            <span class="scenario-icon">🛡️</span>
+                            Firewall Defense Fundamentals
+                        </div>
+                        <div class="scenario-description">Master firewalld for perimeter security and network traffic control</div>
+                        <div class="difficulty-level">FUNDAMENTAL</div>
+                    </div>
+                    <div class="scenario-content">
+                        <div class="real-world-example">
+                            <div class="real-world-title">🛡️ SECURITY PERIMETER DEFENSE</div>
+                            <div class="real-world-text">SOC team needs to secure Linux security appliances and servers! Configure firewalld for defense-in-depth: block unauthorized access, allow legitimate security services, manage network zones, and create robust perimeter defense for cybersecurity infrastructure.</div>
+                        </div>
+
+                        <div class="security-layers">
+                            <div class="security-layer">
+                                <div class="layer-icon layer-network">🌐</div>
+                                <div class="layer-label">1. Network</div>
+                                <div class="layer-value">Firewall</div>
+                            </div>
+                            <div class="arrow">→</div>
+                            <div class="security-layer">
+                                <div class="layer-icon layer-system">🔒</div>
+                                <div class="layer-label">2. System</div>
+                                <div class="layer-value">SELinux</div>
+                            </div>
+                            <div class="arrow">→</div>
+                            <div class="security-layer">
+                                <div class="layer-icon layer-app">📱</div>
+                                <div class="layer-label">3. Application</div>
+                                <div class="layer-value">Services</div>
+                            </div>
+                            <div class="arrow">→</div>
+                            <div class="security-layer">
+                                <div class="layer-icon layer-data">💾</div>
+                                <div class="layer-label">4. Data</div>
+                                <div class="layer-value">Access Control</div>
+                            </div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('systemctl status firewalld')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>systemctl status firewalld
+                                </div>
+                            </div>
+                            <div class="command-description">Check firewall service status and activity</div>
+                            <div class="command-notes">Verify firewall daemon is running and protecting the system</div>
+                            <div class="example-output">● firewalld.service - firewalld - dynamic firewall daemon
+   Loaded: loaded (/usr/lib/systemd/system/firewalld.service; enabled)
+   Active: active (running) since Mon 2024-04-08 10:30:15 EDT; 2h 15min ago</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sudo systemctl enable --now firewalld')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>sudo systemctl enable <span class="option-highlight">--now</span> firewalld
+                                </div>
+                            </div>
+                            <div class="command-description">Enable and start firewall service for security protection</div>
+                            <div class="command-notes">--now starts service immediately and enables for automatic startup</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('firewall-cmd --state')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>firewall-cmd <span class="option-highlight">--state</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Verify firewall is running and active</div>
+                            <div class="command-notes">Quick status check for firewall operation</div>
+                            <div class="example-output">running</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('firewall-cmd --get-default-zone')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>firewall-cmd <span class="option-highlight">--get-default-zone</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Display current default firewall zone</div>
+                            <div class="command-notes">Identify default security posture for network interfaces</div>
+                            <div class="example-output">public</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('firewall-cmd --list-all')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>firewall-cmd <span class="option-highlight">--list-all</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Display complete firewall configuration for default zone</div>
+                            <div class="command-notes">Comprehensive view of services, ports, and rules</div>
+                            <div class="example-output">public (active)
+  target: default
+  interfaces: enp1s0
+  services: cockpit dhcpv6-client ssh
+  ports: 
+  protocols: 
+  forward: no</div>
+                        </div>
+
+                        <div class="explanation-box">
+                            <div class="explanation-title">🛡️ Firewall Defense Strategy:</div>
+                            <div class="explanation-text">
+                                <strong>Default Deny:</strong> Block all traffic except explicitly allowed services and ports<br>
+                                <strong>Zone-Based Security:</strong> Different trust levels for different network environments<br>
+                                <strong>Service-Based Rules:</strong> Predefined configurations for common security services<br>
+                                <strong>Dynamic Management:</strong> Real-time rule changes without connection disruption<br>
+                                <strong>Layered Defense:</strong> Network-level protection working with system-level controls
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Firewall Zones -->
+                <div class="scenario-card firewall-zones" data-category="firewall-zones">
+                    <div class="scenario-header">
+                        <div class="scenario-title">
+                            <span class="scenario-icon">🏢</span>
+                            Network Zone Management
+                        </div>
+                        <div class="scenario-description">Configure security zones for network segmentation and trust-based access control</div>
+                        <div class="difficulty-level">INTERMEDIATE</div>
+                    </div>
+                    <div class="scenario-content">
+                        <div class="real-world-example">
+                            <div class="real-world-title">🏢 NETWORK SEGMENTATION SECURITY</div>
+                            <div class="real-world-text">Enterprise security infrastructure needs proper network segmentation! Configure zones for different trust levels: DMZ for public services, internal for SOC operations, trusted for management interfaces, and public for general server access.</div>
+                        </div>
+
+                        <div class="zones-grid">
+                            <div class="zone-box zone-trusted">
+                                <div class="zone-title">trusted</div>
+                                <div class="zone-description">Full access<br>Management networks<br>Administrative interfaces</div>
+                            </div>
+                            <div class="zone-box zone-internal">
+                                <div class="zone-title">internal</div>
+                                <div class="zone-description">Corporate network<br>SOC operations<br>Internal services</div>
+                            </div>
+                            <div class="zone-box zone-public">
+                                <div class="zone-title">public</div>
+                                <div class="zone-description">Default zone<br>Limited services<br>External access</div>
+                            </div>
+                            <div class="zone-box zone-dmz">
+                                <div class="zone-title">dmz</div>
+                                <div class="zone-description">Demilitarized zone<br>Public services<br>Restricted access</div>
+                            </div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('firewall-cmd --get-zones')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>firewall-cmd <span class="option-highlight">--get-zones</span>
+                                </div>
+                            </div>
+                            <div class="command-description">List all available firewall zones</div>
+                            <div class="command-notes">View predefined zones for network segmentation</div>
+                            <div class="example-output">block dmz drop external home internal public trusted work</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sudo firewall-cmd --set-default-zone=internal')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>sudo firewall-cmd <span class="option-highlight">--set-default-zone=internal</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Set default zone for SOC internal operations</div>
+                            <div class="command-notes">Change default security posture for internal network segment</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sudo firewall-cmd --zone=trusted --add-source=192.168.100.0/24 --permanent')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>sudo firewall-cmd <span class="option-highlight">--zone=trusted --add-source=192.168.100.0/24 --permanent</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Add management network to trusted zone</div>
+                            <div class="command-notes">Source-based zone assignment for administrative access</div>
+                        </div>
+
+                        <div class="firewall-config">
+                            <div class="config-title">🏢 Zone-Based Security Strategy:</div>
+                            <div class="config-content"># Zone Assignment Strategy for Security Infrastructure
+
+## Trusted Zone (192.168.100.0/24)
+- Management interfaces
+- Administrative access  
+- Full network access
+- SOC management consoles
+
+## Internal Zone (10.0.0.0/8)
+- SOC analyst workstations
+- Internal security services
+- Collaboration tools
+- Corporate network access
+
+## DMZ Zone (Public Interface)
+- Web-based security portals
+- Remote access services
+- Minimal service exposure
+- Enhanced monitoring</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Firewall Services -->
+                <div class="scenario-card firewall-services" data-category="firewall-services">
+                    <div class="scenario-header">
+                        <div class="scenario-title">
+                            <span class="scenario-icon">🔧</span>
+                            Security Service Management
+                        </div>
+                        <div class="scenario-description">Configure and manage firewall rules for cybersecurity services and applications</div>
+                        <div class="difficulty-level">INTERMEDIATE</div>
+                    </div>
+                    <div class="scenario-content">
+                        <div class="real-world-example">
+                            <div class="real-world-title">🔧 CYBERSECURITY SERVICE HARDENING</div>
+                            <div class="real-world-text">Security infrastructure requires specific service access! Configure firewall rules for SIEM collectors (514/udp), threat intelligence feeds (custom ports), web security consoles (https), SSH management access, and monitoring services while maintaining security posture.</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sudo firewall-cmd --add-service=https --permanent')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>sudo firewall-cmd <span class="option-highlight">--add-service=https --permanent</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Enable HTTPS access for security web consoles</div>
+                            <div class="command-notes">Allow secure web access to SIEM and security management interfaces</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sudo firewall-cmd --add-port=514/udp --permanent')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>sudo firewall-cmd <span class="option-highlight">--add-port=514/udp --permanent</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Open syslog port for security log collection</div>
+                            <div class="command-notes">Enable log aggregation for SIEM and security monitoring</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('firewall-cmd --list-services')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>firewall-cmd <span class="option-highlight">--list-services</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Display currently allowed services in default zone</div>
+                            <div class="command-notes">Verify service configuration for security compliance</div>
+                            <div class="example-output">cockpit dhcpv6-client https ssh</div>
+                        </div>
+
+                        <div class="explanation-box">
+                            <div class="explanation-title">🔧 Common Security Services:</div>
+                            <div class="explanation-text">
+                                <strong>ssh (22/tcp):</strong> Secure administrative access<br>
+                                <strong>https (443/tcp):</strong> Web-based security consoles<br>
+                                <strong>syslog (514/udp):</strong> Security log collection<br>
+                                <strong>snmp (161/udp):</strong> Network monitoring<br>
+                                <strong>Custom ports:</strong> Specialized security applications and tools
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SELinux Ports -->
+                <div class="scenario-card selinux-ports" data-category="selinux-ports">
+                    <div class="scenario-header">
+                        <div class="scenario-title">
+                            <span class="scenario-icon">🔐</span>
+                            SELinux Port Security
+                        </div>
+                        <div class="scenario-description">Manage SELinux port labeling for application-level network access control</div>
+                        <div class="difficulty-level">ADVANCED</div>
+                    </div>
+                    <div class="scenario-content">
+                        <div class="real-world-example">
+                            <div class="real-world-title">🔐 APPLICATION SECURITY ENFORCEMENT</div>
+                            <div class="real-world-text">Security applications need non-standard ports but SELinux blocks access! Configure SELinux port contexts to allow Apache on port 8443 for security console, bind threat intelligence feed to port 8080, and enable custom security services while maintaining mandatory access control protection.</div>
+                        </div>
+
+                        <div class="selinux-context">
+                            <div class="selinux-title">🔐 SELinux Port Context Error</div>
+                            <div class="selinux-content">SELinux is preventing /usr/sbin/httpd from name_bind access on the tcp_socket port 8443.
+
+*****  Plugin bind_ports (99.5 confidence) suggests   ************************
+
+If you want to allow /usr/sbin/httpd to bind to network port 8443
+Then you need to modify the port type.
+Do
+# semanage port -a -t PORT_TYPE -p tcp 8443
+where PORT_TYPE is one of: http_cache_port_t, http_port_t, jboss_management_port_t</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('semanage port -l | grep http')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>semanage port <span class="option-highlight">-l</span> | grep http
+                                </div>
+                            </div>
+                            <div class="command-description">List current SELinux port labels for HTTP services</div>
+                            <div class="command-notes">View existing port contexts for web-based security services</div>
+                            <div class="example-output">http_cache_port_t              tcp      8080, 8118, 8123, 10001-10010
+http_port_t                    tcp      80, 81, 443, 488, 8008, 8009, 8443, 9000</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sudo semanage port -a -t http_port_t -p tcp 8443')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>sudo semanage port <span class="option-highlight">-a -t http_port_t -p tcp</span> <span class="variable-highlight">8443</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Add SELinux context for security console on port 8443</div>
+                            <div class="command-notes">-a adds new port, -t specifies type, -p sets protocol</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('semanage port -l -C')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>semanage port <span class="option-highlight">-l -C</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Show local SELinux port context modifications</div>
+                            <div class="command-notes">-C displays only custom changes to default policy</div>
+                            <div class="example-output">SELinux Port Type              Proto    Port Number
+http_port_t                    tcp      8443</div>
+                        </div>
+
+                        <div class="explanation-box">
+                            <div class="explanation-title">🔐 Common SELinux Port Types:</div>
+                            <div class="explanation-text">
+                                <strong>http_port_t:</strong> Web servers (Apache, Nginx) - ports 80, 443, 8008, 8009<br>
+                                <strong>ssh_port_t:</strong> SSH daemon access - port 22<br>
+                                <strong>http_cache_port_t:</strong> Proxy and cache services - port 8080<br>
+                                <strong>snmp_port_t:</strong> Network monitoring - port 161
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Security Integration -->
+                <div class="scenario-card security-integration" data-category="security-integration">
+                    <div class="scenario-header">
+                        <div class="scenario-title">
+                            <span class="scenario-icon">⚙️</span>
+                            Multi-Layer Security Integration
+                        </div>
+                        <div class="scenario-description">Combine firewall and SELinux for comprehensive network security defense</div>
+                        <div class="difficulty-level">ADVANCED</div>
+                    </div>
+                    <div class="scenario-content">
+                        <div class="real-world-example">
+                            <div class="real-world-title">⚙️ DEFENSE-IN-DEPTH IMPLEMENTATION</div>
+                            <div class="real-world-text">Security operations require layered protection! Implement comprehensive network security: firewall zones for network-level control, SELinux contexts for application-level enforcement, service hardening for minimal exposure, and integrated monitoring for complete security posture management.</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sudo firewall-cmd --add-port=8443/tcp --permanent && sudo semanage port -a -t http_port_t -p tcp 8443')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>sudo firewall-cmd <span class="option-highlight">--add-port=8443/tcp --permanent</span> &&<br>
+                                    &nbsp;&nbsp;sudo semanage port <span class="option-highlight">-a -t http_port_t -p tcp</span> <span class="variable-highlight">8443</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Configure both firewall and SELinux for new security service</div>
+                            <div class="command-notes">Chain commands to ensure both network and system-level permissions</div>
+                        </div>
+
+                        <div class="workflow-steps">
+                            <div class="workflow-step">
+                                <div class="step-number">1</div>
+                                <div>Plan service deployment with security requirements analysis</div>
+                            </div>
+                            <div class="workflow-step">
+                                <div class="step-number">2</div>
+                                <div>Configure firewall rules for appropriate network access</div>
+                            </div>
+                            <div class="workflow-step">
+                                <div class="step-number">3</div>
+                                <div>Set SELinux contexts for application-level enforcement</div>
+                            </div>
+                            <div class="workflow-step">
+                                <div class="step-number">4</div>
+                                <div>Test service functionality and troubleshoot issues</div>
+                            </div>
+                            <div class="workflow-step">
+                                <div class="step-number">5</div>
+                                <div>Verify comprehensive security controls and document configuration</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Enterprise Security -->
+                <div class="scenario-card enterprise-security" data-category="enterprise-security">
+                    <div class="scenario-header">
+                        <div class="scenario-title">
+                            <span class="scenario-icon">🏢</span>
+                            Enterprise Security Architecture
+                        </div>
+                        <div class="scenario-description">Design and implement comprehensive network security for enterprise cybersecurity operations</div>
+                        <div class="difficulty-level">EXPERT</div>
+                    </div>
+                    <div class="scenario-content">
+                        <div class="real-world-example">
+                            <div class="real-world-title">🏢 ENTERPRISE CYBERSECURITY INFRASTRUCTURE</div>
+                            <div class="real-world-text">Global enterprise security operations need comprehensive network controls! Design enterprise-scale firewall architecture: standardized zone configurations, automated rule management, compliance monitoring, centralized policy deployment, and integration with security orchestration platforms across hundreds of security systems.</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('firewall-cmd --permanent --new-zone=security-ops')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>sudo firewall-cmd <span class="option-highlight">--permanent --new-zone=security-ops</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Create custom zone for specialized security operations</div>
+                            <div class="command-notes">Define enterprise-specific zones for security requirements</div>
+                        </div>
+
+                        <div class="firewall-config">
+                            <div class="config-title">🏢 Enterprise Security Audit Framework:</div>
+                            <div class="config-content">#!/bin/bash
+# Enterprise Cybersecurity Infrastructure Audit
+
+echo "=== Enterprise Security Audit ==="
+echo "Date: $(date)"
+echo "Hostname: $(hostname -f)"
+
+# Firewall Status
+echo "=== Firewall Configuration ==="
+echo "Status: $(systemctl is-active firewalld)"
+echo "Default Zone: $(firewall-cmd --get-default-zone)"
+echo "Open Ports: $(firewall-cmd --list-ports)"
+echo "Allowed Services: $(firewall-cmd --list-services)"
+
+# SELinux Status  
+echo "=== SELinux Configuration ==="
+echo "Status: $(getenforce)"
+echo "Custom Port Contexts: $(semanage port -l -C | wc -l)"
+
+# Security Posture Summary
+if [[ "$(systemctl is-active firewalld)" == "active" && "$(getenforce)" == "Enforcing" ]]; then
+    echo "✓ Defense-in-depth controls active"
+else
+    echo "⚠ Security controls need attention"
+fi</div>
+                        </div>
+
+                        <div class="explanation-box">
+                            <div class="explanation-title">🏢 Enterprise Security Architecture Components:</div>
+                            <div class="explanation-text">
+                                <strong>Standardized Zones:</strong> Consistent security zones across all enterprise systems<br>
+                                <strong>Centralized Management:</strong> Automated deployment and configuration management<br>
+                                <strong>Compliance Monitoring:</strong> Regular audits and compliance verification<br>
+                                <strong>Integration:</strong> SIEM integration for security event correlation<br>
+                                <strong>Documentation:</strong> Comprehensive policies and procedures for governance
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer">
+                <p>© 2025 College of DuPage - Computer Information Technology Department</p>
+                <p>CIT 2455 Linux/Unix Systems | AI Cybersecurity Program</p>
+                <p><em>"Defense in depth through layered network security!" 🛡️🔐</em></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // Initialize variables
+        const searchInput = document.getElementById('searchInput');
+        const filterTabs = document.querySelectorAll('.filter-tab');
+        const scenarioCards = document.querySelectorAll('.scenario-card');
+        let currentFilter = 'all';
+
+        // Search functionality
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            filterScenarios(searchTerm, currentFilter);
+        });
+
+        // Filter tab functionality
+        filterTabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                // Update active tab
+                filterTabs.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                
+                currentFilter = this.dataset.category;
+                const searchTerm = searchInput.value.toLowerCase();
+                filterScenarios(searchTerm, currentFilter);
+            });
+        });
+
+        // Filter scenarios based on search and category
+        function filterScenarios(searchTerm, category) {
+            scenarioCards.forEach(card => {
+                const cardCategory = card.dataset.category;
+                const cardText = card.textContent.toLowerCase();
+                
+                const matchesCategory = category === 'all' || category === cardCategory;
+                const matchesSearch = !searchTerm || cardText.includes(searchTerm);
+                
+                if (matchesCategory && matchesSearch) {
+                    card.classList.remove('hidden');
+                } else {
+                    card.classList.add('hidden');
+                }
+            });
+        }
+
+        // Copy command to clipboard
+        function copyCommand(command) {
+            // Clean up command text (remove HTML and extra whitespace)
+            const cleanCommand = command.replace(/<[^>]*>/g, '').trim();
+            
+            navigator.clipboard.writeText(cleanCommand).then(() => {
+                showToast(`Copied: ${cleanCommand.substring(0, 60)}${cleanCommand.length > 60 ? '...' : ''}`);
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+                showToast('Copy failed - try selecting manually');
+            });
+        }
+
+        // Show toast notification
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2500);
+        }
+
+        // Interactive security layers
+        const securityLayers = document.querySelectorAll('.security-layer');
+        securityLayers.forEach((layer, index) => {
+            layer.addEventListener('click', function() {
+                const layerValue = this.querySelector('.layer-value').textContent;
+                showToast(`Security Layer ${index + 1}: ${layerValue}`);
+                
+                // Animate layer
+                const icon = this.querySelector('.layer-icon');
+                icon.style.transform = 'scale(1.1) rotate(5deg)';
+                setTimeout(() => {
+                    icon.style.transform = 'scale(1) rotate(0deg)';
+                }, 300);
+            });
+        });
+
+        // Interactive zone boxes
+        const zoneBoxes = document.querySelectorAll('.zone-box');
+        zoneBoxes.forEach(box => {
+            box.addEventListener('click', function() {
+                const zoneTitle = this.querySelector('.zone-title').textContent;
+                showToast(`Firewall Zone: ${zoneTitle}`);
+                
+                // Animate selection
+                this.style.transform = 'scale(1.05)';
+                setTimeout(() => {
+                    this.style.transform = 'scale(1)';
+                }, 300);
+            });
+        });
+
+        // Interactive SELinux contexts
+        const selinuxContexts = document.querySelectorAll('.selinux-context');
+        selinuxContexts.forEach(context => {
+            context.addEventListener('click', function() {
+                const selinuxTitle = this.querySelector('.selinux-title').textContent;
+                showToast(`SELinux Context: ${selinuxTitle}`);
+                
+                // Animate SELinux context
+                this.style.boxShadow = '0 0 20px rgba(0, 191, 255, 0.3)';
+                setTimeout(() => {
+                    this.style.boxShadow = '';
+                }, 500);
+            });
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl/Cmd + K to focus search
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                searchInput.focus();
+                searchInput.select();
+            }
+            
+            // Escape to clear search
+            if (e.key === 'Escape') {
+                searchInput.value = '';
+                filterScenarios('', currentFilter);
+                searchInput.blur();
+            }
+        });
+
+        // Initialize page with security-themed animations
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animated search placeholder
+            const searchPlaceholder = "$ search firewall-cmd, semanage, zones, ports, services, SELinux...";
+            let i = 0;
+            const typeInterval = setInterval(() => {
+                if (i < searchPlaceholder.length) {
+                    searchInput.placeholder = searchPlaceholder.substring(0, i + 1);
+                    i++;
+                } else {
+                    clearInterval(typeInterval);
+                }
+            }, 50);
+
+            // Setup cards for animation
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, observerOptions);
+
+            scenarioCards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                card.style.transition = `opacity 0.6s ease ${index * 0.1}s, transform 0.6s ease ${index * 0.1}s`;
+                observer.observe(card);
+            });
+
+            // Animate security layers
+            securityLayers.forEach((layer, index) => {
+                setTimeout(() => {
+                    const icon = layer.querySelector('.layer-icon');
+                    icon.style.transform = 'scale(1.1) rotate(5deg)';
+                    setTimeout(() => {
+                        icon.style.transform = 'scale(1) rotate(0deg)';
+                    }, 300);
+                }, index * 400 + 1000);
+            });
+        });
+    </script>
+</body>
+</html>
