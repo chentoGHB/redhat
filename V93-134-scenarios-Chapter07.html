@@ -1,0 +1,1720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chapter 7 Beginner's Guide - Storage Management for Cybersecurity Operations</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;500;700&family=Source+Code+Pro:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --terminal-bg: #0c0c0c;
+            --terminal-secondary: #1a1a1a;
+            --terminal-accent: #2a2a2a;
+            --terminal-border: #404040;
+            --terminal-green: #00ff41;
+            --terminal-blue: #00bfff;
+            --terminal-yellow: #ffff00;
+            --terminal-orange: #ff8c00;
+            --terminal-red: #ff4444;
+            --terminal-purple: #cc99ff;
+            --terminal-cyan: #00ffff;
+            --terminal-white: #f0f0f0;
+            --terminal-gray: #808080;
+            --terminal-dark-gray: #404040;
+            --storage-green: #00ff41;
+            --partition-blue: #00bfff;
+            --filesystem-orange: #ff8c00;
+            --mount-purple: #cc99ff;
+            --swap-cyan: #00ffff;
+            --forensic-red: #ff4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto Mono', 'Source Code Pro', monospace;
+            background: var(--terminal-bg);
+            color: var(--terminal-white);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .terminal-window {
+            background: var(--terminal-secondary);
+            margin: 1rem;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 255, 65, 0.1);
+            border: 1px solid var(--terminal-border);
+            overflow: hidden;
+        }
+
+        .terminal-header {
+            background: linear-gradient(135deg, #333, #444);
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            border-bottom: 1px solid var(--terminal-border);
+        }
+
+        .terminal-button {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .close { background: #ff5f56; }
+        .minimize { background: #ffbd2e; }
+        .maximize { background: #27ca3f; }
+
+        .terminal-title {
+            color: var(--terminal-white);
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-left: 1rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background: var(--terminal-secondary);
+            border-radius: 12px;
+            border: 1px solid var(--terminal-border);
+        }
+
+        .title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--storage-green);
+            margin-bottom: 0.5rem;
+            text-shadow: 0 0 20px rgba(0, 255, 65, 0.3);
+        }
+
+        .subtitle {
+            color: var(--partition-blue);
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+        }
+
+        .course-info {
+            color: var(--terminal-gray);
+            font-size: 0.95rem;
+        }
+
+        .beginner-notice {
+            background: linear-gradient(135deg, #2a4a2a, #1a3a1a);
+            border: 1px solid var(--storage-green);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            text-align: center;
+        }
+
+        .beginner-notice h3 {
+            color: var(--terminal-yellow);
+            margin-bottom: 0.5rem;
+            font-size: 1.3rem;
+        }
+
+        .beginner-notice p {
+            color: var(--terminal-white);
+        }
+
+        .search-terminal {
+            background: var(--terminal-secondary);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            position: sticky;
+            top: 1rem;
+            z-index: 100;
+        }
+
+        .search-input {
+            width: 100%;
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 6px;
+            padding: 0.75rem 1rem;
+            color: var(--storage-green);
+            font-family: inherit;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--storage-green);
+            box-shadow: 0 0 10px rgba(0, 255, 65, 0.2);
+        }
+
+        .search-input::placeholder {
+            color: var(--terminal-gray);
+        }
+
+        .filter-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-tab {
+            background: var(--terminal-accent);
+            border: 1px solid var(--terminal-border);
+            border-radius: 6px;
+            padding: 0.5rem 1rem;
+            color: var(--terminal-gray);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            font-size: 0.9rem;
+        }
+
+        .filter-tab:hover {
+            background: var(--terminal-border);
+            color: var(--terminal-white);
+        }
+
+        .filter-tab.active {
+            background: var(--storage-green);
+            color: var(--terminal-bg);
+            border-color: var(--storage-green);
+        }
+
+        .scenario-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 2rem;
+        }
+
+        .scenario-card {
+            background: var(--terminal-secondary);
+            border: 1px solid var(--terminal-border);
+            border-radius: 12px;
+            padding: 0;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .scenario-card:hover {
+            border-color: var(--section-color);
+            box-shadow: 0 10px 30px rgba(0, 255, 65, 0.1);
+        }
+
+        .scenario-header {
+            background: var(--terminal-accent);
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--terminal-border);
+        }
+
+        .scenario-title {
+            color: var(--section-color);
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .scenario-icon {
+            font-size: 1.2rem;
+        }
+
+        .scenario-description {
+            color: var(--terminal-gray);
+            font-size: 0.95rem;
+            margin-bottom: 1rem;
+        }
+
+        .difficulty-level {
+            background: var(--terminal-bg);
+            border: 1px solid var(--section-color);
+            border-radius: 4px;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.8rem;
+            color: var(--section-color);
+            display: inline-block;
+        }
+
+        .scenario-content {
+            padding: 1.5rem;
+        }
+
+        .real-world-example {
+            background: linear-gradient(135deg, #2a1a1a, #3a2a2a);
+            border: 1px solid var(--forensic-red);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .real-world-title {
+            color: var(--forensic-red);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .real-world-text {
+            color: var(--terminal-white);
+            font-size: 0.9rem;
+        }
+
+        .command-example {
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--terminal-dark-gray);
+        }
+
+        .command-example:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .command-syntax {
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .command-syntax:hover {
+            border-color: var(--section-color);
+            background: rgba(0, 191, 255, 0.05);
+        }
+
+        .command-text {
+            font-family: 'Source Code Pro', monospace;
+            font-size: 1rem;
+            color: var(--terminal-cyan);
+            word-break: break-word;
+        }
+
+        .command-prompt {
+            color: var(--storage-green);
+            margin-right: 0.5rem;
+        }
+
+        .copy-indicator {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: var(--terminal-accent);
+            color: var(--terminal-gray);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .command-syntax:hover .copy-indicator {
+            opacity: 1;
+        }
+
+        .command-description {
+            color: var(--terminal-white);
+            font-size: 0.95rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .command-notes {
+            color: var(--terminal-yellow);
+            font-size: 0.85rem;
+            font-style: italic;
+        }
+
+        .explanation-box {
+            background: var(--terminal-accent);
+            border: 1px solid var(--terminal-border);
+            border-radius: 6px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .explanation-title {
+            color: var(--partition-blue);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .explanation-text {
+            color: var(--terminal-gray);
+            font-size: 0.9rem;
+        }
+
+        .storage-flow {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--terminal-accent);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .storage-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .storage-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+            color: var(--terminal-bg);
+        }
+
+        .step-partition { background: var(--partition-blue); }
+        .step-filesystem { background: var(--filesystem-orange); }
+        .step-mount { background: var(--mount-purple); }
+        .step-fstab { background: var(--storage-green); }
+
+        .storage-label {
+            font-size: 0.8rem;
+            color: var(--terminal-gray);
+            margin-bottom: 0.25rem;
+        }
+
+        .storage-value {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--terminal-white);
+        }
+
+        .arrow {
+            color: var(--terminal-gray);
+            font-size: 1.5rem;
+        }
+
+        .partition-comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .partition-scheme {
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .scheme-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .mbr-scheme {
+            border-color: var(--filesystem-orange);
+        }
+
+        .mbr-scheme .scheme-title {
+            color: var(--filesystem-orange);
+        }
+
+        .gpt-scheme {
+            border-color: var(--storage-green);
+        }
+
+        .gpt-scheme .scheme-title {
+            color: var(--storage-green);
+        }
+
+        .scheme-details {
+            font-size: 0.9rem;
+            color: var(--terminal-gray);
+            line-height: 1.4;
+        }
+
+        .swap-priority {
+            display: flex;
+            gap: 1rem;
+            margin: 1rem 0;
+            justify-content: center;
+        }
+
+        .priority-item {
+            background: var(--terminal-bg);
+            border: 2px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex: 1;
+            max-width: 120px;
+        }
+
+        .priority-high { border-color: #00ff41; }
+        .priority-high .priority-icon { color: #00ff41; }
+
+        .priority-normal { border-color: #ff8c00; }
+        .priority-normal .priority-icon { color: #ff8c00; }
+
+        .priority-low { border-color: #ff4444; }
+        .priority-low .priority-icon { color: #ff4444; }
+
+        .priority-icon {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .priority-label {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--terminal-white);
+        }
+
+        .priority-value {
+            font-size: 0.8rem;
+            color: var(--terminal-gray);
+        }
+
+        .workflow-steps {
+            background: var(--terminal-accent);
+            border: 1px solid var(--section-color);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .workflow-step {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .step-number {
+            background: var(--section-color);
+            color: var(--terminal-bg);
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            margin-right: 1rem;
+            font-size: 0.8rem;
+        }
+
+        .example-output {
+            background: var(--terminal-bg);
+            border-left: 3px solid var(--section-color);
+            padding: 0.75rem;
+            margin-top: 0.5rem;
+            font-family: 'Source Code Pro', monospace;
+            color: var(--terminal-gray);
+            font-size: 0.9rem;
+        }
+
+        .security-tip {
+            background: linear-gradient(135deg, #1a2a4a, #2a3a5a);
+            border: 1px solid var(--forensic-red);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .security-tip-title {
+            color: var(--forensic-red);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .syntax-highlight {
+            color: var(--terminal-purple);
+        }
+
+        .variable-highlight {
+            color: var(--filesystem-orange);
+        }
+
+        .string-highlight {
+            color: var(--terminal-yellow);
+        }
+
+        .path-highlight {
+            color: var(--swap-cyan);
+        }
+
+        .option-highlight {
+            color: var(--partition-blue);
+        }
+
+        .device-highlight {
+            color: var(--storage-green);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--storage-green);
+            color: var(--terminal-bg);
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 500;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0, 255, 65, 0.3);
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 3rem;
+            padding: 2rem;
+            color: var(--terminal-gray);
+            border-top: 1px solid var(--terminal-border);
+            background: var(--terminal-secondary);
+            border-radius: 12px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @media (max-width: 768px) {
+            .scenario-grid {
+                grid-template-columns: 1fr;
+            }
+            .title {
+                font-size: 2rem;
+            }
+            .filter-tabs {
+                justify-content: center;
+            }
+            .storage-flow {
+                flex-direction: column;
+            }
+            .partition-comparison {
+                grid-template-columns: 1fr;
+            }
+            .swap-priority {
+                flex-direction: column;
+            }
+        }
+
+        /* Section-specific colors */
+        .disk-partitioning { --section-color: var(--partition-blue); }
+        .disk-partitioning .scenario-header { border-left: 4px solid var(--partition-blue); }
+
+        .filesystem-management { --section-color: var(--filesystem-orange); }
+        .filesystem-management .scenario-header { border-left: 4px solid var(--filesystem-orange); }
+
+        .mount-operations { --section-color: var(--mount-purple); }
+        .mount-operations .scenario-header { border-left: 4px solid var(--mount-purple); }
+
+        .swap-management { --section-color: var(--swap-cyan); }
+        .swap-management .scenario-header { border-left: 4px solid var(--swap-cyan); }
+
+        .forensic-storage { --section-color: var(--forensic-red); }
+        .forensic-storage .scenario-header { border-left: 4px solid var(--forensic-red); }
+
+        .secure-storage { --section-color: var(--storage-green); }
+        .secure-storage .scenario-header { border-left: 4px solid var(--storage-green); }
+    </style>
+</head>
+<body>
+    <div class="terminal-window">
+        <div class="terminal-header">
+            <div class="terminal-button close"></div>
+            <div class="terminal-button minimize"></div>
+            <div class="terminal-button maximize"></div>
+            <div class="terminal-title">cybersecurity_storage_management.sh</div>
+        </div>
+
+        <div class="container">
+            <div class="header">
+                <h1 class="title">$ Storage Management for Security Operations</h1>
+                <div class="subtitle">Master Secure Data Storage, Forensics & Evidence Collection</div>
+                <div class="course-info">College of DuPage • CIT 2455 • AI Cybersecurity Program</div>
+            </div>
+
+            <div class="beginner-notice">
+                <h3>💾 Secure Storage = Secure Operations!</h3>
+                <p>Master essential storage management for cybersecurity: forensic evidence preservation, secure data partitioning, encrypted storage setup, and incident response data collection!</p>
+            </div>
+
+            <div class="search-terminal">
+                <input type="text" class="search-input" placeholder="$ search parted, mkfs, mount, fstab, swap, partitions..." id="searchInput">
+                <div class="filter-tabs">
+                    <button class="filter-tab active" data-category="all">All Scenarios</button>
+                    <button class="filter-tab" data-category="disk-partitioning">Disk Partitioning</button>
+                    <button class="filter-tab" data-category="filesystem-management">File Systems</button>
+                    <button class="filter-tab" data-category="mount-operations">Mount Operations</button>
+                    <button class="filter-tab" data-category="swap-management">Swap Management</button>
+                    <button class="filter-tab" data-category="forensic-storage">Forensic Storage</button>
+                    <button class="filter-tab" data-category="secure-storage">Secure Storage</button>
+                </div>
+            </div>
+
+            <div class="scenario-grid">
+                <!-- Disk Partitioning -->
+                <div class="scenario-card disk-partitioning" data-category="disk-partitioning">
+                    <div class="scenario-header">
+                        <div class="scenario-title">
+                            <span class="scenario-icon">💿</span>
+                            Security Disk Partitioning
+                        </div>
+                        <div class="scenario-description">Create secure partitions for evidence storage and data isolation</div>
+                        <div class="difficulty-level">FUNDAMENTAL</div>
+                    </div>
+                    <div class="scenario-content">
+                        <div class="real-world-example">
+                            <div class="real-world-title">💿 SECURE DATA ISOLATION</div>
+                            <div class="real-world-text">New forensic workstation needs secure storage partitioning! Separate evidence storage from system files, create isolated investigation spaces, and implement proper data segregation for security compliance.</div>
+                        </div>
+
+                        <div class="partition-comparison">
+                            <div class="partition-scheme mbr-scheme">
+                                <div class="scheme-title">MBR (Legacy)</div>
+                                <div class="scheme-details">
+                                    • Max 4 primary partitions<br>
+                                    • 2 TiB disk limit<br>
+                                    • BIOS compatibility<br>
+                                    • Limited for modern security
+                                </div>
+                            </div>
+                            <div class="partition-scheme gpt-scheme">
+                                <div class="scheme-title">GPT (Modern)</div>
+                                <div class="scheme-details">
+                                    • 128 partitions max<br>
+                                    • 8 ZiB disk limit<br>
+                                    • UEFI standard<br>
+                                    • Preferred for security
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sudo parted /dev/vdb print')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>sudo parted <span class="device-highlight">/dev/vdb</span> print
+                                </div>
+                            </div>
+                            <div class="command-description">Examine disk and current partition layout</div>
+                            <div class="command-notes">First step - understand what storage devices and partitions exist</div>
+                            <div class="example-output">Model: Virtio Block Device (virtblk)
+Disk /dev/vdb: 5369MB
+Sector size (logical/physical): 512B/512B
+Partition Table: gpt
+Number  Start   End     Size    File system  Name     Flags</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sudo parted /dev/vdb mkpart evidence xfs 2048s 2GB')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>sudo parted <span class="device-highlight">/dev/vdb</span> mkpart <span class="string-highlight">evidence</span> xfs 2048s 2GB
+                                </div>
+                            </div>
+                            <div class="command-description">Create secure evidence storage partition (GPT)</div>
+                            <div class="command-notes">Creates named partition starting at sector 2048 for proper alignment</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sudo parted /dev/vdb mkpart investigation ext4 2GB 4GB')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>sudo parted <span class="device-highlight">/dev/vdb</span> mkpart <span class="string-highlight">investigation</span> ext4 2GB 4GB
+                                </div>
+                            </div>
+                            <div class="command-description">Create investigation workspace partition</div>
+                            <div class="command-notes">Separate partition for active investigation files and analysis</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sudo udevadm settle')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>sudo udevadm settle
+                                </div>
+                            </div>
+                            <div class="command-description">Wait for system to register new partitions</div>
+                            <div class="command-notes">Ensures /dev device files are created before proceeding</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('lsblk')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>lsblk
+                                </div>
+                            </div>
+                            <div class="command-description">Display block device tree showing all partitions</div>
+                            <div class="command-notes">Verify new partitions are visible to the system</div>
+                            <div class="example-output">NAME   MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
+vdb      252:16   0    5G  0 disk 
+├─vdb1   252:17   0    2G  0 part 
+└─vdb2   252:18   0    2G  0 part</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sudo parted /dev/vdb rm 2')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>sudo parted <span class="device-highlight">/dev/vdb</span> rm <span class="variable-highlight">2</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Delete partition by number (if needed)</div>
+                            <div class="command-notes">Remove unwanted or incorrectly sized partitions</div>
+                        </div>
+
+                        <div class="security-tip">
+                            <div class="security-tip-title">💿 Secure Partitioning Best Practices</div>
+                            <div>
+                                <strong>Data Separation:</strong> Isolate evidence, investigation, and system data<br>
+                                <strong>GPT Preferred:</strong> Use GPT for modern systems and large storage<br>
+                                <strong>Proper Alignment:</strong> Start partitions at sector 2048 for optimal performance<br>
+                                <strong>Naming Convention:</strong> Use descriptive names for forensic partitions
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- File System Management -->
+                <div class="scenario-card filesystem-management" data-category="filesystem-management">
+                    <div class="scenario-header">
+                        <div class="scenario-title">
+                            <span class="scenario-icon">🗂️</span>
+                            Security File System Creation
+                        </div>
+                        <div class="scenario-description">Format partitions with appropriate file systems for security operations</div>
+                        <div class="difficulty-level">INTERMEDIATE</div>
+                    </div>
+                    <div class="scenario-content">
+                        <div class="real-world-example">
+                            <div class="real-world-title">🗂️ FORENSIC FILE SYSTEMS</div>
+                            <div class="real-world-text">Evidence partitions created but not formatted! Need appropriate file systems for different security use cases: XFS for large evidence files, ext4 for investigation workspaces, and proper metadata preservation.</div>
+                        </div>
+
+                        <div class="storage-flow">
+                            <div class="storage-step">
+                                <div class="storage-icon step-partition">📀</div>
+                                <div class="storage-label">1. Partition</div>
+                                <div class="storage-value">parted mkpart</div>
+                            </div>
+                            <div class="arrow">→</div>
+                            <div class="storage-step">
+                                <div class="storage-icon step-filesystem">🗂️</div>
+                                <div class="storage-label">2. Format</div>
+                                <div class="storage-value">mkfs.*</div>
+                            </div>
+                            <div class="arrow">→</div>
+                            <div class="storage-step">
+                                <div class="storage-icon step-mount">📁</div>
+                                <div class="storage-label">3. Mount</div>
+                                <div class="storage-value">mount</div>
+                            </div>
+                            <div class="arrow">→</div>
+                            <div class="storage-step">
+                                <div class="storage-icon step-fstab">⚙️</div>
+                                <div class="storage-label">4. Persistent</div>
+                                <div class="storage-value">/etc/fstab</div>
+                            </div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sudo mkfs.xfs /dev/vdb1')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>sudo mkfs.xfs <span class="device-highlight">/dev/vdb1</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Create XFS file system for evidence storage</div>
+                            <div class="command-notes">XFS optimal for large files, excellent for digital evidence</div>
+                            <div class="example-output">meta-data=/dev/vdb1              isize=512    agcount=4
+         =                       sectsz=512   attr=2, projid32bit=1
+         =                       crc=1        finobt=1, sparse=1
+data     =                       bsize=4096   blocks=524288
+naming   =version 2              bsize=4096   ascii-ci=0, ftype=1</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sudo mkfs.ext4 /dev/vdb2')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>sudo mkfs.ext4 <span class="device-highlight">/dev/vdb2</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Create ext4 file system for investigation workspace</div>
+                            <div class="command-notes">ext4 excellent for general purpose investigation files</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sudo mkfs.xfs -L \"EVIDENCE_STORAGE\" /dev/vdb1')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>sudo mkfs.xfs <span class="option-highlight">-L</span> <span class="string-highlight">"EVIDENCE_STORAGE"</span> <span class="device-highlight">/dev/vdb1</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Create labeled file system for easy identification</div>
+                            <div class="command-notes">-L adds label for forensic tracking and identification</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('lsblk -f')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>lsblk <span class="option-highlight">-f</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Display file system information and UUIDs</div>
+                            <div class="command-notes">-f shows file system types, labels, and UUIDs for mounting</div>
+                            <div class="example-output">NAME   FSTYPE FSVER LABEL           UUID                                 FSAVAIL FSUSE% MOUNTPOINT
+vdb1   xfs          EVIDENCE_STORAGE e4f1c2d3-a1b2-4c5d-8e7f-123456789abc</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sudo blkid /dev/vdb1')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>sudo blkid <span class="device-highlight">/dev/vdb1</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Display detailed file system identification</div>
+                            <div class="command-notes">Get UUID, file system type, and label information</div>
+                            <div class="example-output">/dev/vdb1: LABEL="EVIDENCE_STORAGE" UUID="e4f1c2d3-a1b2-4c5d-8e7f-123456789abc" TYPE="xfs"</div>
+                        </div>
+
+                        <div class="explanation-box">
+                            <div class="explanation-title">🗂️ File System Selection for Security:</div>
+                            <div class="explanation-text">
+                                <strong>XFS:</strong> Best for large evidence files, digital forensics, log storage<br>
+                                <strong>ext4:</strong> General purpose, investigation workspaces, good metadata support<br>
+                                <strong>ext2:</strong> Simple, no journaling, useful for forensic imaging<br>
+                                <strong>Labels:</strong> Critical for chain of custody and evidence tracking<br>
+                                <strong>UUIDs:</strong> Persistent identification across system changes
+                            </div>
+                        </div>
+
+                        <div class="workflow-steps">
+                            <div class="workflow-step">
+                                <div class="step-number">1</div>
+                                <div>Choose appropriate file system for intended use</div>
+                            </div>
+                            <div class="workflow-step">
+                                <div class="step-number">2</div>
+                                <div>Create file system with descriptive label</div>
+                            </div>
+                            <div class="workflow-step">
+                                <div class="step-number">3</div>
+                                <div>Record UUID and label for documentation</div>
+                            </div>
+                            <div class="workflow-step">
+                                <div class="step-number">4</div>
+                                <div>Verify file system creation with lsblk -f</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mount Operations -->
+                <div class="scenario-card mount-operations" data-category="mount-operations">
+                    <div class="scenario-header">
+                        <div class="scenario-title">
+                            <span class="scenario-icon">📁</span>
+                            Secure Mount Management
+                        </div>
+                        <div class="scenario-description">Mount file systems with proper security options and persistent configuration</div>
+                        <div class="difficulty-level">INTERMEDIATE</div>
+                    </div>
+                    <div class="scenario-content">
+                        <div class="real-world-example">
+                            <div class="real-world-title">📁 EVIDENCE ACCESS CONTROL</div>
+                            <div class="real-world-text">Evidence storage formatted but not accessible! Mount file systems securely with appropriate permissions, configure persistent mounts for automatic availability, and implement access controls for chain of custody.</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sudo mkdir -p /mnt/evidence /mnt/investigation')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>sudo mkdir <span class="option-highlight">-p</span> <span class="path-highlight">/mnt/evidence /mnt/investigation</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Create secure mount point directories</div>
+                            <div class="command-notes">-p creates parent directories, organized mount structure</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sudo mount /dev/vdb1 /mnt/evidence')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>sudo mount <span class="device-highlight">/dev/vdb1</span> <span class="path-highlight">/mnt/evidence</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Temporarily mount evidence storage</div>
+                            <div class="command-notes">Quick access for testing before permanent configuration</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('mount | grep vdb')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>mount | grep vdb
+                                </div>
+                            </div>
+                            <div class="command-description">Verify mount status and options</div>
+                            <div class="command-notes">Check current mount points and security options</div>
+                            <div class="example-output">/dev/vdb1 on /mnt/evidence type xfs (rw,relatime,seclabel,attr2,inode64,noquota)</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sudo mount -o ro,noexec,nosuid /dev/vdb2 /mnt/investigation')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>sudo mount <span class="option-highlight">-o ro,noexec,nosuid</span> <span class="device-highlight">/dev/vdb2</span> <span class="path-highlight">/mnt/investigation</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Mount with security restrictions</div>
+                            <div class="command-notes">ro=read-only, noexec=no execution, nosuid=no SUID bits</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('df -h /mnt/evidence')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>df <span class="option-highlight">-h</span> <span class="path-highlight">/mnt/evidence</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Check available space on mounted file system</div>
+                            <div class="command-notes">-h human readable format, shows capacity and usage</div>
+                            <div class="example-output">Filesystem      Size  Used Avail Use% Mounted on
+/dev/vdb1       2.0G   45M  1.9G   3% /mnt/evidence</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sudo umount /mnt/evidence')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>sudo umount <span class="path-highlight">/mnt/evidence</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Safely unmount file system</div>
+                            <div class="command-notes">Always unmount before making persistent changes</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sudo vim /etc/fstab')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>sudo vim <span class="path-highlight">/etc/fstab</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Configure persistent mounts</div>
+                            <div class="explanation-box">
+                                <div class="explanation-title">📋 /etc/fstab Entry Format:</div>
+                                <div class="explanation-text">
+                                    <pre style="color: #00bfff; margin: 0; font-size: 0.85em;"># Format: Device MountPoint FileSystem Options Dump Pass
+UUID=e4f1c2d3-a1b2-4c5d-8e7f-123456789abc /mnt/evidence xfs defaults,noatime 0 2
+UUID=f5g2d4e5-b2c3-5d6e-9f8g-234567890def /mnt/investigation ext4 ro,noexec,nosuid 0 2
+
+# Security mount options:
+# ro       - read-only access
+# noexec   - prevent execution of binaries
+# nosuid   - ignore SUID/SGID bits
+# nodev    - ignore device files
+# noatime  - don't update access times (performance)</pre>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sudo systemctl daemon-reload')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>sudo systemctl daemon-reload
+                                </div>
+                            </div>
+                            <div class="command-description">Reload systemd after fstab changes</div>
+                            <div class="command-notes">Required for systemd to recognize fstab modifications</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sudo mount -a')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>sudo mount <span class="option-highlight">-a</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Mount all file systems from fstab</div>
+                            <div class="command-notes">-a mounts all, tests fstab configuration</div>
+                        </div>
+
+                        <div class="security-tip">
+                            <div class="security-tip-title">📁 Secure Mount Principles</div>
+                            <div>
+                                <strong>Use UUIDs:</strong> Persistent identification regardless of device naming<br>
+                                <strong>Security Options:</strong> ro, noexec, nosuid, nodev for evidence integrity<br>
+                                <strong>Access Times:</strong> noatime prevents metadata modification<br>
+                                <strong>Chain of Custody:</strong> Document all mount/unmount operations
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Swap Management -->
+                <div class="scenario-card swap-management" data-category="swap-management">
+                    <div class="scenario-header">
+                        <div class="scenario-title">
+                            <span class="scenario-icon">🔄</span>
+                            Secure Swap Space Management
+                        </div>
+                        <div class="scenario-description">Configure encrypted swap for memory security and performance optimization</div>
+                        <div class="difficulty-level">ADVANCED</div>
+                    </div>
+                    <div class="scenario-content">
+                        <div class="real-world-example">
+                            <div class="real-world-title">🔄 MEMORY SECURITY</div>
+                            <div class="real-world-text">Forensic workstation needs secure swap space! Sensitive evidence data may be written to disk during memory pressure. Configure encrypted swap to prevent data leakage and optimize performance for security operations.</div>
+                        </div>
+
+                        <div class="swap-priority">
+                            <div class="priority-item priority-high">
+                                <div class="priority-icon">⚡</div>
+                                <div class="priority-label">High Priority</div>
+                                <div class="priority-value">pri=10</div>
+                            </div>
+                            <div class="priority-item priority-normal">
+                                <div class="priority-icon">⚖️</div>
+                                <div class="priority-label">Normal Priority</div>
+                                <div class="priority-value">pri=0</div>
+                            </div>
+                            <div class="priority-item priority-low">
+                                <div class="priority-icon">📦</div>
+                                <div class="priority-label">Low Priority</div>
+                                <div class="priority-value">pri=-2 (default)</div>
+                            </div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sudo parted /dev/vdb mkpart swapspace linux-swap 4GB 6GB')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>sudo parted <span class="device-highlight">/dev/vdb</span> mkpart <span class="string-highlight">swapspace</span> linux-swap 4GB 6GB
+                                </div>
+                            </div>
+                            <div class="command-description">Create dedicated swap partition</div>
+                            <div class="command-notes">2GB swap space for system with 4-8GB RAM</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sudo mkswap /dev/vdb3')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>sudo mkswap <span class="device-highlight">/dev/vdb3</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Initialize partition as swap space</div>
+                            <div class="command-notes">Formats partition with swap file system structure</div>
+                            <div class="example-output">Setting up swapspace version 1, size = 1.9 GiB (2097152000 bytes)
+no label, UUID=a1b2c3d4-e5f6-7890-abcd-1234567890ef</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('swapon --show')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>swapon <span class="option-highlight">--show</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Display current swap usage and priorities</div>
+                            <div class="command-notes">Shows active swap devices, size, usage, and priorities</div>
+                            <div class="example-output">NAME      TYPE      SIZE USED PRIO
+/dev/dm-1 partition   2G   0B   -2</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sudo swapon /dev/vdb3')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>sudo swapon <span class="device-highlight">/dev/vdb3</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Enable swap space immediately</div>
+                            <div class="command-notes">Activates swap for current session</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sudo swapoff /dev/vdb3')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>sudo swapoff <span class="device-highlight">/dev/vdb3</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Disable swap space safely</div>
+                            <div class="command-notes">Moves data back to RAM before deactivating</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('echo \"UUID=a1b2c3d4-e5f6-7890-abcd-1234567890ef swap swap pri=5 0 0\" | sudo tee -a /etc/fstab')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>echo <span class="string-highlight">"UUID=a1b2c3d4-e5f6-7890-abcd-1234567890ef swap swap pri=5 0 0"</span> |<br>
+                                    &nbsp;&nbsp;sudo tee <span class="option-highlight">-a</span> <span class="path-highlight">/etc/fstab</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Configure persistent swap with priority</div>
+                            <div class="command-notes">pri=5 sets higher priority than default (-2)</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sudo swapon -a')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>sudo swapon <span class="option-highlight">-a</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Enable all swap spaces from fstab</div>
+                            <div class="command-notes">-a processes all swap entries in /etc/fstab</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('free -h')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>free <span class="option-highlight">-h</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Display memory and swap usage</div>
+                            <div class="command-notes">-h shows human-readable format</div>
+                            <div class="example-output">               total        used        free      shared  buff/cache   available
+Mem:           7.8Gi       2.1Gi       3.2Gi       156Mi       2.5Gi       5.3Gi
+Swap:          3.9Gi          0B       3.9Gi</div>
+                        </div>
+
+                        <div class="explanation-box">
+                            <div class="explanation-title">🔄 Swap Security Considerations:</div>
+                            <div class="explanation-text">
+                                <strong>Encrypted Swap:</strong> Use LUKS encryption for sensitive environments<br>
+                                <strong>Priority Management:</strong> Higher priority swap used first<br>
+                                <strong>Size Guidelines:</strong> 1-2x RAM for workstations, more for forensic analysis<br>
+                                <strong>Performance:</strong> SSD swap significantly faster than HDD<br>
+                                <strong>Security Risk:</strong> Sensitive data may be written to swap files
+                            </div>
+                        </div>
+
+                        <div class="security-tip">
+                            <div class="security-tip-title">🔄 Swap Security Best Practices</div>
+                            <div>
+                                <strong>Encrypted Swap:</strong> Always use encryption in security environments<br>
+                                <strong>Dedicated Partition:</strong> Separate swap from data partitions<br>
+                                <strong>Regular Monitoring:</strong> Watch swap usage patterns<br>
+                                <strong>Secure Disposal:</strong> Properly wipe swap partitions when decommissioning
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Forensic Storage -->
+                <div class="scenario-card forensic-storage" data-category="forensic-storage">
+                    <div class="scenario-header">
+                        <div class="scenario-title">
+                            <span class="scenario-icon">🔬</span>
+                            Digital Forensics Storage Setup
+                        </div>
+                        <div class="scenario-description">Configure specialized storage for digital evidence collection and analysis</div>
+                        <div class="difficulty-level">EXPERT</div>
+                    </div>
+                    <div class="scenario-content">
+                        <div class="real-world-example">
+                            <div class="real-world-title">🔬 DIGITAL EVIDENCE MANAGEMENT</div>
+                            <div class="real-world-text">Major security incident requires forensic investigation! Setup dedicated storage infrastructure for evidence collection, case management, imaging operations, and chain of custody documentation with proper isolation and security.</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sudo parted /dev/vdc mklabel gpt')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>sudo parted <span class="device-highlight">/dev/vdc</span> mklabel gpt
+                                </div>
+                            </div>
+                            <div class="command-description">Initialize forensic drive with GPT partition table</div>
+                            <div class="command-notes">Clean start for dedicated forensic storage device</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sudo parted /dev/vdc mkpart case_001 ext4 1MB 10GB')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>sudo parted <span class="device-highlight">/dev/vdc</span> mkpart <span class="string-highlight">case_001</span> ext4 1MB 10GB
+                                </div>
+                            </div>
+                            <div class="command-description">Create case-specific evidence partition</div>
+                            <div class="command-notes">Separate partition for each investigation case</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sudo parted /dev/vdc mkpart imaging_workspace xfs 10GB 50GB')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>sudo parted <span class="device-highlight">/dev/vdc</span> mkpart <span class="string-highlight">imaging_workspace</span> xfs 10GB 50GB
+                                </div>
+                            </div>
+                            <div class="command-description">Create large partition for disk imaging operations</div>
+                            <div class="command-notes">XFS optimal for large evidence image files</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sudo mkfs.ext4 -L \"CASE_001_EVIDENCE\" /dev/vdc1')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>sudo mkfs.ext4 <span class="option-highlight">-L</span> <span class="string-highlight">"CASE_001_EVIDENCE"</span> <span class="device-highlight">/dev/vdc1</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Format case partition with forensic label</div>
+                            <div class="command-notes">Clear labeling critical for chain of custody</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sudo mkfs.xfs -L \"IMAGING_WORKSPACE\" /dev/vdc2')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>sudo mkfs.xfs <span class="option-highlight">-L</span> <span class="string-highlight">"IMAGING_WORKSPACE"</span> <span class="device-highlight">/dev/vdc2</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Format imaging workspace with XFS</div>
+                            <div class="command-notes">XFS handles large files efficiently</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sudo mkdir -p /forensics/{cases,imaging,tools,reports}')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>sudo mkdir <span class="option-highlight">-p</span> <span class="path-highlight">/forensics/{cases,imaging,tools,reports}</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Create organized forensic directory structure</div>
+                            <div class="command-notes">Proper organization essential for investigations</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sudo mount -o ro,noexec,nodev /dev/vdc1 /forensics/cases')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>sudo mount <span class="option-highlight">-o ro,noexec,nodev</span> <span class="device-highlight">/dev/vdc1</span> <span class="path-highlight">/forensics/cases</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Mount evidence storage read-only with security restrictions</div>
+                            <div class="command-notes">Prevents evidence tampering, maintains integrity</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sudo chown forensic:forensic /forensics/cases')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>sudo chown <span class="variable-highlight">forensic:forensic</span> <span class="path-highlight">/forensics/cases</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Set appropriate ownership for forensic team</div>
+                            <div class="command-notes">Limit access to authorized forensic investigators</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sudo chmod 750 /forensics/cases')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>sudo chmod <span class="variable-highlight">750</span> <span class="path-highlight">/forensics/cases</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Restrict permissions to forensic team only</div>
+                            <div class="command-notes">750 = rwx for owner, r-x for group, no access for others</div>
+                        </div>
+
+                        <div class="workflow-steps">
+                            <div class="workflow-step">
+                                <div class="step-number">1</div>
+                                <div>Plan storage layout: cases, imaging, tools, reports</div>
+                            </div>
+                            <div class="workflow-step">
+                                <div class="step-number">2</div>
+                                <div>Create case-specific partitions with descriptive names</div>
+                            </div>
+                            <div class="workflow-step">
+                                <div class="step-number">3</div>
+                                <div>Mount with security restrictions (ro, noexec, nodev)</div>
+                            </div>
+                            <div class="workflow-step">
+                                <div class="step-number">4</div>
+                                <div>Set appropriate ownership and permissions</div>
+                            </div>
+                        </div>
+
+                        <div class="security-tip">
+                            <div class="security-tip-title">🔬 Forensic Storage Principles</div>
+                            <div>
+                                <strong>Evidence Integrity:</strong> Read-only mounts prevent tampering<br>
+                                <strong>Case Separation:</strong> Separate partitions for each investigation<br>
+                                <strong>Chain of Custody:</strong> Document all storage operations<br>
+                                <strong>Access Control:</strong> Restrict to authorized forensic personnel only
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Secure Storage -->
+                <div class="scenario-card secure-storage" data-category="secure-storage">
+                    <div class="scenario-header">
+                        <div class="scenario-title">
+                            <span class="scenario-icon">🛡️</span>
+                            Enterprise Security Storage
+                        </div>
+                        <div class="scenario-description">Implement enterprise-grade secure storage with monitoring and compliance</div>
+                        <div class="difficulty-level">EXPERT</div>
+                    </div>
+                    <div class="scenario-content">
+                        <div class="real-world-example">
+                            <div class="real-world-title">🛡️ ENTERPRISE SECURITY INFRASTRUCTURE</div>
+                            <div class="real-world-text">Deploy secure storage infrastructure for enterprise cybersecurity operations! Implement monitoring systems, compliance storage, audit logs, security intelligence data, and incident response capabilities with proper isolation and performance.</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('lsblk -o NAME,SIZE,FSTYPE,MOUNTPOINT,LABEL,UUID')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>lsblk <span class="option-highlight">-o</span> NAME,SIZE,FSTYPE,MOUNTPOINT,LABEL,UUID
+                                </div>
+                            </div>
+                            <div class="command-description">Comprehensive storage infrastructure audit</div>
+                            <div class="command-notes">Document all storage devices for security inventory</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sudo parted -l')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>sudo parted <span class="option-highlight">-l</span>
+                                </div>
+                            </div>
+                            <div class="command-description">List all storage devices and partition tables</div>
+                            <div class="command-notes">Complete overview of storage configuration</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('findmnt -D')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>findmnt <span class="option-highlight">-D</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Display mount hierarchy with details</div>
+                            <div class="command-notes">-D shows filesystem usage and mount options</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sudo mount -o remount,ro /mnt/evidence')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>sudo mount <span class="option-highlight">-o remount,ro</span> <span class="path-highlight">/mnt/evidence</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Dynamically change mount options to read-only</div>
+                            <div class="command-notes">Security hardening without unmounting</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sudo iostat -x 1')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>sudo iostat <span class="option-highlight">-x</span> 1
+                                </div>
+                            </div>
+                            <div class="command-description">Monitor storage I/O performance</div>
+                            <div class="command-notes">-x extended stats, 1 second intervals</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('df -h | grep -E \"(evidence|forensic|security)\"')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>df <span class="option-highlight">-h</span> | grep <span class="option-highlight">-E</span> <span class="string-highlight">"(evidence|forensic|security)"</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Monitor security storage space usage</div>
+                            <div class="command-notes">Track capacity usage for security partitions</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sudo tune2fs -l /dev/vdc1 | grep -i \"mount\\|check\"')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>sudo tune2fs <span class="option-highlight">-l</span> <span class="device-highlight">/dev/vdc1</span> | grep <span class="option-highlight">-i</span> <span class="string-highlight">"mount\\|check"</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Check ext4 file system health and mount history</div>
+                            <div class="command-notes">Forensic analysis of file system access patterns</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('cat /proc/mounts | grep security')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>cat <span class="path-highlight">/proc/mounts</span> | grep security
+                                </div>
+                            </div>
+                            <div class="command-description">Verify current security storage mounts</div>
+                            <div class="command-notes">Real-time view of active mount configurations</div>
+                        </div>
+
+                        <div class="explanation-box">
+                            <div class="explanation-title">🛡️ Enterprise Storage Security Strategy:</div>
+                            <div class="explanation-text">
+                                <strong>Data Classification:</strong> Separate public, internal, confidential, restricted<br>
+                                <strong>Access Controls:</strong> Role-based permissions and mount restrictions<br>
+                                <strong>Performance Monitoring:</strong> I/O metrics and capacity planning<br>
+                                <strong>Compliance:</strong> Audit trails and regulatory storage requirements<br>
+                                <strong>Incident Response:</strong> Rapid evidence collection and isolation capabilities<br>
+                                <strong>Business Continuity:</strong> Backup verification and disaster recovery testing
+                            </div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sudo fsck.xfs -n /dev/vdb1')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>sudo fsck.xfs <span class="option-highlight">-n</span> <span class="device-highlight">/dev/vdb1</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Check XFS file system integrity (no changes)</div>
+                            <div class="command-notes">-n flag performs read-only check</div>
+                        </div>
+
+                        <div class="security-tip">
+                            <div class="security-tip-title">🛡️ Enterprise Storage Security</div>
+                            <div>
+                                <strong>Regular Audits:</strong> Document and verify storage configurations<br>
+                                <strong>Performance Monitoring:</strong> Track I/O patterns for anomaly detection<br>
+                                <strong>Capacity Management:</strong> Prevent storage exhaustion attacks<br>
+                                <strong>Health Monitoring:</strong> Regular file system integrity checks
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer">
+                <p>© 2025 College of DuPage - Computer Information Technology Department</p>
+                <p>CIT 2455 Linux/Unix Systems | AI Cybersecurity Program</p>
+                <p><em>"Secure storage foundations for cybersecurity excellence!" 💾🛡️</em></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // Initialize variables
+        const searchInput = document.getElementById('searchInput');
+        const filterTabs = document.querySelectorAll('.filter-tab');
+        const scenarioCards = document.querySelectorAll('.scenario-card');
+        let currentFilter = 'all';
+
+        // Search functionality
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            filterScenarios(searchTerm, currentFilter);
+        });
+
+        // Filter tab functionality
+        filterTabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                // Update active tab
+                filterTabs.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                
+                currentFilter = this.dataset.category;
+                const searchTerm = searchInput.value.toLowerCase();
+                filterScenarios(searchTerm, currentFilter);
+            });
+        });
+
+        // Filter scenarios based on search and category
+        function filterScenarios(searchTerm, category) {
+            scenarioCards.forEach(card => {
+                const cardCategory = card.dataset.category;
+                const cardText = card.textContent.toLowerCase();
+                
+                const matchesCategory = category === 'all' || category === cardCategory;
+                const matchesSearch = !searchTerm || cardText.includes(searchTerm);
+                
+                if (matchesCategory && matchesSearch) {
+                    card.classList.remove('hidden');
+                } else {
+                    card.classList.add('hidden');
+                }
+            });
+        }
+
+        // Copy command to clipboard
+        function copyCommand(command) {
+            // Clean up command text (remove HTML and extra whitespace)
+            const cleanCommand = command.replace(/<[^>]*>/g, '').trim();
+            
+            navigator.clipboard.writeText(cleanCommand).then(() => {
+                showToast(`Copied: ${cleanCommand.substring(0, 60)}${cleanCommand.length > 60 ? '...' : ''}`);
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+                showToast('Copy failed - try selecting manually');
+            });
+        }
+
+        // Show toast notification
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2500);
+        }
+
+        // Interactive priority selector
+        const priorityItems = document.querySelectorAll('.priority-item');
+        priorityItems.forEach(item => {
+            item.addEventListener('click', function() {
+                priorityItems.forEach(p => p.style.transform = 'scale(1)');
+                this.style.transform = 'scale(1.1)';
+                
+                const priorityLabel = this.querySelector('.priority-label').textContent;
+                showToast(`Swap Priority: ${priorityLabel}`);
+                
+                setTimeout(() => {
+                    this.style.transform = 'scale(1)';
+                }, 300);
+            });
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl/Cmd + K to focus search
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                searchInput.focus();
+                searchInput.select();
+            }
+            
+            // Escape to clear search
+            if (e.key === 'Escape') {
+                searchInput.value = '';
+                filterScenarios('', currentFilter);
+                searchInput.blur();
+            }
+        });
+
+        // Initialize page with storage-themed animations
+        document.addEventListener('DOMContentLoaded', function() {
+            // Focus search after delay
+            setTimeout(() => {
+                searchInput.focus();
+            }, 1500);
+
+            // Animated search placeholder
+            const searchPlaceholder = "$ search parted, mkfs, mount, fstab, swap, partitions...";
+            let i = 0;
+            const typeInterval = setInterval(() => {
+                if (i < searchPlaceholder.length) {
+                    searchInput.placeholder = searchPlaceholder.substring(0, i + 1);
+                    i++;
+                } else {
+                    clearInterval(typeInterval);
+                }
+            }, 50);
+
+            // Add storage-themed entrance animations
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, observerOptions);
+
+            // Setup cards for animation
+            scenarioCards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                card.style.transition = `opacity 0.6s ease ${index * 0.1}s, transform 0.6s ease ${index * 0.1}s`;
+                observer.observe(card);
+            });
+
+            // Animate storage flow
+            const storageSteps = document.querySelectorAll('.storage-step');
+            storageSteps.forEach((step, index) => {
+                setTimeout(() => {
+                    step.style.opacity = '0.9';
+                    const icon = step.querySelector('.storage-icon');
+                    icon.style.transform = 'scale(1.1)';
+                    setTimeout(() => {
+                        icon.style.transform = 'scale(1)';
+                    }, 300);
+                }, index * 400 + 1000);
+            });
+
+            // Animate partition comparison
+            const partitionSchemes = document.querySelectorAll('.partition-scheme');
+            partitionSchemes.forEach((scheme, index) => {
+                setTimeout(() => {
+                    scheme.style.transform = 'scale(1.02)';
+                    setTimeout(() => {
+                        scheme.style.transform = 'scale(1)';
+                    }, 200);
+                }, index * 300 + 2000);
+            });
+        });
+    </script>
+</body>
+</html>

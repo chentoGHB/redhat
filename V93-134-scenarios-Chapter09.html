@@ -1,0 +1,1971 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chapter 9 Beginner's Guide - Network Storage for Cybersecurity Operations</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;500;700&family=Source+Code+Pro:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --terminal-bg: #0c0c0c;
+            --terminal-secondary: #1a1a1a;
+            --terminal-accent: #2a2a2a;
+            --terminal-border: #404040;
+            --terminal-green: #00ff41;
+            --terminal-blue: #00bfff;
+            --terminal-yellow: #ffff00;
+            --terminal-orange: #ff8c00;
+            --terminal-red: #ff4444;
+            --terminal-purple: #cc99ff;
+            --terminal-cyan: #00ffff;
+            --terminal-white: #f0f0f0;
+            --terminal-gray: #808080;
+            --terminal-dark-gray: #404040;
+            --nfs-green: #00ff41;
+            --mount-blue: #00bfff;
+            --autofs-orange: #ff8c00;
+            --network-purple: #cc99ff;
+            --security-cyan: #00ffff;
+            --share-red: #ff4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto Mono', 'Source Code Pro', monospace;
+            background: var(--terminal-bg);
+            color: var(--terminal-white);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .terminal-window {
+            background: var(--terminal-secondary);
+            margin: 1rem;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 255, 65, 0.1);
+            border: 1px solid var(--terminal-border);
+            overflow: hidden;
+        }
+
+        .terminal-header {
+            background: linear-gradient(135deg, #333, #444);
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            border-bottom: 1px solid var(--terminal-border);
+        }
+
+        .terminal-button {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .close { background: #ff5f56; }
+        .minimize { background: #ffbd2e; }
+        .maximize { background: #27ca3f; }
+
+        .terminal-title {
+            color: var(--terminal-white);
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-left: 1rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background: var(--terminal-secondary);
+            border-radius: 12px;
+            border: 1px solid var(--terminal-border);
+        }
+
+        .title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--nfs-green);
+            margin-bottom: 0.5rem;
+            text-shadow: 0 0 20px rgba(0, 255, 65, 0.3);
+        }
+
+        .subtitle {
+            color: var(--mount-blue);
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+        }
+
+        .course-info {
+            color: var(--terminal-gray);
+            font-size: 0.95rem;
+        }
+
+        .beginner-notice {
+            background: linear-gradient(135deg, #2a4a2a, #1a3a1a);
+            border: 1px solid var(--nfs-green);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            text-align: center;
+        }
+
+        .beginner-notice h3 {
+            color: var(--terminal-yellow);
+            margin-bottom: 0.5rem;
+            font-size: 1.3rem;
+        }
+
+        .beginner-notice p {
+            color: var(--terminal-white);
+        }
+
+        .search-terminal {
+            background: var(--terminal-secondary);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            position: sticky;
+            top: 1rem;
+            z-index: 100;
+        }
+
+        .search-input {
+            width: 100%;
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 6px;
+            padding: 0.75rem 1rem;
+            color: var(--nfs-green);
+            font-family: inherit;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--nfs-green);
+            box-shadow: 0 0 10px rgba(0, 255, 65, 0.2);
+        }
+
+        .search-input::placeholder {
+            color: var(--terminal-gray);
+        }
+
+        .filter-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-tab {
+            background: var(--terminal-accent);
+            border: 1px solid var(--terminal-border);
+            border-radius: 6px;
+            padding: 0.5rem 1rem;
+            color: var(--terminal-gray);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            font-size: 0.9rem;
+        }
+
+        .filter-tab:hover {
+            background: var(--terminal-border);
+            color: var(--terminal-white);
+        }
+
+        .filter-tab.active {
+            background: var(--nfs-green);
+            color: var(--terminal-bg);
+            border-color: var(--nfs-green);
+        }
+
+        .scenario-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 2rem;
+        }
+
+        .scenario-card {
+            background: var(--terminal-secondary);
+            border: 1px solid var(--terminal-border);
+            border-radius: 12px;
+            padding: 0;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .scenario-card:hover {
+            border-color: var(--section-color);
+            box-shadow: 0 10px 30px rgba(0, 255, 65, 0.1);
+        }
+
+        .scenario-header {
+            background: var(--terminal-accent);
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--terminal-border);
+        }
+
+        .scenario-title {
+            color: var(--section-color);
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .scenario-icon {
+            font-size: 1.2rem;
+        }
+
+        .scenario-description {
+            color: var(--terminal-gray);
+            font-size: 0.95rem;
+            margin-bottom: 1rem;
+        }
+
+        .difficulty-level {
+            background: var(--terminal-bg);
+            border: 1px solid var(--section-color);
+            border-radius: 4px;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.8rem;
+            color: var(--section-color);
+            display: inline-block;
+        }
+
+        .scenario-content {
+            padding: 1.5rem;
+        }
+
+        .real-world-example {
+            background: linear-gradient(135deg, #2a1a1a, #3a2a2a);
+            border: 1px solid var(--share-red);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .real-world-title {
+            color: var(--share-red);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .real-world-text {
+            color: var(--terminal-white);
+            font-size: 0.9rem;
+        }
+
+        .command-example {
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--terminal-dark-gray);
+        }
+
+        .command-example:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .command-syntax {
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .command-syntax:hover {
+            border-color: var(--section-color);
+            background: rgba(0, 191, 255, 0.05);
+        }
+
+        .command-text {
+            font-family: 'Source Code Pro', monospace;
+            font-size: 1rem;
+            color: var(--terminal-cyan);
+            word-break: break-word;
+        }
+
+        .command-prompt {
+            color: var(--nfs-green);
+            margin-right: 0.5rem;
+        }
+
+        .copy-indicator {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: var(--terminal-accent);
+            color: var(--terminal-gray);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .command-syntax:hover .copy-indicator {
+            opacity: 1;
+        }
+
+        .command-description {
+            color: var(--terminal-white);
+            font-size: 0.95rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .command-notes {
+            color: var(--terminal-yellow);
+            font-size: 0.85rem;
+            font-style: italic;
+        }
+
+        .explanation-box {
+            background: var(--terminal-accent);
+            border: 1px solid var(--terminal-border);
+            border-radius: 6px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .explanation-title {
+            color: var(--mount-blue);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .explanation-text {
+            color: var(--terminal-gray);
+            font-size: 0.9rem;
+        }
+
+        .nfs-flow {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--terminal-accent);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .nfs-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .nfs-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+            color: var(--terminal-bg);
+            font-weight: 600;
+        }
+
+        .step-server { background: var(--mount-blue); }
+        .step-export { background: var(--autofs-orange); }
+        .step-mount { background: var(--network-purple); }
+        .step-access { background: var(--nfs-green); }
+
+        .nfs-label {
+            font-size: 0.8rem;
+            color: var(--terminal-gray);
+            margin-bottom: 0.25rem;
+        }
+
+        .nfs-value {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--terminal-white);
+        }
+
+        .arrow {
+            color: var(--terminal-gray);
+            font-size: 1.5rem;
+        }
+
+        .mount-comparison {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .mount-type {
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .mount-type:hover {
+            border-color: var(--section-color);
+            transform: scale(1.02);
+        }
+
+        .mount-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+            color: var(--terminal-white);
+        }
+
+        .mount-description {
+            font-size: 0.85rem;
+            color: var(--terminal-gray);
+            line-height: 1.4;
+        }
+
+        .mount-manual { border-left: 4px solid var(--mount-blue); }
+        .mount-persistent { border-left: 4px solid var(--autofs-orange); }
+        .mount-auto { border-left: 4px solid var(--network-purple); }
+
+        .protocol-comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .protocol-box {
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 1rem;
+        }
+
+        .protocol-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .nfsv3-box {
+            border-color: var(--autofs-orange);
+        }
+
+        .nfsv3-box .protocol-title {
+            color: var(--autofs-orange);
+        }
+
+        .nfsv4-box {
+            border-color: var(--nfs-green);
+        }
+
+        .nfsv4-box .protocol-title {
+            color: var(--nfs-green);
+        }
+
+        .protocol-details {
+            font-size: 0.9rem;
+            color: var(--terminal-gray);
+            line-height: 1.4;
+        }
+
+        .network-topology {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--terminal-accent);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .network-node {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            flex: 1;
+            min-width: 100px;
+        }
+
+        .node-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--terminal-white);
+        }
+
+        .node-client { background: var(--mount-blue); }
+        .node-network { background: var(--network-purple); }
+        .node-server { background: var(--nfs-green); }
+
+        .node-label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--terminal-white);
+        }
+
+        .node-description {
+            font-size: 0.75rem;
+            color: var(--terminal-gray);
+            margin-top: 0.25rem;
+        }
+
+        .connection-line {
+            flex: 0 0 auto;
+            color: var(--terminal-gray);
+            font-size: 1.5rem;
+        }
+
+        .autofs-config {
+            background: var(--terminal-bg);
+            border: 1px solid var(--autofs-orange);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .config-title {
+            color: var(--autofs-orange);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .config-content {
+            font-family: 'Source Code Pro', monospace;
+            font-size: 0.85rem;
+            color: var(--terminal-cyan);
+            background: var(--terminal-accent);
+            padding: 0.75rem;
+            border-radius: 4px;
+            white-space: pre-line;
+        }
+
+        .workflow-steps {
+            background: var(--terminal-accent);
+            border: 1px solid var(--section-color);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .workflow-step {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .step-number {
+            background: var(--section-color);
+            color: var(--terminal-bg);
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            margin-right: 1rem;
+            font-size: 0.8rem;
+        }
+
+        .example-output {
+            background: var(--terminal-bg);
+            border-left: 3px solid var(--section-color);
+            padding: 0.75rem;
+            margin-top: 0.5rem;
+            font-family: 'Source Code Pro', monospace;
+            color: var(--terminal-gray);
+            font-size: 0.9rem;
+        }
+
+        .security-tip {
+            background: linear-gradient(135deg, #1a2a4a, #2a3a5a);
+            border: 1px solid var(--share-red);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .security-tip-title {
+            color: var(--share-red);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .syntax-highlight {
+            color: var(--terminal-purple);
+        }
+
+        .variable-highlight {
+            color: var(--autofs-orange);
+        }
+
+        .string-highlight {
+            color: var(--terminal-yellow);
+        }
+
+        .path-highlight {
+            color: var(--security-cyan);
+        }
+
+        .option-highlight {
+            color: var(--mount-blue);
+        }
+
+        .server-highlight {
+            color: var(--nfs-green);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--nfs-green);
+            color: var(--terminal-bg);
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 500;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0, 255, 65, 0.3);
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 3rem;
+            padding: 2rem;
+            color: var(--terminal-gray);
+            border-top: 1px solid var(--terminal-border);
+            background: var(--terminal-secondary);
+            border-radius: 12px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @media (max-width: 768px) {
+            .scenario-grid {
+                grid-template-columns: 1fr;
+            }
+            .title {
+                font-size: 2rem;
+            }
+            .filter-tabs {
+                justify-content: center;
+            }
+            .nfs-flow {
+                flex-direction: column;
+            }
+            .mount-comparison {
+                grid-template-columns: 1fr;
+            }
+            .protocol-comparison {
+                grid-template-columns: 1fr;
+            }
+            .network-topology {
+                flex-direction: column;
+            }
+        }
+
+        /* Section-specific colors */
+        .nfs-discovery { --section-color: var(--nfs-green); }
+        .nfs-discovery .scenario-header { border-left: 4px solid var(--nfs-green); }
+
+        .manual-mounting { --section-color: var(--mount-blue); }
+        .manual-mounting .scenario-header { border-left: 4px solid var(--mount-blue); }
+
+        .persistent-mounting { --section-color: var(--autofs-orange); }
+        .persistent-mounting .scenario-header { border-left: 4px solid var(--autofs-orange); }
+
+        .automounting { --section-color: var(--network-purple); }
+        .automounting .scenario-header { border-left: 4px solid var(--network-purple); }
+
+        .security-shares { --section-color: var(--security-cyan); }
+        .security-shares .scenario-header { border-left: 4px solid var(--security-cyan); }
+
+        .enterprise-nas { --section-color: var(--share-red); }
+        .enterprise-nas .scenario-header { border-left: 4px solid var(--share-red); }
+    </style>
+</head>
+<body>
+    <div class="terminal-window">
+        <div class="terminal-header">
+            <div class="terminal-button close"></div>
+            <div class="terminal-button minimize"></div>
+            <div class="terminal-button maximize"></div>
+            <div class="terminal-title">network_storage_management.sh</div>
+        </div>
+
+        <div class="container">
+            <div class="header">
+                <h1 class="title">$ Network Storage for Security Operations</h1>
+                <div class="subtitle">Master NFS, Automounting & Shared Security Infrastructure</div>
+                <div class="course-info">College of DuPage • CIT 2455 • AI Cybersecurity Program</div>
+            </div>
+
+            <div class="beginner-notice">
+                <h3>🌐 Connected Storage = Connected Security!</h3>
+                <p>Master network-attached storage for cybersecurity: share evidence across investigation teams, centralize threat intelligence, access distributed security logs, and enable collaborative incident response!</p>
+            </div>
+
+            <div class="search-terminal">
+                <input type="text" class="search-input" placeholder="$ search nfs, mount, showmount, autofs, fstab, network storage..." id="searchInput">
+                <div class="filter-tabs">
+                    <button class="filter-tab active" data-category="all">All Scenarios</button>
+                    <button class="filter-tab" data-category="nfs-discovery">NFS Discovery</button>
+                    <button class="filter-tab" data-category="manual-mounting">Manual Mounting</button>
+                    <button class="filter-tab" data-category="persistent-mounting">Persistent Mounting</button>
+                    <button class="filter-tab" data-category="automounting">Automounting</button>
+                    <button class="filter-tab" data-category="security-shares">Security Shares</button>
+                    <button class="filter-tab" data-category="enterprise-nas">Enterprise NAS</button>
+                </div>
+            </div>
+
+            <div class="scenario-grid">
+                <!-- NFS Discovery -->
+                <div class="scenario-card nfs-discovery" data-category="nfs-discovery">
+                    <div class="scenario-header">
+                        <div class="scenario-title">
+                            <span class="scenario-icon">🔍</span>
+                            NFS Network Discovery
+                        </div>
+                        <div class="scenario-description">Discover and explore available network storage resources</div>
+                        <div class="difficulty-level">FUNDAMENTAL</div>
+                    </div>
+                    <div class="scenario-content">
+                        <div class="real-world-example">
+                            <div class="real-world-title">🔍 SECURITY INFRASTRUCTURE DISCOVERY</div>
+                            <div class="real-world-text">New security analyst joining the SOC team! Need to discover available network storage resources: evidence repositories, threat intelligence feeds, shared investigation workspaces, and collaborative security tools. Map the security storage landscape.</div>
+                        </div>
+
+                        <div class="network-topology">
+                            <div class="network-node">
+                                <div class="node-icon node-client">💻</div>
+                                <div class="node-label">Security Client</div>
+                                <div class="node-description">Investigation workstation</div>
+                            </div>
+                            <div class="connection-line">↔️</div>
+                            <div class="network-node">
+                                <div class="node-icon node-network">🌐</div>
+                                <div class="node-label">Network</div>
+                                <div class="node-description">Secure network</div>
+                            </div>
+                            <div class="connection-line">↔️</div>
+                            <div class="network-node">
+                                <div class="node-icon node-server">🗄️</div>
+                                <div class="node-label">NFS Server</div>
+                                <div class="node-description">Security data storage</div>
+                            </div>
+                        </div>
+
+                        <div class="protocol-comparison">
+                            <div class="protocol-box nfsv3-box">
+                                <div class="protocol-title">NFSv3 (Legacy)</div>
+                                <div class="protocol-details">
+                                    • Uses RPC protocol<br>
+                                    • Requires rpcbind service<br>
+                                    • Port 111 for discovery<br>
+                                    • TCP/UDP transport<br>
+                                    • Use showmount command
+                                </div>
+                            </div>
+                            <div class="protocol-box nfsv4-box">
+                                <div class="protocol-title">NFSv4 (Modern)</div>
+                                <div class="protocol-details">
+                                    • No RPC protocol needed<br>
+                                    • Export tree structure<br>
+                                    • TCP only transport<br>
+                                    • Enhanced security<br>
+                                    • Mount root to browse
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sudo dnf install nfs-utils')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>sudo dnf install nfs-utils
+                                </div>
+                            </div>
+                            <div class="command-description">Install NFS client utilities for network storage access</div>
+                            <div class="command-notes">Essential package for mounting NFS shares and discovery</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('showmount --exports security-storage-01.corp.com')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>showmount <span class="option-highlight">--exports</span> <span class="server-highlight">security-storage-01.corp.com</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Query NFSv3 server for available export shares</div>
+                            <div class="command-notes">Discover evidence repositories and shared investigation data</div>
+                            <div class="example-output">Export list for security-storage-01.corp.com
+/shares/evidence
+/shares/investigations
+/shares/threat-intel
+/shares/logs</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sudo mkdir /tmp/discovery && sudo mount security-storage-02.corp.com:/ /tmp/discovery')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>sudo mkdir <span class="path-highlight">/tmp/discovery</span> &&<br>
+                                    &nbsp;&nbsp;sudo mount <span class="server-highlight">security-storage-02.corp.com:/</span> <span class="path-highlight">/tmp/discovery</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Mount NFSv4 export tree root to browse available shares</div>
+                            <div class="command-notes">Browse all exported directories on modern NFS servers</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('ls -la /tmp/discovery/')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>ls <span class="option-highlight">-la</span> <span class="path-highlight">/tmp/discovery/</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Explore available security storage exports</div>
+                            <div class="command-notes">View shared security resources and access permissions</div>
+                            <div class="example-output">total 0
+drwxr-xr-x. 2 root root  0 Apr  8 10:30 evidence-storage
+drwxr-xr-x. 2 root root  0 Apr  8 10:30 investigation-workspace
+drwxr-xr-x. 2 root root  0 Apr  8 10:30 threat-intelligence
+drwxr-xr-x. 2 root root  0 Apr  8 10:30 security-logs</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sudo umount /tmp/discovery')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>sudo umount <span class="path-highlight">/tmp/discovery</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Unmount discovery mount point after exploration</div>
+                            <div class="command-notes">Clean up temporary mount used for discovery</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('nmap -p 111,2049 security-storage-01.corp.com')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>nmap <span class="option-highlight">-p</span> 111,2049 <span class="server-highlight">security-storage-01.corp.com</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Verify NFS service availability and version</div>
+                            <div class="command-notes">Port 111 = rpcbind (NFSv3), Port 2049 = NFS service</div>
+                        </div>
+
+                        <div class="explanation-box">
+                            <div class="explanation-title">🔍 Security Storage Discovery Strategy:</div>
+                            <div class="explanation-text">
+                                <strong>Evidence Storage:</strong> Centralized repository for digital evidence and forensic data<br>
+                                <strong>Investigation Workspace:</strong> Collaborative space for active security investigations<br>
+                                <strong>Threat Intelligence:</strong> Shared feeds, indicators, and analysis data<br>
+                                <strong>Security Logs:</strong> Centralized log storage for SIEM and analysis tools<br>
+                                <strong>Tools and Scripts:</strong> Shared security tools and automation scripts
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Manual Mounting -->
+                <div class="scenario-card manual-mounting" data-category="manual-mounting">
+                    <div class="scenario-header">
+                        <div class="scenario-title">
+                            <span class="scenario-icon">🔧</span>
+                            Manual Security Mounting
+                        </div>
+                        <div class="scenario-description">Temporarily mount network storage for immediate security operations</div>
+                        <div class="difficulty-level">INTERMEDIATE</div>
+                    </div>
+                    <div class="scenario-content">
+                        <div class="real-world-example">
+                            <div class="real-world-title">🔧 EMERGENCY EVIDENCE ACCESS</div>
+                            <div class="real-world-text">Critical security incident requires immediate access to evidence storage! Need temporary mount to rapidly access forensic data, investigation files, and threat intelligence. Quick manual mounting for urgent security response operations.</div>
+                        </div>
+
+                        <div class="nfs-flow">
+                            <div class="nfs-step">
+                                <div class="nfs-icon step-server">🖥️</div>
+                                <div class="nfs-label">1. Server</div>
+                                <div class="nfs-value">NFS Export</div>
+                            </div>
+                            <div class="arrow">→</div>
+                            <div class="nfs-step">
+                                <div class="nfs-icon step-export">📤</div>
+                                <div class="nfs-label">2. Export</div>
+                                <div class="nfs-value">Share Path</div>
+                            </div>
+                            <div class="arrow">→</div>
+                            <div class="nfs-step">
+                                <div class="nfs-icon step-mount">📁</div>
+                                <div class="nfs-label">3. Mount</div>
+                                <div class="nfs-value">Local Path</div>
+                            </div>
+                            <div class="arrow">→</div>
+                            <div class="nfs-step">
+                                <div class="nfs-icon step-access">✅</div>
+                                <div class="nfs-label">4. Access</div>
+                                <div class="nfs-value">File Access</div>
+                            </div>
+                        </div>
+
+                        <div class="mount-comparison">
+                            <div class="mount-type mount-manual">
+                                <div class="mount-title">Manual Mount</div>
+                                <div class="mount-description">Temporary access<br>Lost on reboot<br>Emergency use</div>
+                            </div>
+                            <div class="mount-type mount-persistent">
+                                <div class="mount-title">Persistent Mount</div>
+                                <div class="mount-description">Automatic at boot<br>/etc/fstab entry<br>Production use</div>
+                            </div>
+                            <div class="mount-type mount-auto">
+                                <div class="mount-title">Automount</div>
+                                <div class="mount-description">On-demand access<br>Auto unmount<br>Flexible use</div>
+                            </div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sudo mkdir -p /mnt/security/evidence')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>sudo mkdir <span class="option-highlight">-p</span> <span class="path-highlight">/mnt/security/evidence</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Create local mount point for evidence storage</div>
+                            <div class="command-notes">-p creates parent directories as needed</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sudo mount -t nfs -o rw,sync evidence-server:/shares/case_data /mnt/security/evidence')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>sudo mount <span class="option-highlight">-t nfs -o rw,sync</span> <span class="server-highlight">evidence-server:/shares/case_data</span> <span class="path-highlight">/mnt/security/evidence</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Mount evidence storage with read/write and synchronous access</div>
+                            <div class="command-notes">-t nfs specifies file system type, rw=read/write, sync=immediate writes</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sudo mount -t nfs4 -o ro,sec=krb5 intel-server:/threat-feeds /mnt/security/intel')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>sudo mount <span class="option-highlight">-t nfs4 -o ro,sec=krb5</span> <span class="server-highlight">intel-server:/threat-feeds</span> <span class="path-highlight">/mnt/security/intel</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Mount secure threat intelligence feeds with Kerberos authentication</div>
+                            <div class="command-notes">NFSv4 with read-only access and Kerberos security</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('df -h | grep /mnt/security')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>df <span class="option-highlight">-h</span> | grep <span class="path-highlight">/mnt/security</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Verify mounted security storage and capacity</div>
+                            <div class="command-notes">Check mount status and available storage space</div>
+                            <div class="example-output">evidence-server:/shares/case_data  500G  123G  377G  25% /mnt/security/evidence
+intel-server:/threat-feeds         100G   78G   22G  78% /mnt/security/intel</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('mount | grep nfs')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>mount | grep nfs
+                                </div>
+                            </div>
+                            <div class="command-description">List all currently mounted NFS shares</div>
+                            <div class="command-notes">View active NFS mounts with mount options</div>
+                            <div class="example-output">evidence-server:/shares/case_data on /mnt/security/evidence type nfs4 (rw,relatime,sync)
+intel-server:/threat-feeds on /mnt/security/intel type nfs4 (ro,relatime,sec=krb5)</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('ls -la /mnt/security/evidence/')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>ls <span class="option-highlight">-la</span> <span class="path-highlight">/mnt/security/evidence/</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Explore mounted evidence storage contents</div>
+                            <div class="command-notes">Verify access and review available investigation data</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sudo umount /mnt/security/evidence')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>sudo umount <span class="path-highlight">/mnt/security/evidence</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Unmount evidence storage when access no longer needed</div>
+                            <div class="command-notes">Clean unmount - ensure no active file access before unmounting</div>
+                        </div>
+
+                        <div class="security-tip">
+                            <div class="security-tip-title">🔧 Manual Mounting Security Practices</div>
+                            <div>
+                                <strong>Emergency Access:</strong> Fast temporary mounting for incident response<br>
+                                <strong>Sync Option:</strong> Use sync for critical data to ensure immediate writes<br>
+                                <strong>Read-Only:</strong> Mount sensitive feeds as read-only when appropriate<br>
+                                <strong>Clean Unmount:</strong> Always unmount cleanly to prevent data corruption
+                            </div>
+                        </div>
+
+                        <div class="explanation-box">
+                            <div class="explanation-title">🔧 NFS Mount Options for Security:</div>
+                            <div class="explanation-text">
+                                <strong>rw/ro:</strong> Read/write or read-only access control<br>
+                                <strong>sync:</strong> Synchronous writes for data integrity<br>
+                                <strong>sec=krb5:</strong> Kerberos authentication for secure access<br>
+                                <strong>vers=4:</strong> Force NFSv4 for enhanced security features<br>
+                                <strong>soft/hard:</strong> Timeout behavior for network issues
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Persistent Mounting -->
+                <div class="scenario-card persistent-mounting" data-category="persistent-mounting">
+                    <div class="scenario-header">
+                        <div class="scenario-title">
+                            <span class="scenario-icon">⚙️</span>
+                            Persistent Security Storage
+                        </div>
+                        <div class="scenario-description">Configure permanent network storage access for security operations</div>
+                        <div class="difficulty-level">INTERMEDIATE</div>
+                    </div>
+                    <div class="scenario-content">
+                        <div class="real-world-example">
+                            <div class="real-world-title">⚙️ SOC INFRASTRUCTURE SETUP</div>
+                            <div class="real-world-text">New SOC workstations need permanent access to security infrastructure! Configure persistent mounting for evidence repositories, threat intelligence feeds, security logs, and shared investigation tools that must be available at every system boot.</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sudo mkdir -p /security/{evidence,intel,logs,tools}')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>sudo mkdir <span class="option-highlight">-p</span> <span class="path-highlight">/security/{evidence,intel,logs,tools}</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Create organized mount points for security infrastructure</div>
+                            <div class="command-notes">Structured layout for different security storage types</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sudo cp /etc/fstab /etc/fstab.backup')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>sudo cp <span class="path-highlight">/etc/fstab /etc/fstab.backup</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Create backup of fstab before making changes</div>
+                            <div class="command-notes">Safety precaution - backup critical system configuration</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sudo vim /etc/fstab')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>sudo vim <span class="path-highlight">/etc/fstab</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Edit fstab to configure persistent NFS mounts</div>
+                            <div class="autofs-config">
+                                <div class="config-title">📝 /etc/fstab Security Storage Configuration:</div>
+                                <div class="config-content"># Security Infrastructure NFS Mounts
+# Evidence storage for digital forensics
+evidence-server:/shares/evidence    /security/evidence    nfs4    rw,sync,sec=krb5    0    0
+
+# Threat intelligence feeds (read-only)
+intel-server:/threat-feeds          /security/intel       nfs4    ro,sync,sec=krb5    0    0
+
+# Centralized security logs
+log-server:/security/logs           /security/logs        nfs4    rw,sync             0    0
+
+# Shared security tools and scripts
+tools-server:/security/tools        /security/tools       nfs4    ro,sync             0    0
+
+# Options explanation:
+# 0 0 = no dump, no fsck at boot
+# sec=krb5 = Kerberos authentication
+# sync = synchronous writes for data integrity</div>
+                            </div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sudo systemctl daemon-reload')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>sudo systemctl daemon-reload
+                                </div>
+                            </div>
+                            <div class="command-description">Reload systemd after fstab changes</div>
+                            <div class="command-notes">Ensure systemd recognizes new mount configuration</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sudo mount -a')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>sudo mount <span class="option-highlight">-a</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Mount all configured file systems from fstab</div>
+                            <div class="command-notes">Test fstab configuration without rebooting</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('mount | grep \"/security\"')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>mount | grep <span class="string-highlight">"/security"</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Verify all security storage mounts are active</div>
+                            <div class="command-notes">Confirm persistent configuration is working</div>
+                            <div class="example-output">evidence-server:/shares/evidence on /security/evidence type nfs4 (rw,sync,sec=krb5)
+intel-server:/threat-feeds on /security/intel type nfs4 (ro,sync,sec=krb5)
+log-server:/security/logs on /security/logs type nfs4 (rw,sync)
+tools-server:/security/tools on /security/tools type nfs4 (ro,sync)</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sudo mount /security/evidence')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>sudo mount <span class="path-highlight">/security/evidence</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Mount single share using fstab configuration</div>
+                            <div class="command-notes">Mount specific share without specifying server details</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('df -h | grep \"/security\" | awk \"{print \\$6\\\" (\\\"\\$5\\\" used)\"}\"')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>df <span class="option-highlight">-h</span> | grep <span class="string-highlight">"/security"</span> | awk <span class="string-highlight">'{print $6" ("$5" used)"}'</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Monitor security storage capacity usage</div>
+                            <div class="command-notes">Quick capacity overview for all security mounts</div>
+                            <div class="example-output">/security/evidence (25% used)
+/security/intel (78% used)
+/security/logs (45% used)
+/security/tools (12% used)</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sudo systemctl reboot')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>sudo systemctl reboot
+                                </div>
+                            </div>
+                            <div class="command-description">Test persistent mounting by rebooting system</div>
+                            <div class="command-notes">Verify mounts automatically restore after reboot</div>
+                        </div>
+
+                        <div class="workflow-steps">
+                            <div class="workflow-step">
+                                <div class="step-number">1</div>
+                                <div>Create organized mount points for different security storage types</div>
+                            </div>
+                            <div class="workflow-step">
+                                <div class="step-number">2</div>
+                                <div>Backup /etc/fstab before making configuration changes</div>
+                            </div>
+                            <div class="workflow-step">
+                                <div class="step-number">3</div>
+                                <div>Add NFS mount entries with appropriate security options</div>
+                            </div>
+                            <div class="workflow-step">
+                                <div class="step-number">4</div>
+                                <div>Test configuration with mount -a before rebooting</div>
+                            </div>
+                        </div>
+
+                        <div class="security-tip">
+                            <div class="security-tip-title">⚙️ Persistent Mount Security</div>
+                            <div>
+                                <strong>Backup First:</strong> Always backup /etc/fstab before modifications<br>
+                                <strong>Security Options:</strong> Use sec=krb5 for authenticated access<br>
+                                <strong>Access Control:</strong> Mount read-only when write access not needed<br>
+                                <strong>Test Configuration:</strong> Verify with mount -a before rebooting
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Automounting -->
+                <div class="scenario-card automounting" data-category="automounting">
+                    <div class="scenario-header">
+                        <div class="scenario-title">
+                            <span class="scenario-icon">🤖</span>
+                            Smart Automounting
+                        </div>
+                        <div class="scenario-description">Configure intelligent on-demand mounting for dynamic security operations</div>
+                        <div class="difficulty-level">ADVANCED</div>
+                    </div>
+                    <div class="scenario-content">
+                        <div class="real-world-example">
+                            <div class="real-world-title">🤖 DYNAMIC INVESTIGATION ACCESS</div>
+                            <div class="real-world-text">Security analysts need flexible access to case-specific storage! Configure automounting so investigation data mounts automatically when accessed, unmounts when idle to save resources, and provides dynamic access to multiple investigation workspaces.</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sudo dnf install autofs nfs-utils')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>sudo dnf install autofs nfs-utils
+                                </div>
+                            </div>
+                            <div class="command-description">Install automounting service and NFS utilities</div>
+                            <div class="command-notes">Required packages for automatic NFS mounting</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sudo mkdir -p /etc/auto.master.d')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>sudo mkdir <span class="option-highlight">-p</span> <span class="path-highlight">/etc/auto.master.d</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Create directory for automounter master map configurations</div>
+                            <div class="command-notes">Organized approach using auto.master.d directory</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sudo vim /etc/auto.master.d/security.autofs')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>sudo vim <span class="path-highlight">/etc/auto.master.d/security.autofs</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Create master map for security automounting</div>
+                            <div class="autofs-config">
+                                <div class="config-title">🗺️ Security Automounter Master Map:</div>
+                                <div class="config-content"># /etc/auto.master.d/security.autofs
+# Indirect maps for investigation workspaces
+/investigations    /etc/auto.investigations
+
+# Direct maps for specific security resources
+/-                 /etc/auto.direct.security</div>
+                            </div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sudo vim /etc/auto.investigations')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>sudo vim <span class="path-highlight">/etc/auto.investigations</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Configure indirect map for investigation workspaces</div>
+                            <div class="autofs-config">
+                                <div class="config-title">📁 Investigation Workspaces (Indirect Map):</div>
+                                <div class="config-content"># /etc/auto.investigations
+# Wildcard mapping for all investigation cases
+* -rw,sync,sec=krb5 investigation-server:/cases/&
+
+# Specific high-priority investigations
+breach-2024    -rw,sync,sec=krb5    investigation-server:/priority/breach-2024
+insider-threat -rw,sync,sec=krb5    investigation-server:/priority/insider-threat
+
+# Read-only access to completed investigations
+archive-*      -ro,sync,sec=krb5    investigation-server:/archive/&</div>
+                            </div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sudo vim /etc/auto.direct.security')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>sudo vim <span class="path-highlight">/etc/auto.direct.security</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Configure direct map for specific security resources</div>
+                            <div class="autofs-config">
+                                <div class="config-title">🎯 Direct Security Mounts:</div>
+                                <div class="config-content"># /etc/auto.direct.security
+# Threat intelligence feeds
+/intel/feeds       -ro,sync,sec=krb5    intel-server:/threat-feeds
+
+# Evidence storage
+/evidence/storage  -rw,sync,sec=krb5    evidence-server:/digital-evidence
+
+# Security tools repository
+/tools/security    -ro,sync             tools-server:/security-tools
+
+# Live security logs
+/logs/live         -rw,sync             log-server:/live-logs</div>
+                            </div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sudo systemctl enable --now autofs')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>sudo systemctl enable <span class="option-highlight">--now</span> autofs
+                                </div>
+                            </div>
+                            <div class="command-description">Enable and start automounter service</div>
+                            <div class="command-notes">Start automounting and enable for automatic startup</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('ls /investigations/')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>ls <span class="path-highlight">/investigations/</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Browse available investigation workspaces</div>
+                            <div class="command-notes">Indirect mount - directory appears empty until accessed</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('cd /investigations/case-2024-001 && ls -la')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>cd <span class="path-highlight">/investigations/case-2024-001</span> && ls -la
+                                </div>
+                            </div>
+                            <div class="command-description">Access specific investigation - triggers automatic mounting</div>
+                            <div class="command-notes">Automounter creates and mounts directory on demand</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('df -h | grep investigations')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>df <span class="option-highlight">-h</span> | grep investigations
+                                </div>
+                            </div>
+                            <div class="command-description">Verify automatic mount is active</div>
+                            <div class="command-notes">Shows mounted investigation workspace</div>
+                            <div class="example-output">investigation-server:/cases/case-2024-001  100G  45G  55G  45% /investigations/case-2024-001</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('cat /intel/feeds/latest-iocs.txt')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>cat <span class="path-highlight">/intel/feeds/latest-iocs.txt</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Access threat intelligence - triggers direct mount</div>
+                            <div class="command-notes">Direct mount automatically mounts on file access</div>
+                        </div>
+
+                        <div class="explanation-box">
+                            <div class="explanation-title">🤖 Automounting Benefits for Security:</div>
+                            <div class="explanation-text">
+                                <strong>Resource Efficiency:</strong> Mounts only when needed, unmounts when idle<br>
+                                <strong>Dynamic Access:</strong> Access any investigation workspace without pre-configuration<br>
+                                <strong>Network Resilience:</strong> Automatically reconnects after network issues<br>
+                                <strong>Security:</strong> Uses current mount configuration and credentials<br>
+                                <strong>Scalability:</strong> Supports unlimited investigation workspaces
+                            </div>
+                        </div>
+
+                        <div class="security-tip">
+                            <div class="security-tip-title">🤖 Automounting Security Best Practices</div>
+                            <div>
+                                <strong>Wildcard Maps:</strong> Use * mapping for flexible investigation access<br>
+                                <strong>Security Options:</strong> Apply sec=krb5 for authenticated automounts<br>
+                                <strong>Access Control:</strong> Use ro for read-only resources like threat feeds<br>
+                                <strong>Monitor Usage:</strong> Track active mounts and access patterns
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Security Shares -->
+                <div class="scenario-card security-shares" data-category="security-shares">
+                    <div class="scenario-header">
+                        <div class="scenario-title">
+                            <span class="scenario-icon">🔒</span>
+                            Secure Team Collaboration
+                        </div>
+                        <div class="scenario-description">Implement secure shared storage for multi-team security operations</div>
+                        <div class="difficulty-level">ADVANCED</div>
+                    </div>
+                    <div class="scenario-content">
+                        <div class="real-world-example">
+                            <div class="real-world-title">🔒 COLLABORATIVE SECURITY OPERATIONS</div>
+                            <div class="real-world-text">Multi-team security investigation requires secure collaboration! Configure role-based access to shared evidence, investigation workspaces, threat intelligence, and analysis tools with proper permissions and authentication for SOC, incident response, and forensics teams.</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('groups $(whoami)')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>groups <span class="syntax-highlight">$(whoami)</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Check current user's security group memberships</div>
+                            <div class="command-notes">Verify access permissions for security resources</div>
+                            <div class="example-output">analyst soc-team investigators evidence-access threat-intel</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sudo mount -t nfs4 -o sec=krb5,rw,sync soc-storage:/team-shares /security/teams')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>sudo mount <span class="option-highlight">-t nfs4 -o sec=krb5,rw,sync</span> <span class="server-highlight">soc-storage:/team-shares</span> <span class="path-highlight">/security/teams</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Mount secure team collaboration storage with Kerberos auth</div>
+                            <div class="command-notes">Authenticated access based on Active Directory/Kerberos credentials</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('ls -la /security/teams/')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>ls <span class="option-highlight">-la</span> <span class="path-highlight">/security/teams/</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Explore team-based security workspace organization</div>
+                            <div class="command-notes">View accessible team folders based on group membership</div>
+                            <div class="example-output">drwxrwx---. 2 root soc-team         4096 Apr  8 10:30 soc-operations
+drwxrwx---. 2 root investigators   4096 Apr  8 10:30 incident-response
+drwxrwx---. 2 root forensics-team  4096 Apr  8 10:30 digital-forensics
+drwxr-x---. 2 root threat-intel    4096 Apr  8 10:30 intelligence-feeds</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('mkdir /security/teams/soc-operations/case-$(date +%Y%m%d)-analysis')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>mkdir <span class="path-highlight">/security/teams/soc-operations/case-$(date +%Y%m%d)-analysis</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Create date-stamped case analysis workspace</div>
+                            <div class="command-notes">Organized case management with automatic date naming</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('echo \"Investigation started by $(whoami) at $(date)\" > /security/teams/incident-response/current-incident.log')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>echo <span class="string-highlight">"Investigation started by $(whoami) at $(date)"</span> ><br>
+                                    &nbsp;&nbsp;<span class="path-highlight">/security/teams/incident-response/current-incident.log</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Log investigation activity with user and timestamp</div>
+                            <div class="command-notes">Track team activities for collaboration and audit</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('scp evidence.zip analyst@soc-storage:/team-shares/digital-forensics/case-2024-001/')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>scp evidence.zip <span class="server-highlight">analyst@soc-storage:/team-shares/digital-forensics/case-2024-001/</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Securely transfer evidence to forensics team workspace</div>
+                            <div class="command-notes">Direct server copy for large files and secure transfer</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('find /security/teams -type f -mtime -1 -exec ls -l {} \\;')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>find <span class="path-highlight">/security/teams</span> <span class="option-highlight">-type f -mtime -1</span> <span class="option-highlight">-exec</span> ls -l {} \;
+                                </div>
+                            </div>
+                            <div class="command-description">Find files modified in last 24 hours across all team spaces</div>
+                            <div class="command-notes">Track recent activity and collaboration across teams</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('getfacl /security/teams/incident-response/')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>getfacl <span class="path-highlight">/security/teams/incident-response/</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Check Access Control Lists (ACL) for team workspace</div>
+                            <div class="command-notes">Verify detailed permissions and access rights</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('tail -f /security/teams/soc-operations/alerts.log')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>tail <span class="option-highlight">-f</span> <span class="path-highlight">/security/teams/soc-operations/alerts.log</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Monitor live security alerts in shared team space</div>
+                            <div class="command-notes">Real-time monitoring of shared security event logs</div>
+                        </div>
+
+                        <div class="explanation-box">
+                            <div class="explanation-title">🔒 Team-Based Security Access Control:</div>
+                            <div class="explanation-text">
+                                <strong>SOC Team:</strong> Real-time monitoring, alert triage, initial analysis<br>
+                                <strong>Incident Response:</strong> Active investigation coordination and response<br>
+                                <strong>Digital Forensics:</strong> Deep analysis, evidence processing, chain of custody<br>
+                                <strong>Threat Intelligence:</strong> Research, analysis, indicator management<br>
+                                <strong>Cross-Team:</strong> Shared briefings, escalation procedures, knowledge sharing
+                            </div>
+                        </div>
+
+                        <div class="security-tip">
+                            <div class="security-tip-title">🔒 Collaborative Security Principles</div>
+                            <div>
+                                <strong>Role-Based Access:</strong> Permissions align with job responsibilities and security clearance<br>
+                                <strong>Audit Trails:</strong> Track all access and modifications for compliance<br>
+                                <strong>Data Classification:</strong> Separate spaces for different classification levels<br>
+                                <strong>Secure Transfer:</strong> Use encrypted protocols for sensitive data movement
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Enterprise NAS -->
+                <div class="scenario-card enterprise-nas" data-category="enterprise-nas">
+                    <div class="scenario-header">
+                        <div class="scenario-title">
+                            <span class="scenario-icon">🏢</span>
+                            Enterprise Security Infrastructure
+                        </div>
+                        <div class="scenario-description">Design comprehensive network storage architecture for enterprise security operations</div>
+                        <div class="difficulty-level">EXPERT</div>
+                    </div>
+                    <div class="scenario-content">
+                        <div class="real-world-example">
+                            <div class="real-world-title">🏢 GLOBAL SECURITY INFRASTRUCTURE</div>
+                            <div class="real-world-text">Enterprise with global security operations needs comprehensive NAS architecture! Design redundant storage infrastructure supporting thousands of security professionals across multiple sites with petabytes of security data, compliance requirements, and 24/7 operations.</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('#!/bin/bash\necho \"=== Enterprise Security Storage Health Check ===\"\necho \"Date: $(date)\"\necho\n# Check all NFS mounts\necho \"Active NFS Mounts:\"\nmount | grep nfs4 | while read line; do\n  mountpoint=$(echo $line | awk \"{print \\$3}\")\n  echo \"  $mountpoint\"\n  df -h $mountpoint | tail -1\ndone')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>vim <span class="path-highlight">enterprise_storage_health.sh</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Create enterprise storage monitoring script</div>
+                            <div class="autofs-config">
+                                <div class="config-title">📊 Enterprise Storage Health Monitoring:</div>
+                                <div class="config-content">#!/bin/bash
+# Enterprise Security Storage Infrastructure Health Check
+
+echo "=== Enterprise Security Storage Health Check ==="
+echo "Date: $(date)"
+echo "Hostname: $(hostname)"
+echo
+
+# Check all NFS mounts
+echo "Active NFS Mounts:"
+mount | grep nfs4 | while read line; do
+    mountpoint=$(echo $line | awk '{print $3}')
+    server=$(echo $line | awk '{print $1}')
+    echo "  Mount: $mountpoint"
+    echo "  Server: $server"
+    df -h $mountpoint | tail -1
+    echo
+done
+
+# Check automounter status
+echo "Automounter Service Status:"
+systemctl is-active autofs
+systemctl is-enabled autofs
+
+# Check for failed mounts
+echo "Failed Mount Attempts:"
+journalctl -u autofs --since "1 hour ago" | grep -i error || echo "No errors found"
+
+# Storage utilization alerts
+echo "Storage Utilization Alerts (>85% usage):"
+df -h | grep -E "/security|/evidence|/intel" | awk '$5+0 > 85 {print "ALERT: " $6 " is " $5 " full"}'
+
+# Network connectivity test
+echo "Storage Server Connectivity:"
+for server in evidence-primary evidence-backup intel-feeds log-storage; do
+    if ping -c 1 $server.corp.com &>/dev/null; then
+        echo "  $server.corp.com: Online"
+    else
+        echo "  $server.corp.com: OFFLINE"
+    fi
+done</div>
+                            </div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sudo mount -t nfs4 -o sec=krb5,rw,sync,fsc storage-cluster.corp.com:/global-evidence /enterprise/evidence')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>sudo mount <span class="option-highlight">-t nfs4 -o sec=krb5,rw,sync,fsc</span><br>
+                                    &nbsp;&nbsp;<span class="server-highlight">storage-cluster.corp.com:/global-evidence</span> <span class="path-highlight">/enterprise/evidence</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Mount clustered evidence storage with local caching</div>
+                            <div class="command-notes">fsc enables local caching for performance in distributed environment</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('for site in americas emea apac; do\n  sudo mkdir -p /enterprise/sites/$site\n  sudo mount -t nfs4 -o ro,sec=krb5 intel-$site.corp.com:/regional-intel /enterprise/sites/$site\ndone')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>for site in americas emea apac; do<br>
+                                    &nbsp;&nbsp;sudo mkdir <span class="option-highlight">-p</span> <span class="path-highlight">/enterprise/sites/$site</span><br>
+                                    &nbsp;&nbsp;sudo mount <span class="option-highlight">-t nfs4 -o ro,sec=krb5</span> <span class="server-highlight">intel-$site.corp.com:/regional-intel</span> <span class="path-highlight">/enterprise/sites/$site</span><br>
+                                    done
+                                </div>
+                            </div>
+                            <div class="command-description">Mount regional threat intelligence feeds for global operations</div>
+                            <div class="command-notes">Automated mounting of regional security intelligence resources</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('iostat -x 1 3 | grep -A 20 \"Device\"')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>iostat <span class="option-highlight">-x 1 3</span> | grep <span class="option-highlight">-A 20</span> <span class="string-highlight">"Device"</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Monitor storage I/O performance for enterprise NFS mounts</div>
+                            <div class="command-notes">Track performance metrics for capacity planning</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('nfsstat -c -3 -4')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>nfsstat <span class="option-highlight">-c -3 -4</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Display NFS client statistics for performance analysis</div>
+                            <div class="command-notes">Monitor NFS operations, retries, and error rates</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('ss -tuln | grep -E \":111|:2049\"')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>ss <span class="option-highlight">-tuln</span> | grep <span class="option-highlight">-E</span> <span class="string-highlight">":111|:2049"</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Check NFS service ports and network connectivity</div>
+                            <div class="command-notes">Verify NFS infrastructure network availability</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('find /enterprise -maxdepth 3 -type d -exec du -sh {} \\; | sort -hr | head -10')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>find <span class="path-highlight">/enterprise</span> <span class="option-highlight">-maxdepth 3 -type d</span> <span class="option-highlight">-exec</span> du -sh {} \; |<br>
+                                    &nbsp;&nbsp;sort <span class="option-highlight">-hr</span> | head <span class="option-highlight">-10</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Analyze storage usage patterns across enterprise infrastructure</div>
+                            <div class="command-notes">Identify largest directories for capacity planning</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('#!/bin/bash\nwhile true; do\n  echo \"$(date): Checking storage connectivity...\"\n  for mount in /enterprise/evidence /enterprise/intel /enterprise/logs; do\n    if timeout 5 ls $mount > /dev/null 2>&1; then\n      echo \"  $mount: OK\"\n    else\n      echo \"  $mount: FAILED - alerting ops team\"\n      # Add alerting logic here\n    fi\n  done\n  sleep 300\ndone')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>vim <span class="path-highlight">storage_monitor.sh</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Create continuous storage availability monitoring</div>
+                            <div class="command-notes">24/7 monitoring with automated alerting for enterprise operations</div>
+                        </div>
+
+                        <div class="explanation-box">
+                            <div class="explanation-title">🏢 Enterprise NFS Architecture Components:</div>
+                            <div class="explanation-text">
+                                <strong>Storage Clusters:</strong> High-availability NFS clusters with failover capability<br>
+                                <strong>Global Evidence:</strong> Centralized petabyte-scale evidence repository<br>
+                                <strong>Regional Intelligence:</strong> Geographically distributed threat intelligence<br>
+                                <strong>Performance Caching:</strong> Local caching for remote office performance<br>
+                                <strong>Automated Monitoring:</strong> 24/7 health checking and capacity planning<br>
+                                <strong>Compliance Logging:</strong> Comprehensive audit trails for regulatory requirements
+                            </div>
+                        </div>
+
+                        <div class="security-tip">
+                            <div class="security-tip-title">🏢 Enterprise Storage Security</div>
+                            <div>
+                                <strong>High Availability:</strong> Clustered storage with automated failover<br>
+                                <strong>Performance Monitoring:</strong> Continuous I/O and capacity monitoring<br>
+                                <strong>Security Controls:</strong> Multi-layered authentication and encryption<br>
+                                <strong>Disaster Recovery:</strong> Geographic replication and backup strategies
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer">
+                <p>© 2025 College of DuPage - Computer Information Technology Department</p>
+                <p>CIT 2455 Linux/Unix Systems | AI Cybersecurity Program</p>
+                <p><em>"Connected storage empowers connected security operations!" 🌐🔒</em></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // Initialize variables
+        const searchInput = document.getElementById('searchInput');
+        const filterTabs = document.querySelectorAll('.filter-tab');
+        const scenarioCards = document.querySelectorAll('.scenario-card');
+        let currentFilter = 'all';
+
+        // Search functionality
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            filterScenarios(searchTerm, currentFilter);
+        });
+
+        // Filter tab functionality
+        filterTabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                // Update active tab
+                filterTabs.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                
+                currentFilter = this.dataset.category;
+                const searchTerm = searchInput.value.toLowerCase();
+                filterScenarios(searchTerm, currentFilter);
+            });
+        });
+
+        // Filter scenarios based on search and category
+        function filterScenarios(searchTerm, category) {
+            scenarioCards.forEach(card => {
+                const cardCategory = card.dataset.category;
+                const cardText = card.textContent.toLowerCase();
+                
+                const matchesCategory = category === 'all' || category === cardCategory;
+                const matchesSearch = !searchTerm || cardText.includes(searchTerm);
+                
+                if (matchesCategory && matchesSearch) {
+                    card.classList.remove('hidden');
+                } else {
+                    card.classList.add('hidden');
+                }
+            });
+        }
+
+        // Copy command to clipboard
+        function copyCommand(command) {
+            // Clean up command text (remove HTML and extra whitespace)
+            const cleanCommand = command.replace(/<[^>]*>/g, '').trim();
+            
+            navigator.clipboard.writeText(cleanCommand).then(() => {
+                showToast(`Copied: ${cleanCommand.substring(0, 60)}${cleanCommand.length > 60 ? '...' : ''}`);
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+                showToast('Copy failed - try selecting manually');
+            });
+        }
+
+        // Show toast notification
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2500);
+        }
+
+        // Interactive network topology
+        const networkNodes = document.querySelectorAll('.network-node');
+        networkNodes.forEach(node => {
+            node.addEventListener('click', function() {
+                const nodeLabel = this.querySelector('.node-label').textContent;
+                showToast(`Network Component: ${nodeLabel}`);
+                
+                // Animate node
+                const icon = this.querySelector('.node-icon');
+                icon.style.transform = 'scale(1.1) rotate(5deg)';
+                setTimeout(() => {
+                    icon.style.transform = 'scale(1) rotate(0deg)';
+                }, 300);
+            });
+        });
+
+        // Interactive mount types
+        const mountTypes = document.querySelectorAll('.mount-type');
+        mountTypes.forEach(mountType => {
+            mountType.addEventListener('click', function() {
+                const mountTitle = this.querySelector('.mount-title').textContent;
+                showToast(`Mount Type: ${mountTitle}`);
+                
+                // Animate selection
+                mountTypes.forEach(mt => mt.style.transform = 'scale(1)');
+                this.style.transform = 'scale(1.05)';
+                setTimeout(() => {
+                    this.style.transform = 'scale(1)';
+                }, 300);
+            });
+        });
+
+        // Interactive protocol comparison
+        const protocolBoxes = document.querySelectorAll('.protocol-box');
+        protocolBoxes.forEach(box => {
+            box.addEventListener('click', function() {
+                const protocolTitle = this.querySelector('.protocol-title').textContent;
+                showToast(`NFS Protocol: ${protocolTitle}`);
+                
+                // Animate selection
+                this.style.transform = 'scale(1.02)';
+                setTimeout(() => {
+                    this.style.transform = 'scale(1)';
+                }, 200);
+            });
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl/Cmd + K to focus search
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                searchInput.focus();
+                searchInput.select();
+            }
+            
+            // Escape to clear search
+            if (e.key === 'Escape') {
+                searchInput.value = '';
+                filterScenarios('', currentFilter);
+                searchInput.blur();
+            }
+        });
+
+        // Initialize page with NFS-themed animations
+        document.addEventListener('DOMContentLoaded', function() {
+            // Focus search after delay
+            setTimeout(() => {
+                searchInput.focus();
+            }, 1500);
+
+            // Animated search placeholder
+            const searchPlaceholder = "$ search nfs, mount, showmount, autofs, fstab, network storage...";
+            let i = 0;
+            const typeInterval = setInterval(() => {
+                if (i < searchPlaceholder.length) {
+                    searchInput.placeholder = searchPlaceholder.substring(0, i + 1);
+                    i++;
+                } else {
+                    clearInterval(typeInterval);
+                }
+            }, 50);
+
+            // Add NFS-themed entrance animations
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, observerOptions);
+
+            // Setup cards for animation
+            scenarioCards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                card.style.transition = `opacity 0.6s ease ${index * 0.1}s, transform 0.6s ease ${index * 0.1}s`;
+                observer.observe(card);
+            });
+
+            // Animate NFS workflow
+            const nfsSteps = document.querySelectorAll('.nfs-step');
+            nfsSteps.forEach((step, index) => {
+                setTimeout(() => {
+                    step.style.opacity = '0.9';
+                    const icon = step.querySelector('.nfs-icon');
+                    icon.style.transform = 'scale(1.1) rotate(5deg)';
+                    setTimeout(() => {
+                        icon.style.transform = 'scale(1) rotate(0deg)';
+                    }, 300);
+                }, index * 400 + 1000);
+            });
+
+            // Animate network topology
+            networkNodes.forEach((node, index) => {
+                setTimeout(() => {
+                    const icon = node.querySelector('.node-icon');
+                    icon.style.transform = 'scale(1.1)';
+                    setTimeout(() => {
+                        icon.style.transform = 'scale(1)';
+                    }, 200);
+                }, index * 300 + 2000);
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chapter 4 Beginner's Guide - Archive & Transfer for Cybersecurity Operations</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;500;700&family=Source+Code+Pro:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --terminal-bg: #0c0c0c;
+            --terminal-secondary: #1a1a1a;
+            --terminal-accent: #2a2a2a;
+            --terminal-border: #404040;
+            --terminal-green: #00ff41;
+            --terminal-blue: #00bfff;
+            --terminal-yellow: #ffff00;
+            --terminal-orange: #ff8c00;
+            --terminal-red: #ff4444;
+            --terminal-purple: #cc99ff;
+            --terminal-cyan: #00ffff;
+            --terminal-white: #f0f0f0;
+            --terminal-gray: #808080;
+            --terminal-dark-gray: #404040;
+            --archive-green: #00ff41;
+            --transfer-blue: #00bfff;
+            --forensics-orange: #ff8c00;
+            --sync-purple: #cc99ff;
+            --backup-cyan: #00ffff;
+            --security-red: #ff4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto Mono', 'Source Code Pro', monospace;
+            background: var(--terminal-bg);
+            color: var(--terminal-white);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .terminal-window {
+            background: var(--terminal-secondary);
+            margin: 1rem;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 255, 65, 0.1);
+            border: 1px solid var(--terminal-border);
+            overflow: hidden;
+        }
+
+        .terminal-header {
+            background: linear-gradient(135deg, #333, #444);
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            border-bottom: 1px solid var(--terminal-border);
+        }
+
+        .terminal-button {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .close { background: #ff5f56; }
+        .minimize { background: #ffbd2e; }
+        .maximize { background: #27ca3f; }
+
+        .terminal-title {
+            color: var(--terminal-white);
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-left: 1rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background: var(--terminal-secondary);
+            border-radius: 12px;
+            border: 1px solid var(--terminal-border);
+        }
+
+        .title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--archive-green);
+            margin-bottom: 0.5rem;
+            text-shadow: 0 0 20px rgba(0, 255, 65, 0.3);
+        }
+
+        .subtitle {
+            color: var(--transfer-blue);
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+        }
+
+        .course-info {
+            color: var(--terminal-gray);
+            font-size: 0.95rem;
+        }
+
+        .beginner-notice {
+            background: linear-gradient(135deg, #2a4a2a, #1a3a1a);
+            border: 1px solid var(--archive-green);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            text-align: center;
+        }
+
+        .beginner-notice h3 {
+            color: var(--terminal-yellow);
+            margin-bottom: 0.5rem;
+            font-size: 1.3rem;
+        }
+
+        .beginner-notice p {
+            color: var(--terminal-white);
+        }
+
+        .search-terminal {
+            background: var(--terminal-secondary);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            position: sticky;
+            top: 1rem;
+            z-index: 100;
+        }
+
+        .search-input {
+            width: 100%;
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 6px;
+            padding: 0.75rem 1rem;
+            color: var(--archive-green);
+            font-family: inherit;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--archive-green);
+            box-shadow: 0 0 10px rgba(0, 255, 65, 0.2);
+        }
+
+        .search-input::placeholder {
+            color: var(--terminal-gray);
+        }
+
+        .filter-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-tab {
+            background: var(--terminal-accent);
+            border: 1px solid var(--terminal-border);
+            border-radius: 6px;
+            padding: 0.5rem 1rem;
+            color: var(--terminal-gray);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            font-size: 0.9rem;
+        }
+
+        .filter-tab:hover {
+            background: var(--terminal-border);
+            color: var(--terminal-white);
+        }
+
+        .filter-tab.active {
+            background: var(--archive-green);
+            color: var(--terminal-bg);
+            border-color: var(--archive-green);
+        }
+
+        .scenario-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 2rem;
+        }
+
+        .scenario-card {
+            background: var(--terminal-secondary);
+            border: 1px solid var(--terminal-border);
+            border-radius: 12px;
+            padding: 0;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .scenario-card:hover {
+            border-color: var(--section-color);
+            box-shadow: 0 10px 30px rgba(0, 255, 65, 0.1);
+        }
+
+        .scenario-header {
+            background: var(--terminal-accent);
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--terminal-border);
+        }
+
+        .scenario-title {
+            color: var(--section-color);
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .scenario-icon {
+            font-size: 1.2rem;
+        }
+
+        .scenario-description {
+            color: var(--terminal-gray);
+            font-size: 0.95rem;
+            margin-bottom: 1rem;
+        }
+
+        .difficulty-level {
+            background: var(--terminal-bg);
+            border: 1px solid var(--section-color);
+            border-radius: 4px;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.8rem;
+            color: var(--section-color);
+            display: inline-block;
+        }
+
+        .scenario-content {
+            padding: 1.5rem;
+        }
+
+        .real-world-example {
+            background: linear-gradient(135deg, #2a1a1a, #3a2a2a);
+            border: 1px solid var(--security-red);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .real-world-title {
+            color: var(--security-red);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .real-world-text {
+            color: var(--terminal-white);
+            font-size: 0.9rem;
+        }
+
+        .command-example {
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--terminal-dark-gray);
+        }
+
+        .command-example:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .command-syntax {
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .command-syntax:hover {
+            border-color: var(--section-color);
+            background: rgba(0, 191, 255, 0.05);
+        }
+
+        .command-text {
+            font-family: 'Source Code Pro', monospace;
+            font-size: 1rem;
+            color: var(--terminal-cyan);
+            word-break: break-word;
+        }
+
+        .command-prompt {
+            color: var(--archive-green);
+            margin-right: 0.5rem;
+        }
+
+        .copy-indicator {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: var(--terminal-accent);
+            color: var(--terminal-gray);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .command-syntax:hover .copy-indicator {
+            opacity: 1;
+        }
+
+        .command-description {
+            color: var(--terminal-white);
+            font-size: 0.95rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .command-notes {
+            color: var(--terminal-yellow);
+            font-size: 0.85rem;
+            font-style: italic;
+        }
+
+        .explanation-box {
+            background: var(--terminal-accent);
+            border: 1px solid var(--terminal-border);
+            border-radius: 6px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .explanation-title {
+            color: var(--transfer-blue);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .explanation-text {
+            color: var(--terminal-gray);
+            font-size: 0.9rem;
+        }
+
+        .compression-comparison {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 0.5rem;
+            margin: 1rem 0;
+        }
+
+        .compression-type {
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 4px;
+            padding: 0.5rem;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        .compression-gzip { border-color: #00ff41; color: #00ff41; }
+        .compression-bzip2 { border-color: #ff8c00; color: #ff8c00; }
+        .compression-xz { border-color: #cc99ff; color: #cc99ff; }
+
+        .workflow-steps {
+            background: var(--terminal-accent);
+            border: 1px solid var(--section-color);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .workflow-step {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .step-number {
+            background: var(--section-color);
+            color: var(--terminal-bg);
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            margin-right: 1rem;
+            font-size: 0.8rem;
+        }
+
+        .example-output {
+            background: var(--terminal-bg);
+            border-left: 3px solid var(--section-color);
+            padding: 0.75rem;
+            margin-top: 0.5rem;
+            font-family: 'Source Code Pro', monospace;
+            color: var(--terminal-gray);
+            font-size: 0.9rem;
+        }
+
+        .security-tip {
+            background: linear-gradient(135deg, #1a2a4a, #2a3a5a);
+            border: 1px solid var(--security-red);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .security-tip-title {
+            color: var(--security-red);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .syntax-highlight {
+            color: var(--terminal-purple);
+        }
+
+        .variable-highlight {
+            color: var(--forensics-orange);
+        }
+
+        .string-highlight {
+            color: var(--terminal-yellow);
+        }
+
+        .path-highlight {
+            color: var(--backup-cyan);
+        }
+
+        .option-highlight {
+            color: var(--transfer-blue);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--archive-green);
+            color: var(--terminal-bg);
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 500;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0, 255, 65, 0.3);
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 3rem;
+            padding: 2rem;
+            color: var(--terminal-gray);
+            border-top: 1px solid var(--terminal-border);
+            background: var(--terminal-secondary);
+            border-radius: 12px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @media (max-width: 768px) {
+            .scenario-grid {
+                grid-template-columns: 1fr;
+            }
+            .title {
+                font-size: 2rem;
+            }
+            .filter-tabs {
+                justify-content: center;
+            }
+        }
+
+        /* Section-specific colors */
+        .forensic-evidence { --section-color: var(--forensics-orange); }
+        .forensic-evidence .scenario-header { border-left: 4px solid var(--forensics-orange); }
+
+        .secure-backup { --section-color: var(--archive-green); }
+        .secure-backup .scenario-header { border-left: 4px solid var(--archive-green); }
+
+        .secure-transfer { --section-color: var(--transfer-blue); }
+        .secure-transfer .scenario-header { border-left: 4px solid var(--transfer-blue); }
+
+        .system-sync { --section-color: var(--sync-purple); }
+        .system-sync .scenario-header { border-left: 4px solid var(--sync-purple); }
+
+        .incident-response { --section-color: var(--security-red); }
+        .incident-response .scenario-header { border-left: 4px solid var(--security-red); }
+
+        .compliance-archiving { --section-color: var(--backup-cyan); }
+        .compliance-archiving .scenario-header { border-left: 4px solid var(--backup-cyan); }
+    </style>
+</head>
+<body>
+    <div class="terminal-window">
+        <div class="terminal-header">
+            <div class="terminal-button close"></div>
+            <div class="terminal-button minimize"></div>
+            <div class="terminal-button maximize"></div>
+            <div class="terminal-title">cybersecurity_archive_transfer.sh</div>
+        </div>
+
+        <div class="container">
+            <div class="header">
+                <h1 class="title">$ Archive & Transfer for Security Operations</h1>
+                <div class="subtitle">Master Secure File Management & Evidence Collection</div>
+                <div class="course-info">College of DuPage • CIT 2455 • AI Cybersecurity Program</div>
+            </div>
+
+            <div class="beginner-notice">
+                <h3>🔒 Secure Data Management Mastery!</h3>
+                <p>Learn essential skills for incident response, forensic evidence collection, secure backups, and compliance archiving that every cybersecurity professional needs!</p>
+            </div>
+
+            <div class="search-terminal">
+                <input type="text" class="search-input" placeholder="$ search tar, sftp, rsync, archives, transfers, or security backups..." id="searchInput">
+                <div class="filter-tabs">
+                    <button class="filter-tab active" data-category="all">All Scenarios</button>
+                    <button class="filter-tab" data-category="forensic-evidence">Forensic Evidence</button>
+                    <button class="filter-tab" data-category="secure-backup">Secure Backup</button>
+                    <button class="filter-tab" data-category="secure-transfer">Secure Transfer</button>
+                    <button class="filter-tab" data-category="system-sync">System Sync</button>
+                    <button class="filter-tab" data-category="incident-response">Incident Response</button>
+                    <button class="filter-tab" data-category="compliance-archiving">Compliance</button>
+                </div>
+            </div>
+
+            <div class="scenario-grid">
+                <!-- Forensic Evidence -->
+                <div class="scenario-card forensic-evidence" data-category="forensic-evidence">
+                    <div class="scenario-header">
+                        <div class="scenario-title">
+                            <span class="scenario-icon">🔍</span>
+                            Digital Evidence Collection
+                        </div>
+                        <div class="scenario-description">Properly archive digital evidence for legal investigations</div>
+                        <div class="difficulty-level">CRITICAL</div>
+                    </div>
+                    <div class="scenario-content">
+                        <div class="real-world-example">
+                            <div class="real-world-title">🚨 EVIDENCE COLLECTION</div>
+                            <div class="real-world-text">Security breach detected! You must collect and preserve digital evidence including log files, configuration files, and system state for legal proceedings. Chain of custody is critical!</div>
+                        </div>
+
+                        <div class="compression-comparison">
+                            <div class="compression-type compression-gzip">.tar.gz<br>Fast</div>
+                            <div class="compression-type compression-bzip2">.tar.bz2<br>Better</div>
+                            <div class="compression-type compression-xz">.tar.xz<br>Best</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('tar -czf evidence_$(date +%Y%m%d_%H%M%S).tar.gz /var/log/auth.log /var/log/secure /var/log/syslog')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>tar <span class="option-highlight">-czf</span> <span class="variable-highlight">evidence_$(date +%Y%m%d_%H%M%S).tar.gz</span> <span class="path-highlight">/var/log/auth.log /var/log/secure /var/log/syslog</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Create timestamped compressed evidence archive</div>
+                            <div class="command-notes">-c create, -z gzip, -f filename - includes timestamp for chain of custody</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sudo tar --selinux --xattrs -czf forensic_system_$(hostname)_$(date +%Y%m%d).tar.gz /etc/passwd /etc/shadow /etc/sudoers /var/log/')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>sudo tar <span class="option-highlight">--selinux --xattrs</span> <span class="option-highlight">-czf</span> <span class="variable-highlight">forensic_system_$(hostname)_$(date +%Y%m%d).tar.gz</span><br>
+                                    &nbsp;&nbsp;<span class="path-highlight">/etc/passwd /etc/shadow /etc/sudoers /var/log/</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Comprehensive system evidence with metadata preservation</div>
+                            <div class="command-notes">--selinux preserves security contexts, --xattrs preserves extended attributes</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('tar -tf evidence_20251228_143000.tar.gz | head -20')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>tar <span class="option-highlight">-tf</span> <span class="variable-highlight">evidence_20251228_143000.tar.gz</span> | head -20
+                                </div>
+                            </div>
+                            <div class="command-description">Verify evidence archive contents without extraction</div>
+                            <div class="command-notes">-t list, -f file - critical for evidence validation</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sha256sum evidence_*.tar.gz > evidence_checksums.txt')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>sha256sum <span class="variable-highlight">evidence_*.tar.gz</span> > <span class="path-highlight">evidence_checksums.txt</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Generate cryptographic hashes for evidence integrity</div>
+                            <div class="command-notes">Essential for proving evidence hasn't been tampered with</div>
+                        </div>
+
+                        <div class="workflow-steps">
+                            <div class="workflow-step">
+                                <div class="step-number">1</div>
+                                <div>Identify and preserve relevant digital evidence</div>
+                            </div>
+                            <div class="workflow-step">
+                                <div class="step-number">2</div>
+                                <div>Create compressed archive with metadata preservation</div>
+                            </div>
+                            <div class="workflow-step">
+                                <div class="step-number">3</div>
+                                <div>Generate cryptographic hash for integrity verification</div>
+                            </div>
+                            <div class="workflow-step">
+                                <div class="step-number">4</div>
+                                <div>Document chain of custody with timestamps and signatures</div>
+                            </div>
+                        </div>
+
+                        <div class="security-tip">
+                            <div class="security-tip-title">⚖️ Legal Evidence Requirements</div>
+                            <div>
+                                <strong>Chain of Custody:</strong> Document who, what, when, where, why<br>
+                                <strong>Integrity:</strong> Use cryptographic hashes to prove no tampering<br>
+                                <strong>Preservation:</strong> Maintain original timestamps and metadata<br>
+                                <strong>Access Control:</strong> Limit who can access evidence files
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Secure Backup -->
+                <div class="scenario-card secure-backup" data-category="secure-backup">
+                    <div class="scenario-header">
+                        <div class="scenario-title">
+                            <span class="scenario-icon">💾</span>
+                            Security Configuration Backup
+                        </div>
+                        <div class="scenario-description">Archive critical security configurations with proper compression</div>
+                        <div class="difficulty-level">ESSENTIAL</div>
+                    </div>
+                    <div class="scenario-content">
+                        <div class="real-world-example">
+                            <div class="real-world-title">🔧 CONFIGURATION MANAGEMENT</div>
+                            <div class="real-world-text">Before major security updates, create comprehensive backups of firewall rules, SSH configurations, SELinux policies, and certificate files to ensure rapid recovery if changes break security systems.</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sudo tar -cJf security_configs_backup_$(date +%Y%m%d).tar.xz /etc/ssh/ /etc/firewalld/ /etc/selinux/ /etc/ssl/')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>sudo tar <span class="option-highlight">-cJf</span> <span class="variable-highlight">security_configs_backup_$(date +%Y%m%d).tar.xz</span><br>
+                                    &nbsp;&nbsp;<span class="path-highlight">/etc/ssh/ /etc/firewalld/ /etc/selinux/ /etc/ssl/</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Create maximum compression backup of security configurations</div>
+                            <div class="command-notes">-J uses xz compression (best ratio for config files)</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sudo tar --preserve-permissions --selinux -cvf firewall_backup.tar /etc/firewalld/')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>sudo tar <span class="option-highlight">--preserve-permissions --selinux</span> <span class="option-highlight">-cvf</span> <span class="variable-highlight">firewall_backup.tar</span> <span class="path-highlight">/etc/firewalld/</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Backup firewall configs with security contexts preserved</div>
+                            <div class="command-notes">-c create, -v verbose, -f file - shows what's being backed up</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('tar -cjf ssh_keys_backup.tar.bz2 ~/.ssh/ /etc/ssh/ssh_host_* --exclude=\"*.pub\"')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>tar <span class="option-highlight">-cjf</span> <span class="variable-highlight">ssh_keys_backup.tar.bz2</span> <span class="path-highlight">~/.ssh/ /etc/ssh/ssh_host_*</span><br>
+                                    &nbsp;&nbsp;<span class="option-highlight">--exclude=</span><span class="string-highlight">"*.pub"</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Backup private SSH keys (excluding public keys)</div>
+                            <div class="command-notes">-j bzip2 compression, --exclude filters out public keys</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sudo tar -xJf security_configs_backup_20251228.tar.xz -C /tmp/restore_test/')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>sudo tar <span class="option-highlight">-xJf</span> <span class="variable-highlight">security_configs_backup_20251228.tar.xz</span> <span class="option-highlight">-C</span> <span class="path-highlight">/tmp/restore_test/</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Test restore to temporary directory</div>
+                            <div class="command-notes">-x extract, -C change directory - always test restores!</div>
+                        </div>
+
+                        <div class="explanation-box">
+                            <div class="explanation-title">🗜️ Compression Algorithm Selection:</div>
+                            <div class="explanation-text">
+                                <strong>gzip (.tar.gz):</strong> Fast compression, good for large files, widely compatible<br>
+                                <strong>bzip2 (.tar.bz2):</strong> Better compression than gzip, slower but smaller archives<br>
+                                <strong>xz (.tar.xz):</strong> Best compression ratio, perfect for config files and long-term storage<br>
+                                <strong>Auto-detect:</strong> Use <code>-a</code> flag to auto-select based on filename extension
+                            </div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('find /etc -name \"*.conf\" -o -name \"*.cfg\" | tar -czf configs_only.tar.gz -T -')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>find /etc -name <span class="string-highlight">"*.conf"</span> -o -name <span class="string-highlight">"*.cfg"</span> |<br>
+                                    &nbsp;&nbsp;tar <span class="option-highlight">-czf</span> <span class="variable-highlight">configs_only.tar.gz</span> <span class="option-highlight">-T -</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Archive only configuration files using find + tar</div>
+                            <div class="command-notes">-T - reads file list from stdin, perfect for selective backups</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Secure Transfer -->
+                <div class="scenario-card secure-transfer" data-category="secure-transfer">
+                    <div class="scenario-header">
+                        <div class="scenario-title">
+                            <span class="scenario-icon">🚀</span>
+                            Secure Remote File Transfer
+                        </div>
+                        <div class="scenario-description">Transfer security logs and configs using SFTP and SCP</div>
+                        <div class="difficulty-level">INTERMEDIATE</div>
+                    </div>
+                    <div class="scenario-content">
+                        <div class="real-world-example">
+                            <div class="real-world-title">📡 SECURE OPERATIONS</div>
+                            <div class="real-world-text">Centralize security logs from multiple servers, deploy security configurations to new systems, and transfer incident response data between SOC analysts - all while maintaining encrypted communications.</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sftp security@logserver')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>sftp <span class="variable-highlight">security@logserver</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Connect to centralized log server via SFTP</div>
+                            <div class="command-notes">Enter interactive SFTP session for secure file operations</div>
+                            <div class="explanation-box">
+                                <div class="explanation-title">📋 Interactive SFTP Commands:</div>
+                                <div class="explanation-text">
+                                    <pre style="color: #00ffff; margin: 0; font-size: 0.85em;">sftp> ls                     # List remote files
+sftp> lls                    # List local files  
+sftp> pwd                    # Remote working directory
+sftp> lpwd                   # Local working directory
+sftp> cd /var/log/security   # Change remote directory
+sftp> lcd ~/security_data    # Change local directory
+sftp> put security_logs.tar.gz   # Upload file
+sftp> get incident_report.pdf    # Download file
+sftp> put -r config_backups/     # Upload directory recursively
+sftp> get -r remote_logs/        # Download directory recursively
+sftp> mkdir incident_data        # Create remote directory
+sftp> rmdir old_logs            # Remove remote directory
+sftp> exit                       # Close session</pre>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('scp security_audit_$(date +%Y%m%d).tar.gz analyst@soc-server:/home/analyst/investigations/')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>scp <span class="variable-highlight">security_audit_$(date +%Y%m%d).tar.gz</span> <span class="variable-highlight">analyst@soc-server</span>:<span class="path-highlight">/home/analyst/investigations/</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Transfer incident data to SOC analyst workstation</div>
+                            <div class="command-notes">SCP uses SFTP protocol in RHEL 9 for security</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('scp -r config_mgmt@central-server:/security_templates/ ~/deployment_configs/')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>scp <span class="option-highlight">-r</span> <span class="variable-highlight">config_mgmt@central-server</span>:<span class="path-highlight">/security_templates/</span> <span class="path-highlight">~/deployment_configs/</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Download security configuration templates</div>
+                            <div class="command-notes">-r recursive transfer for directory trees</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sftp backup-server:/security_archives/$(date +%Y)/evidence_case123.tar.gz')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>sftp <span class="variable-highlight">backup-server</span>:<span class="path-highlight">/security_archives/$(date +%Y)/evidence_case123.tar.gz</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Download specific evidence file using single-command SFTP</div>
+                            <div class="command-notes">Direct file download without interactive session</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('for SERVER in web01 web02 db01; do scp firewall_rules.tar.gz root@$SERVER:/tmp/; done')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span><span class="syntax-highlight">for</span> <span class="variable-highlight">SERVER</span> <span class="syntax-highlight">in</span> web01 web02 db01<span class="syntax-highlight">; do</span><br>
+                                    &nbsp;&nbsp;scp <span class="variable-highlight">firewall_rules.tar.gz</span> <span class="variable-highlight">root@$SERVER</span>:<span class="path-highlight">/tmp/</span><br>
+                                    <span class="syntax-highlight">done</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Deploy security configs to multiple servers</div>
+                            <div class="command-notes">Automated deployment across infrastructure</div>
+                        </div>
+
+                        <div class="security-tip">
+                            <div class="security-tip-title">🔐 Secure Transfer Best Practices</div>
+                            <div>
+                                <strong>Key Authentication:</strong> Use SSH keys instead of passwords for automation<br>
+                                <strong>Host Verification:</strong> Always verify SSH host fingerprints<br>
+                                <strong>Encryption:</strong> SFTP/SCP provide end-to-end encryption<br>
+                                <strong>Audit Trail:</strong> Log all file transfers for security monitoring
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- System Sync -->
+                <div class="scenario-card system-sync" data-category="system-sync">
+                    <div class="scenario-header">
+                        <div class="scenario-title">
+                            <span class="scenario-icon">🔄</span>
+                            Security System Synchronization
+                        </div>
+                        <div class="scenario-description">Keep security tools and configurations synchronized with rsync</div>
+                        <div class="difficulty-level">ADVANCED</div>
+                    </div>
+                    <div class="scenario-content">
+                        <div class="real-world-example">
+                            <div class="real-world-title">⚖️ INFRASTRUCTURE SYNC</div>
+                            <div class="real-world-text">Maintain identical security configurations across multiple servers, synchronize threat intelligence databases, keep backup security tools updated, and ensure all systems have the latest security policies.</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('rsync -avz --delete /etc/security/ backup-server:/security_configs/$(hostname)/')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>rsync <span class="option-highlight">-avz --delete</span> <span class="path-highlight">/etc/security/</span> <span class="variable-highlight">backup-server</span>:<span class="path-highlight">/security_configs/$(hostname)/</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Sync security policies to backup server with cleanup</div>
+                            <div class="command-notes">-a archive, -v verbose, -z compress, --delete removes extra files</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('rsync -av --dry-run /var/lib/security/threat_intel/ threat-server:/data/intel/')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>rsync <span class="option-highlight">-av --dry-run</span> <span class="path-highlight">/var/lib/security/threat_intel/</span> <span class="variable-highlight">threat-server</span>:<span class="path-highlight">/data/intel/</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Test threat intelligence sync without making changes</div>
+                            <div class="command-notes">--dry-run shows what would be synchronized</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sudo rsync -avAX --numeric-ids root@master-server:/etc/firewalld/ /etc/firewalld/')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>sudo rsync <span class="option-highlight">-avAX --numeric-ids</span> <span class="variable-highlight">root@master-server</span>:<span class="path-highlight">/etc/firewalld/</span> <span class="path-highlight">/etc/firewalld/</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Sync firewall configs preserving ACLs and SELinux contexts</div>
+                            <div class="command-notes">-A preserves ACLs, -X preserves SELinux contexts, --numeric-ids preserves exact UIDs</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('rsync -av --include=\"*.log\" --include=\"*.conf\" --exclude=\"*\" /var/log/ log-aggregator:/centralized_logs/')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>rsync <span class="option-highlight">-av</span> <span class="option-highlight">--include=</span><span class="string-highlight">"*.log"</span> <span class="option-highlight">--include=</span><span class="string-highlight">"*.conf"</span><br>
+                                    &nbsp;&nbsp;<span class="option-highlight">--exclude=</span><span class="string-highlight">"*"</span> <span class="path-highlight">/var/log/</span> <span class="variable-highlight">log-aggregator</span>:<span class="path-highlight">/centralized_logs/</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Sync only log and config files to central server</div>
+                            <div class="command-notes">Selective sync using include/exclude patterns</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('rsync -avz --progress --partial sec-admin@deploy-server:/security_updates/ /tmp/updates/')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>rsync <span class="option-highlight">-avz --progress --partial</span> <span class="variable-highlight">sec-admin@deploy-server</span>:<span class="path-highlight">/security_updates/</span> <span class="path-highlight">/tmp/updates/</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Download security updates with progress and resume capability</div>
+                            <div class="command-notes">--progress shows transfer status, --partial allows resume</div>
+                        </div>
+
+                        <div class="explanation-box">
+                            <div class="explanation-title">🏗️ Rsync Archive Mode (-a) Includes:</div>
+                            <div class="explanation-text">
+                                <strong>-r:</strong> Recursive directory copying<br>
+                                <strong>-l:</strong> Preserve symbolic links<br>
+                                <strong>-p:</strong> Preserve file permissions<br>
+                                <strong>-t:</strong> Preserve timestamps<br>
+                                <strong>-g:</strong> Preserve group ownership<br>
+                                <strong>-o:</strong> Preserve user ownership<br>
+                                <strong>-D:</strong> Preserve device files and special files
+                            </div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('rsync -av --bwlimit=1000 /var/security/large_dataset/ remote-backup:/security_archives/')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>rsync <span class="option-highlight">-av --bwlimit=1000</span> <span class="path-highlight">/var/security/large_dataset/</span> <span class="variable-highlight">remote-backup</span>:<span class="path-highlight">/security_archives/</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Sync large security datasets with bandwidth limiting</div>
+                            <div class="command-notes">--bwlimit=1000 limits to 1000 KB/s to avoid network congestion</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Incident Response -->
+                <div class="scenario-card incident-response" data-category="incident-response">
+                    <div class="scenario-header">
+                        <div class="scenario-title">
+                            <span class="scenario-icon">🚨</span>
+                            Emergency Response Archive
+                        </div>
+                        <div class="scenario-description">Rapid evidence collection and system backup during active incidents</div>
+                        <div class="difficulty-level">CRITICAL</div>
+                    </div>
+                    <div class="scenario-content">
+                        <div class="real-world-example">
+                            <div class="real-world-title">🚨 ACTIVE INCIDENT</div>
+                            <div class="real-world-text">Ransomware detected! You have minutes to collect evidence and create emergency backups before systems are isolated. Every second counts - automated scripts are essential for rapid response.</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('#!/bin/bash\nINCIDENT_ID=\"INC-$(date +%Y%m%d-%H%M%S)\"\nmkdir -p /tmp/$INCIDENT_ID\ntar -czf /tmp/$INCIDENT_ID/logs.tar.gz /var/log/ 2>/dev/null\ntar -czf /tmp/$INCIDENT_ID/configs.tar.gz /etc/ 2>/dev/null')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>vim <span class="path-highlight">emergency_collection.sh</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Create emergency evidence collection script</div>
+                            <div class="explanation-box">
+                                <div class="explanation-title">🚨 Emergency Collection Script:</div>
+                                <div class="explanation-text">
+                                    <pre style="color: #ff4444; margin: 0; font-size: 0.85em;">#!/bin/bash
+# Emergency Incident Response Collection
+INCIDENT_ID="INC-$(date +%Y%m%d-%H%M%S)"
+COLLECTION_DIR="/tmp/$INCIDENT_ID"
+
+echo "EMERGENCY COLLECTION STARTED: $INCIDENT_ID"
+mkdir -p "$COLLECTION_DIR"
+
+# Critical system state
+ps aux > "$COLLECTION_DIR/running_processes.txt"
+netstat -tuln > "$COLLECTION_DIR/network_connections.txt"
+mount > "$COLLECTION_DIR/mounted_filesystems.txt"
+
+# Archive critical data
+tar -czf "$COLLECTION_DIR/logs.tar.gz" /var/log/ 2>/dev/null
+tar -czf "$COLLECTION_DIR/configs.tar.gz" /etc/ 2>/dev/null
+tar -czf "$COLLECTION_DIR/home_dirs.tar.gz" /home/ 2>/dev/null
+
+# Generate integrity hashes
+sha256sum "$COLLECTION_DIR"/*.tar.gz > "$COLLECTION_DIR/checksums.txt"
+
+echo "COLLECTION COMPLETE: $COLLECTION_DIR"
+echo "Transfer immediately to secure location!"</pre>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('chmod +x emergency_collection.sh && sudo ./emergency_collection.sh')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>chmod +x emergency_collection.sh && sudo ./emergency_collection.sh
+                                </div>
+                            </div>
+                            <div class="command-description">Execute emergency collection with root privileges</div>
+                            <div class="command-notes">Run immediately during incident - time is critical!</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('find /tmp -name \"INC-*\" -type d | head -1 | xargs -I {} scp -r {} incident-server:/emergency_evidence/')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>find /tmp -name <span class="string-highlight">"INC-*"</span> -type d | head -1 |<br>
+                                    &nbsp;&nbsp;xargs -I {} scp -r {} <span class="variable-highlight">incident-server</span>:<span class="path-highlight">/emergency_evidence/</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Automatically transfer newest incident collection</div>
+                            <div class="command-notes">Pipeline finds latest incident directory and transfers it</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('tar --exclude=\"/tmp\" --exclude=\"/proc\" --exclude=\"/sys\" -czf system_snapshot_$(hostname)_$(date +%H%M%S).tar.gz / 2>/dev/null')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>tar <span class="option-highlight">--exclude=</span><span class="string-highlight">"/tmp"</span> <span class="option-highlight">--exclude=</span><span class="string-highlight">"/proc"</span> <span class="option-highlight">--exclude=</span><span class="string-highlight">"/sys"</span><br>
+                                    &nbsp;&nbsp;<span class="option-highlight">-czf</span> <span class="variable-highlight">system_snapshot_$(hostname)_$(date +%H%M%S).tar.gz</span> / 2>/dev/null
+                                </div>
+                            </div>
+                            <div class="command-description">Create full system snapshot for forensic analysis</div>
+                            <div class="command-notes">Excludes virtual filesystems, redirects errors to /dev/null</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('rsync -avz --ignore-errors /var/log/ incident-backup:/logs/$(hostname)/$(date +%Y%m%d_%H%M%S)/')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>rsync <span class="option-highlight">-avz --ignore-errors</span> <span class="path-highlight">/var/log/</span><br>
+                                    &nbsp;&nbsp;<span class="variable-highlight">incident-backup</span>:<span class="path-highlight">/logs/$(hostname)/$(date +%Y%m%d_%H%M%S)/</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Live sync logs to backup server during incident</div>
+                            <div class="command-notes">--ignore-errors continues transfer despite permission issues</div>
+                        </div>
+
+                        <div class="workflow-steps">
+                            <div class="workflow-step">
+                                <div class="step-number">1</div>
+                                <div>Execute emergency collection script immediately</div>
+                            </div>
+                            <div class="workflow-step">
+                                <div class="step-number">2</div>
+                                <div>Transfer evidence to secure, isolated storage</div>
+                            </div>
+                            <div class="workflow-step">
+                                <div class="step-number">3</div>
+                                <div>Verify integrity with cryptographic hashes</div>
+                            </div>
+                            <div class="workflow-step">
+                                <div class="step-number">4</div>
+                                <div>Document incident timeline and collected evidence</div>
+                            </div>
+                        </div>
+
+                        <div class="security-tip">
+                            <div class="security-tip-title">⚡ Incident Response Speed</div>
+                            <div>
+                                <strong>Pre-built Scripts:</strong> Have emergency collection scripts ready<br>
+                                <strong>Automated Transfer:</strong> Use rsync for real-time log backup<br>
+                                <strong>Isolation Ready:</strong> Assume network access will be cut<br>
+                                <strong>Multiple Copies:</strong> Create redundant evidence collections
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Compliance Archiving -->
+                <div class="scenario-card compliance-archiving" data-category="compliance-archiving">
+                    <div class="scenario-header">
+                        <div class="scenario-title">
+                            <span class="scenario-icon">📋</span>
+                            Regulatory Compliance Archiving
+                        </div>
+                        <div class="scenario-description">Long-term archival for audit trails and regulatory requirements</div>
+                        <div class="difficulty-level">ESSENTIAL</div>
+                    </div>
+                    <div class="scenario-content">
+                        <div class="real-world-example">
+                            <div class="real-world-title">⚖️ COMPLIANCE REQUIREMENTS</div>
+                            <div class="real-world-text">SOX, HIPAA, PCI-DSS require specific log retention periods. Create compliant archives with proper compression, integrity verification, and long-term storage for audit trails and regulatory inspections.</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('tar -cJf compliance_archive_$(date +%Y_%m).tar.xz /var/log/audit/ /var/log/secure /var/log/messages')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>tar <span class="option-highlight">-cJf</span> <span class="variable-highlight">compliance_archive_$(date +%Y_%m).tar.xz</span><br>
+                                    &nbsp;&nbsp;<span class="path-highlight">/var/log/audit/ /var/log/secure /var/log/messages</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Create monthly compliance archive with maximum compression</div>
+                            <div class="command-notes">XZ compression provides best ratio for long-term storage</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('find /var/log -name \"*.log\" -mtime +90 | tar -cJf quarterly_retention_$(date +%Y_Q%q).tar.xz -T -')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>find /var/log -name <span class="string-highlight">"*.log"</span> -mtime +90 |<br>
+                                    &nbsp;&nbsp;tar <span class="option-highlight">-cJf</span> <span class="variable-highlight">quarterly_retention_$(date +%Y_Q%q).tar.xz</span> <span class="option-highlight">-T -</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Archive logs older than 90 days for compliance retention</div>
+                            <div class="command-notes">Automated compliance with retention policies</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('sudo tar --selinux --xattrs -cJf access_control_audit_$(date +%Y%m%d).tar.xz /etc/passwd /etc/shadow /etc/group /etc/sudoers /var/log/auth.log')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">#</span>sudo tar <span class="option-highlight">--selinux --xattrs</span> <span class="option-highlight">-cJf</span><br>
+                                    &nbsp;&nbsp;<span class="variable-highlight">access_control_audit_$(date +%Y%m%d).tar.xz</span><br>
+                                    &nbsp;&nbsp;<span class="path-highlight">/etc/passwd /etc/shadow /etc/group /etc/sudoers /var/log/auth.log</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Archive access control data with security metadata</div>
+                            <div class="command-notes">Preserves SELinux contexts and extended attributes for audits</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('openssl dgst -sha256 compliance_archive_*.tar.xz > archive_integrity.sha256')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>openssl dgst -sha256 <span class="variable-highlight">compliance_archive_*.tar.xz</span> > <span class="path-highlight">archive_integrity.sha256</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Generate cryptographic hashes for archive integrity</div>
+                            <div class="command-notes">Required to prove archives haven't been tampered with</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('gpg --armor --sign archive_integrity.sha256')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>gpg <span class="option-highlight">--armor --sign</span> <span class="path-highlight">archive_integrity.sha256</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Digitally sign integrity hashes for non-repudiation</div>
+                            <div class="command-notes">Provides cryptographic proof of authenticity</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('rsync -av --checksum compliance_archive_*.tar.xz archive_integrity.sha256.asc long-term-storage:/compliance/$(date +%Y)/')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>rsync <span class="option-highlight">-av --checksum</span> <span class="variable-highlight">compliance_archive_*.tar.xz</span><br>
+                                    &nbsp;&nbsp;<span class="path-highlight">archive_integrity.sha256.asc</span> <span class="variable-highlight">long-term-storage</span>:<span class="path-highlight">/compliance/$(date +%Y)/</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Transfer compliance archives to long-term storage</div>
+                            <div class="command-notes">--checksum verifies integrity during transfer</div>
+                        </div>
+
+                        <div class="explanation-box">
+                            <div class="explanation-title">📅 Common Compliance Retention Requirements:</div>
+                            <div class="explanation-text">
+                                <strong>SOX (Sarbanes-Oxley):</strong> 7 years for financial audit logs<br>
+                                <strong>HIPAA:</strong> 6 years for healthcare access logs<br>
+                                <strong>PCI-DSS:</strong> 1 year for payment card data logs<br>
+                                <strong>GDPR:</strong> Varies by purpose, deletion required when no longer needed<br>
+                                <strong>SOC 2:</strong> Varies by control, typically 1-3 years
+                            </div>
+                        </div>
+
+                        <div class="security-tip">
+                            <div class="security-tip-title">📊 Compliance Best Practices</div>
+                            <div>
+                                <strong>Automation:</strong> Use cron jobs for regular archival<br>
+                                <strong>Integrity:</strong> Always generate and verify cryptographic hashes<br>
+                                <strong>Immutability:</strong> Store archives on write-once media when possible<br>
+                                <strong>Access Controls:</strong> Restrict archive access to authorized personnel only
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer">
+                <p>© 2025 College of DuPage - Computer Information Technology Department</p>
+                <p>CIT 2455 Linux/Unix Systems | AI Cybersecurity Program</p>
+                <p><em>"Archive today, secure tomorrow - every bit matters!" 🔒💾</em></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // Initialize variables
+        const searchInput = document.getElementById('searchInput');
+        const filterTabs = document.querySelectorAll('.filter-tab');
+        const scenarioCards = document.querySelectorAll('.scenario-card');
+        let currentFilter = 'all';
+
+        // Search functionality
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            filterScenarios(searchTerm, currentFilter);
+        });
+
+        // Filter tab functionality
+        filterTabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                // Update active tab
+                filterTabs.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                
+                currentFilter = this.dataset.category;
+                const searchTerm = searchInput.value.toLowerCase();
+                filterScenarios(searchTerm, currentFilter);
+            });
+        });
+
+        // Filter scenarios based on search and category
+        function filterScenarios(searchTerm, category) {
+            scenarioCards.forEach(card => {
+                const cardCategory = card.dataset.category;
+                const cardText = card.textContent.toLowerCase();
+                
+                const matchesCategory = category === 'all' || category === cardCategory;
+                const matchesSearch = !searchTerm || cardText.includes(searchTerm);
+                
+                if (matchesCategory && matchesSearch) {
+                    card.classList.remove('hidden');
+                } else {
+                    card.classList.add('hidden');
+                }
+            });
+        }
+
+        // Copy command to clipboard
+        function copyCommand(command) {
+            // Clean up command text (remove HTML and extra whitespace)
+            const cleanCommand = command.replace(/<[^>]*>/g, '').trim();
+            
+            navigator.clipboard.writeText(cleanCommand).then(() => {
+                showToast(`Copied: ${cleanCommand.substring(0, 60)}${cleanCommand.length > 60 ? '...' : ''}`);
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+                showToast('Copy failed - try selecting manually');
+            });
+        }
+
+        // Show toast notification
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2500);
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl/Cmd + K to focus search
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                searchInput.focus();
+                searchInput.select();
+            }
+            
+            // Escape to clear search
+            if (e.key === 'Escape') {
+                searchInput.value = '';
+                filterScenarios('', currentFilter);
+                searchInput.blur();
+            }
+        });
+
+        // Initialize page with security-themed animations
+        document.addEventListener('DOMContentLoaded', function() {
+            // Focus search after delay
+            setTimeout(() => {
+                searchInput.focus();
+            }, 1500);
+
+            // Animated search placeholder
+            const searchPlaceholder = "$ search tar, sftp, rsync, archives, transfers, or security backups...";
+            let i = 0;
+            const typeInterval = setInterval(() => {
+                if (i < searchPlaceholder.length) {
+                    searchInput.placeholder = searchPlaceholder.substring(0, i + 1);
+                    i++;
+                } else {
+                    clearInterval(typeInterval);
+                }
+            }, 50);
+
+            // Add archive-themed entrance animations
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, observerOptions);
+
+            // Setup cards for animation
+            scenarioCards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                card.style.transition = `opacity 0.6s ease ${index * 0.1}s, transform 0.6s ease ${index * 0.1}s`;
+                observer.observe(card);
+            });
+
+            // Add subtle compression animation to compression types
+            const compressionTypes = document.querySelectorAll('.compression-type');
+            compressionTypes.forEach((type, index) => {
+                setTimeout(() => {
+                    type.style.transform = 'scale(1.1)';
+                    setTimeout(() => {
+                        type.style.transform = 'scale(1)';
+                    }, 300);
+                }, index * 200);
+            });
+        });
+    </script>
+</body>
+</html>

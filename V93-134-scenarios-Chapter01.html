@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chapter 1 Beginner's Guide - Linux SysAdmin Essentials for Cybersecurity</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;500;700&family=Source+Code+Pro:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --terminal-bg: #0c0c0c;
+            --terminal-secondary: #1a1a1a;
+            --terminal-accent: #2a2a2a;
+            --terminal-border: #404040;
+            --terminal-green: #00ff41;
+            --terminal-blue: #00bfff;
+            --terminal-yellow: #ffff00;
+            --terminal-orange: #ff8c00;
+            --terminal-red: #ff4444;
+            --terminal-purple: #cc99ff;
+            --terminal-cyan: #00ffff;
+            --terminal-white: #f0f0f0;
+            --terminal-gray: #808080;
+            --terminal-dark-gray: #404040;
+            --script-green: #00ff41;
+            --loop-blue: #00bfff;
+            --conditional-orange: #ff8c00;
+            --regex-purple: #cc99ff;
+            --security-cyan: #00ffff;
+            --beginner-yellow: #ffff00;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto Mono', 'Source Code Pro', monospace;
+            background: var(--terminal-bg);
+            color: var(--terminal-white);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .terminal-window {
+            background: var(--terminal-secondary);
+            margin: 1rem;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 255, 65, 0.1);
+            border: 1px solid var(--terminal-border);
+            overflow: hidden;
+        }
+
+        .terminal-header {
+            background: linear-gradient(135deg, #333, #444);
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            border-bottom: 1px solid var(--terminal-border);
+        }
+
+        .terminal-button {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .close { background: #ff5f56; }
+        .minimize { background: #ffbd2e; }
+        .maximize { background: #27ca3f; }
+
+        .terminal-title {
+            color: var(--terminal-white);
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-left: 1rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background: var(--terminal-secondary);
+            border-radius: 12px;
+            border: 1px solid var(--terminal-border);
+        }
+
+        .title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--script-green);
+            margin-bottom: 0.5rem;
+            text-shadow: 0 0 20px rgba(0, 255, 65, 0.3);
+        }
+
+        .subtitle {
+            color: var(--loop-blue);
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+        }
+
+        .course-info {
+            color: var(--terminal-gray);
+            font-size: 0.95rem;
+        }
+
+        .beginner-notice {
+            background: linear-gradient(135deg, #2a4a2a, #1a3a1a);
+            border: 1px solid var(--script-green);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            text-align: center;
+        }
+
+        .beginner-notice h3 {
+            color: var(--beginner-yellow);
+            margin-bottom: 0.5rem;
+            font-size: 1.3rem;
+        }
+
+        .beginner-notice p {
+            color: var(--terminal-white);
+        }
+
+        .search-terminal {
+            background: var(--terminal-secondary);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            position: sticky;
+            top: 1rem;
+            z-index: 100;
+        }
+
+        .search-input {
+            width: 100%;
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 6px;
+            padding: 0.75rem 1rem;
+            color: var(--script-green);
+            font-family: inherit;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--script-green);
+            box-shadow: 0 0 10px rgba(0, 255, 65, 0.2);
+        }
+
+        .search-input::placeholder {
+            color: var(--terminal-gray);
+        }
+
+        .filter-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-tab {
+            background: var(--terminal-accent);
+            border: 1px solid var(--terminal-border);
+            border-radius: 6px;
+            padding: 0.5rem 1rem;
+            color: var(--terminal-gray);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            font-size: 0.9rem;
+        }
+
+        .filter-tab:hover {
+            background: var(--terminal-border);
+            color: var(--terminal-white);
+        }
+
+        .filter-tab.active {
+            background: var(--script-green);
+            color: var(--terminal-bg);
+            border-color: var(--script-green);
+        }
+
+        .scenario-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 2rem;
+        }
+
+        .scenario-card {
+            background: var(--terminal-secondary);
+            border: 1px solid var(--terminal-border);
+            border-radius: 12px;
+            padding: 0;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .scenario-card:hover {
+            border-color: var(--section-color);
+            box-shadow: 0 10px 30px rgba(0, 255, 65, 0.1);
+        }
+
+        .scenario-header {
+            background: var(--terminal-accent);
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--terminal-border);
+        }
+
+        .scenario-title {
+            color: var(--section-color);
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .scenario-icon {
+            font-size: 1.2rem;
+        }
+
+        .scenario-description {
+            color: var(--terminal-gray);
+            font-size: 0.95rem;
+            margin-bottom: 1rem;
+        }
+
+        .difficulty-level {
+            background: var(--terminal-bg);
+            border: 1px solid var(--section-color);
+            border-radius: 4px;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.8rem;
+            color: var(--section-color);
+            display: inline-block;
+        }
+
+        .scenario-content {
+            padding: 1.5rem;
+        }
+
+        .real-world-example {
+            background: linear-gradient(135deg, #2a1a1a, #3a2a2a);
+            border: 1px solid var(--terminal-red);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .real-world-title {
+            color: var(--terminal-red);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .real-world-text {
+            color: var(--terminal-white);
+            font-size: 0.9rem;
+        }
+
+        .command-example {
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--terminal-dark-gray);
+        }
+
+        .command-example:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .command-syntax {
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .command-syntax:hover {
+            border-color: var(--section-color);
+            background: rgba(0, 191, 255, 0.05);
+        }
+
+        .command-text {
+            font-family: 'Source Code Pro', monospace;
+            font-size: 1rem;
+            color: var(--terminal-cyan);
+            word-break: break-word;
+        }
+
+        .command-prompt {
+            color: var(--script-green);
+            margin-right: 0.5rem;
+        }
+
+        .copy-indicator {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: var(--terminal-accent);
+            color: var(--terminal-gray);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .command-syntax:hover .copy-indicator {
+            opacity: 1;
+        }
+
+        .command-description {
+            color: var(--terminal-white);
+            font-size: 0.95rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .command-notes {
+            color: var(--beginner-yellow);
+            font-size: 0.85rem;
+            font-style: italic;
+        }
+
+        .explanation-box {
+            background: var(--terminal-accent);
+            border: 1px solid var(--terminal-border);
+            border-radius: 6px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .explanation-title {
+            color: var(--loop-blue);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .explanation-text {
+            color: var(--terminal-gray);
+            font-size: 0.9rem;
+        }
+
+        .example-output {
+            background: var(--terminal-bg);
+            border-left: 3px solid var(--section-color);
+            padding: 0.75rem;
+            margin-top: 0.5rem;
+            font-family: 'Source Code Pro', monospace;
+            color: var(--terminal-gray);
+            font-size: 0.9rem;
+        }
+
+        .security-tip {
+            background: linear-gradient(135deg, #1a2a4a, #2a3a5a);
+            border: 1px solid var(--security-cyan);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .security-tip-title {
+            color: var(--security-cyan);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .syntax-highlight {
+            color: var(--terminal-purple);
+        }
+
+        .variable-highlight {
+            color: var(--conditional-orange);
+        }
+
+        .string-highlight {
+            color: var(--beginner-yellow);
+        }
+
+        .path-highlight {
+            color: var(--security-cyan);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--script-green);
+            color: var(--terminal-bg);
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 500;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0, 255, 65, 0.3);
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 3rem;
+            padding: 2rem;
+            color: var(--terminal-gray);
+            border-top: 1px solid var(--terminal-border);
+            background: var(--terminal-secondary);
+            border-radius: 12px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @media (max-width: 768px) {
+            .scenario-grid {
+                grid-template-columns: 1fr;
+            }
+            .title {
+                font-size: 2rem;
+            }
+            .filter-tabs {
+                justify-content: center;
+            }
+        }
+
+        /* Section-specific colors */
+        .bash-scripts { --section-color: var(--script-green); }
+        .bash-scripts .scenario-header { border-left: 4px solid var(--script-green); }
+
+        .automation-loops { --section-color: var(--loop-blue); }
+        .automation-loops .scenario-header { border-left: 4px solid var(--loop-blue); }
+
+        .conditionals-testing { --section-color: var(--conditional-orange); }
+        .conditionals-testing .scenario-header { border-left: 4px solid var(--conditional-orange); }
+
+        .regex-patterns { --section-color: var(--regex-purple); }
+        .regex-patterns .scenario-header { border-left: 4px solid var(--regex-purple); }
+
+        .security-scenarios { --section-color: var(--security-cyan); }
+        .security-scenarios .scenario-header { border-left: 4px solid var(--security-cyan); }
+
+        .troubleshooting { --section-color: var(--beginner-yellow); }
+        .troubleshooting .scenario-header { border-left: 4px solid var(--beginner-yellow); }
+    </style>
+</head>
+<body>
+    <div class="terminal-window">
+        <div class="terminal-header">
+            <div class="terminal-button close"></div>
+            <div class="terminal-button minimize"></div>
+            <div class="terminal-button maximize"></div>
+            <div class="terminal-title">linux_sysadmin_essentials.sh</div>
+        </div>
+
+        <div class="container">
+            <div class="header">
+                <h1 class="title">$ Linux SysAdmin Essentials</h1>
+                <div class="subtitle">Beginner's Guide to Command-Line Productivity</div>
+                <div class="course-info">College of DuPage • CIT 2455 • AI Cybersecurity Program</div>
+            </div>
+
+            <div class="beginner-notice">
+                <h3>🎓 Welcome, Future Cybersecurity Professionals!</h3>
+                <p>This guide teaches you essential Linux command-line skills through real-world scenarios you'll encounter as a cybersecurity system administrator. Each example is designed to solve actual problems you'll face in the field.</p>
+            </div>
+
+            <div class="search-terminal">
+                <input type="text" class="search-input" placeholder="$ search scripts, loops, conditions, regex, or security scenarios..." id="searchInput">
+                <div class="filter-tabs">
+                    <button class="filter-tab active" data-category="all">All Scenarios</button>
+                    <button class="filter-tab" data-category="bash-scripts">Bash Scripts</button>
+                    <button class="filter-tab" data-category="automation-loops">Automation & Loops</button>
+                    <button class="filter-tab" data-category="conditionals-testing">Conditionals & Testing</button>
+                    <button class="filter-tab" data-category="regex-patterns">Regex Patterns</button>
+                    <button class="filter-tab" data-category="security-scenarios">Security Scenarios</button>
+                    <button class="filter-tab" data-category="troubleshooting">Troubleshooting</button>
+                </div>
+            </div>
+
+            <div class="scenario-grid">
+                <!-- Bash Scripts -->
+                <div class="scenario-card bash-scripts" data-category="bash-scripts">
+                    <div class="scenario-header">
+                        <div class="scenario-title">
+                            <span class="scenario-icon">📜</span>
+                            System Information Script
+                        </div>
+                        <div class="scenario-description">Create your first security audit script to gather critical system information</div>
+                        <div class="difficulty-level">BEGINNER</div>
+                    </div>
+                    <div class="scenario-content">
+                        <div class="real-world-example">
+                            <div class="real-world-title">🔍 Real Scenario</div>
+                            <div class="real-world-text">As a SOC analyst, you need to quickly gather system information during incident response. Create a script that collects hostname, disk usage, running processes, and network connections.</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('vim ~/security_audit.sh')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>vim <span class="path-highlight">~/security_audit.sh</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Create your security audit script</div>
+                            <div class="explanation-box">
+                                <div class="explanation-title">Script Content:</div>
+                                <div class="explanation-text">
+                                    <pre style="color: #00ffff; margin: 0;">#!/usr/bin/bash
+# Security Audit Script for Incident Response
+
+echo "=== SECURITY AUDIT REPORT ===" > ~/audit_report.txt
+echo "Date: $(date)" >> ~/audit_report.txt
+echo "Hostname: $(hostname)" >> ~/audit_report.txt
+echo "" >> ~/audit_report.txt
+
+echo "=== SYSTEM INFORMATION ===" >> ~/audit_report.txt
+uname -a >> ~/audit_report.txt
+echo "" >> ~/audit_report.txt
+
+echo "=== DISK USAGE ===" >> ~/audit_report.txt
+df -h >> ~/audit_report.txt
+echo "" >> ~/audit_report.txt
+
+echo "=== RUNNING PROCESSES ===" >> ~/audit_report.txt
+ps aux --sort=-%cpu | head -20 >> ~/audit_report.txt</pre>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('chmod +x ~/security_audit.sh')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>chmod <span class="syntax-highlight">+x</span> <span class="path-highlight">~/security_audit.sh</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Make script executable</div>
+                            <div class="command-notes">+x adds execute permission for all users</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('./security_audit.sh')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span><span class="path-highlight">./security_audit.sh</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Run the security audit script</div>
+                            <div class="command-notes">Creates audit_report.txt with system information</div>
+                        </div>
+
+                        <div class="security-tip">
+                            <div class="security-tip-title">🛡️ Security Tip</div>
+                            <div>Always use the shebang <code>#!/usr/bin/bash</code> at the start of scripts to ensure they run with the correct interpreter. This prevents security issues from unexpected shell behavior.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Automation & Loops -->
+                <div class="scenario-card automation-loops" data-category="automation-loops">
+                    <div class="scenario-header">
+                        <div class="scenario-title">
+                            <span class="scenario-icon">🔄</span>
+                            Multi-Server Health Check
+                        </div>
+                        <div class="scenario-description">Automate server monitoring across your infrastructure using for loops</div>
+                        <div class="difficulty-level">BEGINNER</div>
+                    </div>
+                    <div class="scenario-content">
+                        <div class="real-world-example">
+                            <div class="real-world-title">🌐 Real Scenario</div>
+                            <div class="real-world-text">You manage 10 web servers and need to check if they're responding properly. Instead of manually checking each one, use a for loop to automate this task and save hours of work.</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('for SERVER in web01 web02 web03; do echo \"Checking $SERVER...\"; ssh user@$SERVER hostname; done')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span><span class="syntax-highlight">for</span> <span class="variable-highlight">SERVER</span> <span class="syntax-highlight">in</span> web01 web02 web03<span class="syntax-highlight">; do</span><br>
+                                    &nbsp;&nbsp;echo <span class="string-highlight">"Checking $SERVER..."</span><br>
+                                    &nbsp;&nbsp;ssh user@<span class="variable-highlight">$SERVER</span> hostname<br>
+                                    <span class="syntax-highlight">done</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Check multiple servers with SSH</div>
+                            <div class="command-notes">Loop through server list and execute commands remotely</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('for PORT in 22 80 443; do nmap -p $PORT target-server; done')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span><span class="syntax-highlight">for</span> <span class="variable-highlight">PORT</span> <span class="syntax-highlight">in</span> 22 80 443<span class="syntax-highlight">; do</span><br>
+                                    &nbsp;&nbsp;nmap -p <span class="variable-highlight">$PORT</span> target-server<br>
+                                    <span class="syntax-highlight">done</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Scan multiple ports for security assessment</div>
+                            <div class="command-notes">Check SSH, HTTP, and HTTPS ports sequentially</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('for LOG in /var/log/auth.log /var/log/syslog; do echo \"=== $LOG ===\"; tail -5 $LOG; done')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span><span class="syntax-highlight">for</span> <span class="variable-highlight">LOG</span> <span class="syntax-highlight">in</span> <span class="path-highlight">/var/log/auth.log /var/log/syslog</span><span class="syntax-highlight">; do</span><br>
+                                    &nbsp;&nbsp;echo <span class="string-highlight">"=== $LOG ==="</span><br>
+                                    &nbsp;&nbsp;tail -5 <span class="variable-highlight">$LOG</span><br>
+                                    <span class="syntax-highlight">done</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Check multiple log files for security events</div>
+                            <div class="command-notes">Quickly review recent entries in critical logs</div>
+                        </div>
+
+                        <div class="explanation-box">
+                            <div class="explanation-title">💡 Loop Structure Explained:</div>
+                            <div class="explanation-text">
+                                <code>for VARIABLE in LIST; do</code><br>
+                                <code>&nbsp;&nbsp;COMMANDS using $VARIABLE</code><br>
+                                <code>done</code><br><br>
+                                The loop runs once for each item in the list, storing each value in the variable.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Conditionals & Testing -->
+                <div class="scenario-card conditionals-testing" data-category="conditionals-testing">
+                    <div class="scenario-header">
+                        <div class="scenario-title">
+                            <span class="scenario-icon">🔀</span>
+                            Service Status Monitoring
+                        </div>
+                        <div class="scenario-description">Use if/then statements to monitor critical services and take action</div>
+                        <div class="difficulty-level">INTERMEDIATE</div>
+                    </div>
+                    <div class="scenario-content">
+                        <div class="real-world-example">
+                            <div class="real-world-title">⚡ Real Scenario</div>
+                            <div class="real-world-text">Your firewall service crashed during a security incident. Create a monitoring script that automatically checks if critical security services are running and restarts them if needed.</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('if systemctl is-active --quiet firewalld; then echo \"Firewall is running\"; else echo \"Firewall is DOWN - restarting...\"; sudo systemctl start firewalld; fi')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span><span class="syntax-highlight">if</span> systemctl is-active --quiet firewalld<span class="syntax-highlight">; then</span><br>
+                                    &nbsp;&nbsp;echo <span class="string-highlight">"Firewall is running"</span><br>
+                                    <span class="syntax-highlight">else</span><br>
+                                    &nbsp;&nbsp;echo <span class="string-highlight">"Firewall is DOWN - restarting..."</span><br>
+                                    &nbsp;&nbsp;sudo systemctl start firewalld<br>
+                                    <span class="syntax-highlight">fi</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Check firewall status and auto-restart if down</div>
+                            <div class="command-notes">Critical for maintaining security during incidents</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('if [ -f /var/log/auth.log ]; then grep \"Failed password\" /var/log/auth.log | tail -10; else echo \"Auth log not found\"; fi')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span><span class="syntax-highlight">if [</span> <span class="syntax-highlight">-f</span> <span class="path-highlight">/var/log/auth.log</span> <span class="syntax-highlight">]; then</span><br>
+                                    &nbsp;&nbsp;grep <span class="string-highlight">"Failed password"</span> <span class="path-highlight">/var/log/auth.log</span> | tail -10<br>
+                                    <span class="syntax-highlight">else</span><br>
+                                    &nbsp;&nbsp;echo <span class="string-highlight">"Auth log not found"</span><br>
+                                    <span class="syntax-highlight">fi</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Check for failed login attempts if log exists</div>
+                            <div class="command-notes">-f tests if file exists and is a regular file</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('DISK_USAGE=$(df / | grep -v Filesystem | awk \"{print $5}\" | sed \"s/%//\"); if [ $DISK_USAGE -gt 90 ]; then echo \"ALERT: Disk usage is ${DISK_USAGE}%\"; fi')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span><span class="variable-highlight">DISK_USAGE</span>=<span class="syntax-highlight">$(</span>df / | grep -v Filesystem | awk <span class="string-highlight">"{print $5}"</span> | sed <span class="string-highlight">"s/%//"</span><span class="syntax-highlight">)</span><br>
+                                    <span class="syntax-highlight">if [</span> <span class="variable-highlight">$DISK_USAGE</span> <span class="syntax-highlight">-gt</span> 90 <span class="syntax-highlight">]; then</span><br>
+                                    &nbsp;&nbsp;echo <span class="string-highlight">"ALERT: Disk usage is ${DISK_USAGE}%"</span><br>
+                                    <span class="syntax-highlight">fi</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Alert if disk usage exceeds 90%</div>
+                            <div class="command-notes">-gt means "greater than" for numeric comparison</div>
+                        </div>
+
+                        <div class="explanation-box">
+                            <div class="explanation-title">🔍 Test Operators:</div>
+                            <div class="explanation-text">
+                                <strong>File tests:</strong> -f (file exists), -d (directory), -r (readable)<br>
+                                <strong>Numeric tests:</strong> -eq (equal), -gt (greater), -lt (less)<br>
+                                <strong>String tests:</strong> = (equal), != (not equal), -z (empty)
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Regex Patterns -->
+                <div class="scenario-card regex-patterns" data-category="regex-patterns">
+                    <div class="scenario-header">
+                        <div class="scenario-title">
+                            <span class="scenario-icon">🔍</span>
+                            Log Analysis with Regex
+                        </div>
+                        <div class="scenario-description">Master pattern matching to find security threats in log files</div>
+                        <div class="difficulty-level">INTERMEDIATE</div>
+                    </div>
+                    <div class="scenario-content">
+                        <div class="real-world-example">
+                            <div class="real-world-title">🚨 Real Scenario</div>
+                            <div class="real-world-text">A security breach has been detected. You need to quickly search through gigabytes of log files to find suspicious IP addresses, failed login attempts, and potential attack patterns.</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('grep \"^[0-9]\\{1,3\\}\\.[0-9]\\{1,3\\}\\.[0-9]\\{1,3\\}\\.[0-9]\\{1,3\\}\" /var/log/auth.log')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>grep <span class="string-highlight">"^[0-9]\\{1,3\\}\\.[0-9]\\{1,3\\}\\.[0-9]\\{1,3\\}\\.[0-9]\\{1,3\\}"</span> <span class="path-highlight">/var/log/auth.log</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Find lines starting with IP addresses</div>
+                            <div class="command-notes">^ means start of line, [0-9] matches digits</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('grep -i \"failed\\|invalid\\|denied\" /var/log/auth.log | tail -20')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>grep <span class="syntax-highlight">-i</span> <span class="string-highlight">"failed\\|invalid\\|denied"</span> <span class="path-highlight">/var/log/auth.log</span> | tail -20
+                                </div>
+                            </div>
+                            <div class="command-description">Find authentication failures (case insensitive)</div>
+                            <div class="command-notes">\\| means OR, -i ignores case</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('grep \"Failed password.*from [0-9]\" /var/log/auth.log | awk \"{print $11}\" | sort | uniq -c | sort -nr')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>grep <span class="string-highlight">"Failed password.*from [0-9]"</span> <span class="path-highlight">/var/log/auth.log</span> |<br>
+                                    &nbsp;&nbsp;awk <span class="string-highlight">"{print $11}"</span> | sort | uniq -c | sort -nr
+                                </div>
+                            </div>
+                            <div class="command-description">Count failed login attempts by IP address</div>
+                            <div class="command-notes">.* matches any characters, shows most frequent first</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('grep \"$(date +%b\\ %d)\" /var/log/syslog | grep -E \"(error|critical|alert)\"')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>grep <span class="string-highlight">"$(date +%b\\ %d)"</span> <span class="path-highlight">/var/log/syslog</span> |<br>
+                                    &nbsp;&nbsp;grep <span class="syntax-highlight">-E</span> <span class="string-highlight">"(error|critical|alert)"</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Find today's critical system errors</div>
+                            <div class="command-notes">-E enables extended regex, () groups patterns</div>
+                        </div>
+
+                        <div class="explanation-box">
+                            <div class="explanation-title">📝 Regex Basics:</div>
+                            <div class="explanation-text">
+                                <strong>^ = start of line, $ = end of line</strong><br>
+                                <strong>. = any character, * = zero or more</strong><br>
+                                <strong>[0-9] = any digit, [a-z] = any lowercase letter</strong><br>
+                                <strong>\\| = OR operator, () = grouping</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Security Scenarios -->
+                <div class="scenario-card security-scenarios" data-category="security-scenarios">
+                    <div class="scenario-header">
+                        <div class="scenario-title">
+                            <span class="scenario-icon">🛡️</span>
+                            Incident Response Automation
+                        </div>
+                        <div class="scenario-description">Combine all skills for real cybersecurity incident response</div>
+                        <div class="difficulty-level">ADVANCED</div>
+                    </div>
+                    <div class="scenario-content">
+                        <div class="real-world-example">
+                            <div class="real-world-title">🚨 Real Scenario</div>
+                            <div class="real-world-text">Your organization detected a potential security breach. You need a comprehensive script that gathers forensic evidence, checks for indicators of compromise, and documents everything for the incident response team.</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('vim ~/incident_response.sh')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>vim <span class="path-highlight">~/incident_response.sh</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Create comprehensive incident response script</div>
+                            <div class="explanation-box">
+                                <div class="explanation-title">Complete IR Script:</div>
+                                <div class="explanation-text">
+                                    <pre style="color: #00ffff; margin: 0; font-size: 0.85em;">#!/usr/bin/bash
+# Incident Response Evidence Collection Script
+
+INCIDENT_ID="IR-$(date +%Y%m%d-%H%M%S)"
+REPORT_DIR="~/incident_reports/$INCIDENT_ID"
+mkdir -p "$REPORT_DIR"
+
+echo "Starting incident response for $INCIDENT_ID"
+
+# System snapshot
+echo "=== SYSTEM SNAPSHOT ===" > "$REPORT_DIR/system_info.txt"
+date >> "$REPORT_DIR/system_info.txt"
+uname -a >> "$REPORT_DIR/system_info.txt"
+uptime >> "$REPORT_DIR/system_info.txt"
+
+# Check for suspicious processes
+ps aux --sort=-%cpu | head -20 > "$REPORT_DIR/top_processes.txt"
+
+# Network connections
+netstat -tuln > "$REPORT_DIR/network_connections.txt"
+
+# Recent authentication attempts
+if [ -f /var/log/auth.log ]; then
+    grep "$(date +%b\\ %d)" /var/log/auth.log | \
+    grep -E "(Failed|Invalid|Denied)" > "$REPORT_DIR/auth_failures.txt"
+fi
+
+# Check for new files in /tmp (common attack vector)
+find /tmp -type f -mtime -1 -exec ls -la {} \\; > "$REPORT_DIR/tmp_files.txt"
+
+echo "Evidence collected in $REPORT_DIR"</pre>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('for SUSPICIOUS_IP in $(grep \"Failed password\" /var/log/auth.log | awk \"{print $11}\" | sort | uniq -c | sort -nr | head -5 | awk \"{print $2}\"); do echo \"Investigating $SUSPICIOUS_IP\"; whois $SUSPICIOUS_IP | grep -E \"(Country|NetName)\"; done')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span><span class="syntax-highlight">for</span> <span class="variable-highlight">SUSPICIOUS_IP</span> <span class="syntax-highlight">in</span> <span class="syntax-highlight">$(</span>grep <span class="string-highlight">"Failed password"</span> /var/log/auth.log |<br>
+                                    &nbsp;&nbsp;awk <span class="string-highlight">"{print $11}"</span> | sort | uniq -c | sort -nr |<br>
+                                    &nbsp;&nbsp;head -5 | awk <span class="string-highlight">"{print $2}"</span><span class="syntax-highlight">)</span><br>
+                                    <span class="syntax-highlight">do</span><br>
+                                    &nbsp;&nbsp;echo <span class="string-highlight">"Investigating $SUSPICIOUS_IP"</span><br>
+                                    &nbsp;&nbsp;whois <span class="variable-highlight">$SUSPICIOUS_IP</span> | grep -E <span class="string-highlight">"(Country|NetName)"</span><br>
+                                    <span class="syntax-highlight">done</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Investigate top 5 IPs with failed login attempts</div>
+                            <div class="command-notes">Combines loops, pipes, and regex for threat intelligence</div>
+                        </div>
+
+                        <div class="security-tip">
+                            <div class="security-tip-title">⚠️ Critical Security Note</div>
+                            <div>Always preserve original log files when collecting evidence. Use <code>cp</code> or <code>rsync</code> to create copies before analysis to maintain chain of custody for legal proceedings.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Troubleshooting -->
+                <div class="scenario-card troubleshooting" data-category="troubleshooting">
+                    <div class="scenario-header">
+                        <div class="scenario-title">
+                            <span class="scenario-icon">🔧</span>
+                            Common Issues & Solutions
+                        </div>
+                        <div class="scenario-description">Debug scripts and solve common beginner problems</div>
+                        <div class="difficulty-level">BEGINNER</div>
+                    </div>
+                    <div class="scenario-content">
+                        <div class="real-world-example">
+                            <div class="real-world-title">💡 Real Scenario</div>
+                            <div class="real-world-text">Your script isn't working as expected during a critical security response. Learn how to quickly debug and fix common issues that every sysadmin encounters.</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('bash -x myscript.sh')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>bash <span class="syntax-highlight">-x</span> <span class="path-highlight">myscript.sh</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Debug script execution (shows each command)</div>
+                            <div class="command-notes">-x flag prints each command as it executes</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('echo $?')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>echo <span class="variable-highlight">$?</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Check exit code of last command</div>
+                            <div class="command-notes">0 = success, non-zero = error</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('which command_name')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>which <span class="variable-highlight">command_name</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Find location of command</div>
+                            <div class="command-notes">Check if command exists and where it's located</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('echo \"Debug: Variable value is $MYVAR\"')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>echo <span class="string-highlight">"Debug: Variable value is $MYVAR"</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Add debug output to check variable values</div>
+                            <div class="command-notes">Essential for troubleshooting script logic</div>
+                        </div>
+
+                        <div class="explanation-box">
+                            <div class="explanation-title">🐛 Common Mistakes:</div>
+                            <div class="explanation-text">
+                                <strong>Missing spaces:</strong> <code>if[$var -eq 1]</code> → <code>if [ $var -eq 1 ]</code><br>
+                                <strong>Unquoted variables:</strong> <code>echo $var</code> → <code>echo "$var"</code><br>
+                                <strong>Wrong permissions:</strong> Use <code>chmod +x script.sh</code><br>
+                                <strong>Path issues:</strong> Use <code>./script.sh</code> in current directory
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer">
+                <p>© 2025 College of DuPage - Computer Information Technology Department</p>
+                <p>CIT 2455 Linux/Unix Systems | AI Cybersecurity Program</p>
+                <p><em>"Master the command line, master cybersecurity" - Your journey starts here! 🚀</em></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // Initialize variables
+        const searchInput = document.getElementById('searchInput');
+        const filterTabs = document.querySelectorAll('.filter-tab');
+        const scenarioCards = document.querySelectorAll('.scenario-card');
+        let currentFilter = 'all';
+
+        // Search functionality
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            filterScenarios(searchTerm, currentFilter);
+        });
+
+        // Filter tab functionality
+        filterTabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                // Update active tab
+                filterTabs.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                
+                currentFilter = this.dataset.category;
+                const searchTerm = searchInput.value.toLowerCase();
+                filterScenarios(searchTerm, currentFilter);
+            });
+        });
+
+        // Filter scenarios based on search and category
+        function filterScenarios(searchTerm, category) {
+            scenarioCards.forEach(card => {
+                const cardCategory = card.dataset.category;
+                const cardText = card.textContent.toLowerCase();
+                
+                const matchesCategory = category === 'all' || category === cardCategory;
+                const matchesSearch = !searchTerm || cardText.includes(searchTerm);
+                
+                if (matchesCategory && matchesSearch) {
+                    card.classList.remove('hidden');
+                } else {
+                    card.classList.add('hidden');
+                }
+            });
+        }
+
+        // Copy command to clipboard
+        function copyCommand(command) {
+            // Clean up command text (remove HTML and extra whitespace)
+            const cleanCommand = command.replace(/<[^>]*>/g, '').trim();
+            
+            navigator.clipboard.writeText(cleanCommand).then(() => {
+                showToast(`Copied: ${cleanCommand}`);
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+                showToast('Copy failed - try selecting manually');
+            });
+        }
+
+        // Show toast notification
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2500);
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl/Cmd + K to focus search
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                searchInput.focus();
+                searchInput.select();
+            }
+            
+            // Escape to clear search
+            if (e.key === 'Escape') {
+                searchInput.value = '';
+                filterScenarios('', currentFilter);
+                searchInput.blur();
+            }
+        });
+
+        // Initialize page with welcome animation
+        document.addEventListener('DOMContentLoaded', function() {
+            // Focus search after brief delay
+            setTimeout(() => {
+                searchInput.focus();
+            }, 1500);
+
+            // Animated search placeholder
+            const searchPlaceholder = "$ search scripts, loops, conditions, regex, or security scenarios...";
+            let i = 0;
+            const typeInterval = setInterval(() => {
+                if (i < searchPlaceholder.length) {
+                    searchInput.placeholder = searchPlaceholder.substring(0, i + 1);
+                    i++;
+                } else {
+                    clearInterval(typeInterval);
+                }
+            }, 50);
+
+            // Add subtle animations to cards
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, observerOptions);
+
+            // Initially hide cards for animation
+            scenarioCards.forEach(card => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+                observer.observe(card);
+            });
+        });
+    </script>
+</body>
+</html>

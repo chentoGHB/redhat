@@ -1,0 +1,1789 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chapter 13 Beginner's Guide - Container Security for Cybersecurity Operations</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;500;700&family=Source+Code+Pro:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --terminal-bg: #0c0c0c;
+            --terminal-secondary: #1a1a1a;
+            --terminal-accent: #2a2a2a;
+            --terminal-border: #404040;
+            --terminal-green: #00ff41;
+            --terminal-blue: #00bfff;
+            --terminal-yellow: #ffff00;
+            --terminal-orange: #ff8c00;
+            --terminal-red: #ff4444;
+            --terminal-purple: #cc99ff;
+            --terminal-cyan: #00ffff;
+            --terminal-white: #f0f0f0;
+            --terminal-gray: #808080;
+            --terminal-dark-gray: #404040;
+            --container-green: #00ff41;
+            --podman-blue: #00bfff;
+            --registry-orange: #ff8c00;
+            --lifecycle-purple: #cc99ff;
+            --volume-cyan: #00ffff;
+            --security-red: #ff4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto Mono', 'Source Code Pro', monospace;
+            background: var(--terminal-bg);
+            color: var(--terminal-white);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .terminal-window {
+            background: var(--terminal-secondary);
+            margin: 1rem;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 255, 65, 0.1);
+            border: 1px solid var(--terminal-border);
+            overflow: hidden;
+        }
+
+        .terminal-header {
+            background: linear-gradient(135deg, #333, #444);
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            border-bottom: 1px solid var(--terminal-border);
+        }
+
+        .terminal-button {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .close { background: #ff5f56; }
+        .minimize { background: #ffbd2e; }
+        .maximize { background: #27ca3f; }
+
+        .terminal-title {
+            color: var(--terminal-white);
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-left: 1rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background: var(--terminal-secondary);
+            border-radius: 12px;
+            border: 1px solid var(--terminal-border);
+        }
+
+        .title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--container-green);
+            margin-bottom: 0.5rem;
+            text-shadow: 0 0 20px rgba(0, 255, 65, 0.3);
+        }
+
+        .subtitle {
+            color: var(--podman-blue);
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+        }
+
+        .course-info {
+            color: var(--terminal-gray);
+            font-size: 0.95rem;
+        }
+
+        .beginner-notice {
+            background: linear-gradient(135deg, #2a4a2a, #1a3a1a);
+            border: 1px solid var(--container-green);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            text-align: center;
+        }
+
+        .beginner-notice h3 {
+            color: var(--terminal-yellow);
+            margin-bottom: 0.5rem;
+            font-size: 1.3rem;
+        }
+
+        .beginner-notice p {
+            color: var(--terminal-white);
+        }
+
+        .search-terminal {
+            background: var(--terminal-secondary);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            position: sticky;
+            top: 1rem;
+            z-index: 100;
+        }
+
+        .search-input {
+            width: 100%;
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 6px;
+            padding: 0.75rem 1rem;
+            color: var(--container-green);
+            font-family: inherit;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--container-green);
+            box-shadow: 0 0 10px rgba(0, 255, 65, 0.2);
+        }
+
+        .search-input::placeholder {
+            color: var(--terminal-gray);
+        }
+
+        .filter-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-tab {
+            background: var(--terminal-accent);
+            border: 1px solid var(--terminal-border);
+            border-radius: 6px;
+            padding: 0.5rem 1rem;
+            color: var(--terminal-gray);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            font-size: 0.9rem;
+        }
+
+        .filter-tab:hover {
+            background: var(--terminal-border);
+            color: var(--terminal-white);
+        }
+
+        .filter-tab.active {
+            background: var(--container-green);
+            color: var(--terminal-bg);
+            border-color: var(--container-green);
+        }
+
+        .scenario-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 2rem;
+        }
+
+        .scenario-card {
+            background: var(--terminal-secondary);
+            border: 1px solid var(--terminal-border);
+            border-radius: 12px;
+            padding: 0;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .scenario-card:hover {
+            border-color: var(--section-color);
+            box-shadow: 0 10px 30px rgba(0, 255, 65, 0.1);
+        }
+
+        .scenario-header {
+            background: var(--terminal-accent);
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--terminal-border);
+        }
+
+        .scenario-title {
+            color: var(--section-color);
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .scenario-icon {
+            font-size: 1.2rem;
+        }
+
+        .scenario-description {
+            color: var(--terminal-gray);
+            font-size: 0.95rem;
+            margin-bottom: 1rem;
+        }
+
+        .difficulty-level {
+            background: var(--terminal-bg);
+            border: 1px solid var(--section-color);
+            border-radius: 4px;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.8rem;
+            color: var(--section-color);
+            display: inline-block;
+        }
+
+        .scenario-content {
+            padding: 1.5rem;
+        }
+
+        .real-world-example {
+            background: linear-gradient(135deg, #2a1a1a, #3a2a2a);
+            border: 1px solid var(--security-red);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .real-world-title {
+            color: var(--security-red);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .real-world-text {
+            color: var(--terminal-white);
+            font-size: 0.9rem;
+        }
+
+        .command-example {
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--terminal-dark-gray);
+        }
+
+        .command-example:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .command-syntax {
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .command-syntax:hover {
+            border-color: var(--section-color);
+            background: rgba(0, 191, 255, 0.05);
+        }
+
+        .command-text {
+            font-family: 'Source Code Pro', monospace;
+            font-size: 1rem;
+            color: var(--terminal-cyan);
+            word-break: break-word;
+        }
+
+        .command-prompt {
+            color: var(--container-green);
+            margin-right: 0.5rem;
+        }
+
+        .copy-indicator {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: var(--terminal-accent);
+            color: var(--terminal-gray);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .command-syntax:hover .copy-indicator {
+            opacity: 1;
+        }
+
+        .command-description {
+            color: var(--terminal-white);
+            font-size: 0.95rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .command-notes {
+            color: var(--terminal-yellow);
+            font-size: 0.85rem;
+            font-style: italic;
+        }
+
+        .explanation-box {
+            background: var(--terminal-accent);
+            border: 1px solid var(--terminal-border);
+            border-radius: 6px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .explanation-title {
+            color: var(--podman-blue);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .explanation-text {
+            color: var(--terminal-gray);
+            font-size: 0.9rem;
+        }
+
+        .container-flow {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--terminal-accent);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .container-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            flex: 1;
+            min-width: 120px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .container-step:hover {
+            transform: scale(1.05);
+        }
+
+        .step-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+            color: var(--terminal-bg);
+            font-weight: 600;
+        }
+
+        .step-registry { background: var(--registry-orange); }
+        .step-pull { background: var(--podman-blue); }
+        .step-run { background: var(--container-green); }
+        .step-manage { background: var(--lifecycle-purple); }
+
+        .step-label {
+            font-size: 0.8rem;
+            color: var(--terminal-gray);
+            margin-bottom: 0.25rem;
+        }
+
+        .step-value {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--terminal-white);
+        }
+
+        .arrow {
+            color: var(--terminal-gray);
+            font-size: 1.5rem;
+        }
+
+        .container-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .container-box {
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-border);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .container-box:hover {
+            border-color: var(--section-color);
+            transform: scale(1.02);
+        }
+
+        .container-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .container-description {
+            font-size: 0.85rem;
+            color: var(--terminal-gray);
+            line-height: 1.4;
+        }
+
+        .tool-security { 
+            border-left: 4px solid var(--container-green);
+        }
+        .tool-security .container-title { color: var(--container-green); }
+
+        .tool-siem { 
+            border-left: 4px solid var(--podman-blue); 
+        }
+        .tool-siem .container-title { color: var(--podman-blue); }
+
+        .tool-analysis { 
+            border-left: 4px solid var(--registry-orange); 
+        }
+        .tool-analysis .container-title { color: var(--registry-orange); }
+
+        .tool-monitoring { 
+            border-left: 4px solid var(--volume-cyan); 
+        }
+        .tool-monitoring .container-title { color: var(--volume-cyan); }
+
+        .podman-config {
+            background: var(--terminal-bg);
+            border: 1px solid var(--podman-blue);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .config-title {
+            color: var(--podman-blue);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .config-content {
+            font-family: 'Source Code Pro', monospace;
+            font-size: 0.85rem;
+            color: var(--terminal-cyan);
+            background: var(--terminal-accent);
+            padding: 0.75rem;
+            border-radius: 4px;
+            white-space: pre-line;
+        }
+
+        .volume-demo {
+            background: linear-gradient(135deg, #1a4a4a, #2a3a4a);
+            border: 1px solid var(--volume-cyan);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .volume-demo:hover {
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+        }
+
+        .volume-title {
+            color: var(--volume-cyan);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .volume-content {
+            font-family: 'Source Code Pro', monospace;
+            font-size: 0.85rem;
+            color: var(--terminal-white);
+            background: var(--terminal-bg);
+            padding: 0.75rem;
+            border-radius: 4px;
+            border-left: 3px solid var(--volume-cyan);
+        }
+
+        .example-output {
+            background: var(--terminal-bg);
+            border-left: 3px solid var(--section-color);
+            padding: 0.75rem;
+            margin-top: 0.5rem;
+            font-family: 'Source Code Pro', monospace;
+            color: var(--terminal-gray);
+            font-size: 0.9rem;
+        }
+
+        .security-tip {
+            background: linear-gradient(135deg, #1a2a4a, #2a3a5a);
+            border: 1px solid var(--security-red);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .security-tip-title {
+            color: var(--security-red);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .workflow-steps {
+            background: var(--terminal-accent);
+            border: 1px solid var(--section-color);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .workflow-step {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .step-number {
+            background: var(--section-color);
+            color: var(--terminal-bg);
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            margin-right: 1rem;
+            font-size: 0.8rem;
+        }
+
+        .syntax-highlight {
+            color: var(--terminal-purple);
+        }
+
+        .variable-highlight {
+            color: var(--registry-orange);
+        }
+
+        .string-highlight {
+            color: var(--terminal-yellow);
+        }
+
+        .path-highlight {
+            color: var(--volume-cyan);
+        }
+
+        .option-highlight {
+            color: var(--podman-blue);
+        }
+
+        .service-highlight {
+            color: var(--container-green);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--container-green);
+            color: var(--terminal-bg);
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 500;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0, 255, 65, 0.3);
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 3rem;
+            padding: 2rem;
+            color: var(--terminal-gray);
+            border-top: 1px solid var(--terminal-border);
+            background: var(--terminal-secondary);
+            border-radius: 12px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @media (max-width: 768px) {
+            .scenario-grid {
+                grid-template-columns: 1fr;
+            }
+            .title {
+                font-size: 2rem;
+            }
+            .filter-tabs {
+                justify-content: center;
+            }
+            .container-flow {
+                flex-direction: column;
+            }
+            .container-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Section-specific colors */
+        .container-fundamentals { --section-color: var(--container-green); }
+        .container-fundamentals .scenario-header { border-left: 4px solid var(--container-green); }
+
+        .security-tools { --section-color: var(--podman-blue); }
+        .security-tools .scenario-header { border-left: 4px solid var(--podman-blue); }
+
+        .registry-security { --section-color: var(--registry-orange); }
+        .registry-security .scenario-header { border-left: 4px solid var(--registry-orange); }
+
+        .container-operations { --section-color: var(--lifecycle-purple); }
+        .container-operations .scenario-header { border-left: 4px solid var(--lifecycle-purple); }
+
+        .persistent-security { --section-color: var(--volume-cyan); }
+        .persistent-security .scenario-header { border-left: 4px solid var(--volume-cyan); }
+
+        .enterprise-integration { --section-color: var(--security-red); }
+        .enterprise-integration .scenario-header { border-left: 4px solid var(--security-red); }
+    </style>
+</head>
+<body>
+    <div class="terminal-window">
+        <div class="terminal-header">
+            <div class="terminal-button close"></div>
+            <div class="terminal-button minimize"></div>
+            <div class="terminal-button maximize"></div>
+            <div class="terminal-title">container_security_management.sh</div>
+        </div>
+
+        <div class="container">
+            <div class="header">
+                <h1 class="title">$ Container Security Operations</h1>
+                <div class="subtitle">Master Podman & Container Security for Cybersecurity Infrastructure</div>
+                <div class="course-info">College of DuPage • CIT 2455 • AI Cybersecurity Program</div>
+            </div>
+
+            <div class="beginner-notice">
+                <h3>📦 Containers = Security Tools!</h3>
+                <p>Master containerized security applications for cybersecurity: portable security tools, isolated testing environments, SIEM deployments, threat intelligence platforms, and scalable security infrastructure management!</p>
+            </div>
+
+            <div class="search-terminal">
+                <input type="text" class="search-input" placeholder="$ search podman, container, registry, volume, systemd..." id="searchInput">
+                <div class="filter-tabs">
+                    <button class="filter-tab active" data-category="all">All Scenarios</button>
+                    <button class="filter-tab" data-category="container-fundamentals">Container Fundamentals</button>
+                    <button class="filter-tab" data-category="security-tools">Security Tools</button>
+                    <button class="filter-tab" data-category="registry-security">Registry Security</button>
+                    <button class="filter-tab" data-category="container-operations">Operations</button>
+                    <button class="filter-tab" data-category="persistent-security">Persistent Security</button>
+                    <button class="filter-tab" data-category="enterprise-integration">Enterprise Integration</button>
+                </div>
+            </div>
+
+            <div class="scenario-grid">
+                <!-- Container Fundamentals -->
+                <div class="scenario-card container-fundamentals" data-category="container-fundamentals">
+                    <div class="scenario-header">
+                        <div class="scenario-title">
+                            <span class="scenario-icon">📦</span>
+                            Container Security Fundamentals
+                        </div>
+                        <div class="scenario-description">Master container concepts and Podman basics for cybersecurity applications</div>
+                        <div class="difficulty-level">FUNDAMENTAL</div>
+                    </div>
+                    <div class="scenario-content">
+                        <div class="real-world-example">
+                            <div class="real-world-title">📦 CONTAINERIZED SECURITY INFRASTRUCTURE</div>
+                            <div class="real-world-text">SOC team needs portable, scalable security tools! Learn container fundamentals for deploying SIEM agents, threat intelligence platforms, security scanners, and monitoring tools. Understand containers vs VMs for security workloads and isolation benefits for testing environments.</div>
+                        </div>
+
+                        <div class="container-flow">
+                            <div class="container-step">
+                                <div class="step-icon step-registry">🏛️</div>
+                                <div class="step-label">1. Registry</div>
+                                <div class="step-value">Image Source</div>
+                            </div>
+                            <div class="arrow">→</div>
+                            <div class="container-step">
+                                <div class="step-icon step-pull">📥</div>
+                                <div class="step-label">2. Pull</div>
+                                <div class="step-value">Download Image</div>
+                            </div>
+                            <div class="arrow">→</div>
+                            <div class="container-step">
+                                <div class="step-icon step-run">🚀</div>
+                                <div class="step-label">3. Run</div>
+                                <div class="step-value">Create Container</div>
+                            </div>
+                            <div class="arrow">→</div>
+                            <div class="container-step">
+                                <div class="step-icon step-manage">⚙️</div>
+                                <div class="step-label">4. Manage</div>
+                                <div class="step-value">Lifecycle Ops</div>
+                            </div>
+                        </div>
+
+                        <div class="container-grid">
+                            <div class="container-box tool-security">
+                                <div class="container-title">Security Tools</div>
+                                <div class="container-description">Portable scanners<br>Threat intel feeds<br>Analysis frameworks</div>
+                            </div>
+                            <div class="container-box tool-siem">
+                                <div class="container-title">SIEM Agents</div>
+                                <div class="container-description">Log collectors<br>Event processors<br>Data forwarders</div>
+                            </div>
+                            <div class="container-box tool-analysis">
+                                <div class="container-title">Analysis Labs</div>
+                                <div class="container-description">Isolated testing<br>Malware analysis<br>Safe environments</div>
+                            </div>
+                            <div class="container-box tool-monitoring">
+                                <div class="container-title">Monitoring</div>
+                                <div class="container-description">Infrastructure health<br>Performance metrics<br>Security dashboards</div>
+                            </div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('podman run --rm registry.redhat.io/rhel9/rhel-guest-image:9.4 echo \"Security Container Running\"')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>podman run <span class="option-highlight">--rm</span> registry.redhat.io/rhel9/rhel-guest-image:9.4<br>
+                                    &nbsp;&nbsp;echo <span class="string-highlight">"Security Container Running"</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Run simple security container with automatic cleanup</div>
+                            <div class="command-notes">--rm automatically removes container when it exits</div>
+                            <div class="example-output">Security Container Running</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('podman images')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>podman images
+                                </div>
+                            </div>
+                            <div class="command-description">List available container images for security tools</div>
+                            <div class="command-notes">Shows repository, tag, image ID, created date, and size</div>
+                            <div class="example-output">REPOSITORY                         TAG    IMAGE ID      CREATED      SIZE
+registry.redhat.io/rhel9/rhel-guest-image  9.4    8d2a8803cf   2 weeks ago  234 MB</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('podman ps -a')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>podman ps <span class="option-highlight">-a</span>
+                                </div>
+                            </div>
+                            <div class="command-description">List all containers (running and stopped) for security monitoring</div>
+                            <div class="command-notes">-a shows all containers, not just running ones</div>
+                            <div class="example-output">CONTAINER ID  IMAGE          COMMAND      CREATED       STATUS       PORTS  NAMES
+20236410bcef  rhel-guest...  echo Sec...  1 minute ago  Exited (0)          security_test</div>
+                        </div>
+
+                        <div class="explanation-box">
+                            <div class="explanation-title">📦 Container Security Advantages:</div>
+                            <div class="explanation-text">
+                                <strong>Isolation:</strong> Process and filesystem isolation for secure tool deployment<br>
+                                <strong>Portability:</strong> Security tools run consistently across different environments<br>
+                                <strong>Scalability:</strong> Rapid deployment and scaling of security infrastructure<br>
+                                <strong>Resource Efficiency:</strong> Lower overhead than VMs for microservice security tools<br>
+                                <strong>Immutable Infrastructure:</strong> Consistent, reproducible security configurations
+                            </div>
+                        </div>
+
+                        <div class="security-tip">
+                            <div class="security-tip-title">📦 Container Security Best Practices</div>
+                            <div>
+                                <strong>Image Security:</strong> Use trusted registries and verify image signatures<br>
+                                <strong>Minimal Images:</strong> Use base images with minimal attack surface<br>
+                                <strong>Regular Updates:</strong> Keep container images updated with security patches<br>
+                                <strong>Network Isolation:</strong> Configure proper network policies for containers
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Security Tools -->
+                <div class="scenario-card security-tools" data-category="security-tools">
+                    <div class="scenario-header">
+                        <div class="scenario-title">
+                            <span class="scenario-icon">🛡️</span>
+                            Security Tool Deployment
+                        </div>
+                        <div class="scenario-description">Deploy and manage containerized security applications with proper networking</div>
+                        <div class="difficulty-level">INTERMEDIATE</div>
+                    </div>
+                    <div class="scenario-content">
+                        <div class="real-world-example">
+                            <div class="real-world-title">🛡️ CONTAINERIZED SECURITY OPERATIONS</div>
+                            <div class="real-world-text">Deploy security tools as containers for SOC operations! Run NMAP scanners in isolated containers, deploy Elasticsearch for SIEM, configure web-based security consoles with port forwarding, and manage threat intelligence feeds with environment variables for API keys.</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('podman run -d --name security-scanner -p 8080:80 httpd:latest')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>podman run <span class="option-highlight">-d --name security-scanner</span><br>
+                                    &nbsp;&nbsp;<span class="option-highlight">-p 8080:80</span> httpd:latest
+                                </div>
+                            </div>
+                            <div class="command-description">Deploy web-based security console with port forwarding</div>
+                            <div class="command-notes">-d runs detached, -p maps host port 8080 to container port 80</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('podman run --rm -it --name nmap-scanner registry.redhat.io/ubi9/ubi nmap -sn 192.168.1.0/24')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>podman run <span class="option-highlight">--rm -it --name nmap-scanner</span><br>
+                                    &nbsp;&nbsp;registry.redhat.io/ubi9/ubi<br>
+                                    &nbsp;&nbsp;nmap <span class="option-highlight">-sn</span> <span class="variable-highlight">192.168.1.0/24</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Run network discovery scan in isolated container</div>
+                            <div class="command-notes">-it provides interactive terminal, --rm cleans up after scan</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('podman run -d --name threat-intel -e API_KEY=your-secret-key -e UPDATE_INTERVAL=3600 threat-intel:latest')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>podman run <span class="option-highlight">-d --name threat-intel</span><br>
+                                    &nbsp;&nbsp;<span class="option-highlight">-e API_KEY=</span><span class="string-highlight">your-secret-key</span><br>
+                                    &nbsp;&nbsp;<span class="option-highlight">-e UPDATE_INTERVAL=3600</span><br>
+                                    &nbsp;&nbsp;threat-intel:latest
+                                </div>
+                            </div>
+                            <div class="command-description">Deploy threat intelligence feed with secure environment variables</div>
+                            <div class="command-notes">-e passes environment variables for API configuration</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('podman run -d --name elasticsearch -p 9200:9200 -e \"discovery.type=single-node\" docker.elastic.co/elasticsearch/elasticsearch:8.0.0')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>podman run <span class="option-highlight">-d --name elasticsearch</span><br>
+                                    &nbsp;&nbsp;<span class="option-highlight">-p 9200:9200</span><br>
+                                    &nbsp;&nbsp;<span class="option-highlight">-e</span> <span class="string-highlight">"discovery.type=single-node"</span><br>
+                                    &nbsp;&nbsp;docker.elastic.co/elasticsearch/elasticsearch:8.0.0
+                                </div>
+                            </div>
+                            <div class="command-description">Deploy Elasticsearch for SIEM log analysis</div>
+                            <div class="command-notes">Single-node configuration for development and testing</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('podman exec -it security-scanner /bin/bash')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>podman exec <span class="option-highlight">-it</span> security-scanner <span class="path-highlight">/bin/bash</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Access running security container for troubleshooting</div>
+                            <div class="command-notes">exec runs commands in existing containers, -it for interactive shell</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('podman logs security-scanner')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>podman logs <span class="variable-highlight">security-scanner</span>
+                                </div>
+                            </div>
+                            <div class="command-description">View security container logs for monitoring and troubleshooting</div>
+                            <div class="command-notes">Shows stdout/stderr from container for debugging</div>
+                        </div>
+
+                        <div class="explanation-box">
+                            <div class="explanation-title">🛡️ Security Tool Containerization Benefits:</div>
+                            <div class="explanation-text">
+                                <strong>Network Isolation:</strong> Port mapping provides controlled network access<br>
+                                <strong>Environment Management:</strong> Secure API key and configuration management<br>
+                                <strong>Tool Portability:</strong> Consistent security tools across different environments<br>
+                                <strong>Resource Management:</strong> Controlled resource allocation for security workloads<br>
+                                <strong>Rapid Deployment:</strong> Quick scaling of security infrastructure components
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Registry Security -->
+                <div class="scenario-card registry-security" data-category="registry-security">
+                    <div class="scenario-header">
+                        <div class="scenario-title">
+                            <span class="scenario-icon">🏛️</span>
+                            Registry Security Management
+                        </div>
+                        <div class="scenario-description">Secure container image registries and manage enterprise security image repositories</div>
+                        <div class="difficulty-level">INTERMEDIATE</div>
+                    </div>
+                    <div class="scenario-content">
+                        <div class="real-world-example">
+                            <div class="real-world-title">🏛️ SECURE CONTAINER REGISTRY OPERATIONS</div>
+                            <div class="real-world-text">Manage enterprise security image registry! Configure secure access to private security tool images, authenticate with enterprise registries, search for certified security tools, inspect images for vulnerabilities, and manage registry certificates for secure operations.</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('podman login registry.redhat.io --username your-username --password-stdin')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>podman login <span class="variable-highlight">registry.redhat.io</span><br>
+                                    &nbsp;&nbsp;<span class="option-highlight">--username your-username --password-stdin</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Securely authenticate with enterprise security image registry</div>
+                            <div class="command-notes">--password-stdin prevents password from appearing in command history</div>
+                        </div>
+
+                        <div class="podman-config">
+                            <div class="config-title">🏛️ Enterprise Registry Configuration:</div>
+                            <div class="config-content"># ~/.config/containers/registries.conf
+# Enterprise Security Registry Configuration
+
+[registries.search]
+# Priority search order for security tools
+registries = ['security-registry.corp.com', 'registry.redhat.io', 'quay.io']
+
+[[registry]]
+# Corporate Security Registry
+location = "security-registry.corp.com"
+insecure = false
+blocked = false
+
+[[registry]]
+# Red Hat Certified Security Images
+location = "registry.redhat.io"
+insecure = false
+blocked = false
+
+[[registry]]
+# Quay.io Security Tool Images  
+location = "quay.io"
+insecure = false
+blocked = false
+
+# Block untrusted registries for security compliance
+[[registry]]
+location = "docker.io"
+blocked = true</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('podman search security-registry.corp.com/security-tools')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>podman search <span class="variable-highlight">security-registry.corp.com/security-tools</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Search for security tools in enterprise registry</div>
+                            <div class="command-notes">Lists available security tool images in corporate registry</div>
+                            <div class="example-output">NAME                                           DESCRIPTION
+security-registry.corp.com/security-tools/nmap        Network discovery scanner
+security-registry.corp.com/security-tools/splunk      SIEM and log analysis
+security-registry.corp.com/security-tools/suricata    Network security monitoring</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('skopeo inspect docker://registry.redhat.io/ubi9/httpd-24:latest')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>skopeo inspect<br>
+                                    &nbsp;&nbsp;<span class="string-highlight">docker://registry.redhat.io/ubi9/httpd-24:latest</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Inspect security image for vulnerabilities and metadata</div>
+                            <div class="command-notes">skopeo provides detailed image information without downloading</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('podman pull registry.redhat.io/ubi9/httpd-24:latest')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>podman pull <span class="variable-highlight">registry.redhat.io/ubi9/httpd-24:latest</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Download certified security web server image</div>
+                            <div class="command-notes">Pulls latest certified Apache HTTP server from Red Hat</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('podman info | grep -A 10 registries')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>podman info | grep <span class="option-highlight">-A 10</span> registries
+                                </div>
+                            </div>
+                            <div class="command-description">Verify configured registries and security settings</div>
+                            <div class="command-notes">Shows configured registries and their security policies</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('podman tag security-scanner:latest security-registry.corp.com/tools/scanner:v1.0')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>podman tag <span class="variable-highlight">security-scanner:latest</span><br>
+                                    &nbsp;&nbsp;<span class="variable-highlight">security-registry.corp.com/tools/scanner:v1.0</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Tag security image for enterprise registry upload</div>
+                            <div class="command-notes">Creates versioned tag for controlled security tool deployment</div>
+                        </div>
+
+                        <div class="explanation-box">
+                            <div class="explanation-title">🏛️ Registry Security Best Practices:</div>
+                            <div class="explanation-text">
+                                <strong>Authentication:</strong> Use secure authentication with enterprise identity systems<br>
+                                <strong>Image Scanning:</strong> Automated vulnerability scanning for all security images<br>
+                                <strong>Access Control:</strong> Role-based access to different security tool categories<br>
+                                <strong>Image Signing:</strong> Digital signatures for image integrity verification<br>
+                                <strong>Compliance:</strong> Certified images meeting security and compliance standards
+                            </div>
+                        </div>
+
+                        <div class="security-tip">
+                            <div class="security-tip-title">🏛️ Registry Security Controls</div>
+                            <div>
+                                <strong>Private Registries:</strong> Use private registries for proprietary security tools<br>
+                                <strong>Image Scanning:</strong> Implement automated vulnerability scanning<br>
+                                <strong>Access Policies:</strong> Role-based access control for different tool categories<br>
+                                <strong>Backup Strategy:</strong> Regular backups of critical security images
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Container Operations -->
+                <div class="scenario-card container-operations" data-category="container-operations">
+                    <div class="scenario-header">
+                        <div class="scenario-title">
+                            <span class="scenario-icon">⚙️</span>
+                            Container Lifecycle Operations
+                        </div>
+                        <div class="scenario-description">Manage security containers through their complete lifecycle from creation to deletion</div>
+                        <div class="difficulty-level">INTERMEDIATE</div>
+                    </div>
+                    <div class="scenario-content">
+                        <div class="real-world-example">
+                            <div class="real-world-title">⚙️ SECURITY CONTAINER LIFECYCLE MANAGEMENT</div>
+                            <div class="real-world-text">Manage security containers in production SOC! Monitor running SIEM agents, restart failed security services, update security tool containers, clean up completed scan containers, and troubleshoot containerized security applications with logs and debugging.</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('podman ps --format \"table {{.Names}}\\t{{.Status}}\\t{{.Ports}}\"')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>podman ps <span class="option-highlight">--format</span><br>
+                                    &nbsp;&nbsp;<span class="string-highlight">"table {{.Names}}\\t{{.Status}}\\t{{.Ports}}"</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Monitor running security containers with custom format</div>
+                            <div class="command-notes">Custom table format showing names, status, and exposed ports</div>
+                            <div class="example-output">NAMES              STATUS        PORTS
+security-scanner   Up 2 hours    0.0.0.0:8080->80/tcp
+elasticsearch      Up 5 hours    0.0.0.0:9200->9200/tcp</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('podman stop security-scanner && podman start security-scanner')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>podman stop <span class="variable-highlight">security-scanner</span> &&<br>
+                                    &nbsp;&nbsp;podman start <span class="variable-highlight">security-scanner</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Restart security container for updates or troubleshooting</div>
+                            <div class="command-notes">Graceful stop followed by restart maintains container configuration</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('podman restart --time 30 security-scanner')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>podman restart <span class="option-highlight">--time 30</span> <span class="variable-highlight">security-scanner</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Restart security container with graceful shutdown timeout</div>
+                            <div class="command-notes">--time 30 gives container 30 seconds to shutdown gracefully</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('podman stats security-scanner elasticsearch')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>podman stats <span class="variable-highlight">security-scanner elasticsearch</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Monitor real-time resource usage of security containers</div>
+                            <div class="command-notes">Shows CPU, memory, network, and block I/O statistics</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('podman inspect security-scanner | jq \".[] | {Name: .Name, State: .State.Status, IPAddress: .NetworkSettings.IPAddress}\"')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>podman inspect <span class="variable-highlight">security-scanner</span> | jq<br>
+                                    &nbsp;&nbsp;<span class="string-highlight">".[] | {Name: .Name, State: .State.Status, IPAddress: .NetworkSettings.IPAddress}"</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Extract specific container information for monitoring dashboards</div>
+                            <div class="command-notes">jq filters JSON output for specific monitoring metrics</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('podman rm --force $(podman ps -aq --filter \"status=exited\")')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>podman rm <span class="option-highlight">--force</span><br>
+                                    &nbsp;&nbsp;$(podman ps <span class="option-highlight">-aq --filter "status=exited"</span>)
+                                </div>
+                            </div>
+                            <div class="command-description">Clean up all stopped security scan containers</div>
+                            <div class="command-notes">Removes containers that have completed security scans</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('podman container logs --tail 100 --follow security-scanner')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>podman container logs <span class="option-highlight">--tail 100 --follow</span><br>
+                                    &nbsp;&nbsp;<span class="variable-highlight">security-scanner</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Monitor security container logs in real-time for troubleshooting</div>
+                            <div class="command-notes">--tail 100 shows last 100 lines, --follow streams new logs</div>
+                        </div>
+
+                        <div class="workflow-steps">
+                            <div class="workflow-step">
+                                <div class="step-number">1</div>
+                                <div>Monitor container health and resource usage regularly</div>
+                            </div>
+                            <div class="workflow-step">
+                                <div class="step-number">2</div>
+                                <div>Use proper graceful shutdown procedures for security services</div>
+                            </div>
+                            <div class="workflow-step">
+                                <div class="step-number">3</div>
+                                <div>Implement log monitoring and alerting for security containers</div>
+                            </div>
+                            <div class="workflow-step">
+                                <div class="step-number">4</div>
+                                <div>Regular cleanup of completed scan and analysis containers</div>
+                            </div>
+                            <div class="workflow-step">
+                                <div class="step-number">5</div>
+                                <div>Maintain container image updates for security patches</div>
+                            </div>
+                        </div>
+
+                        <div class="explanation-box">
+                            <div class="explanation-title">⚙️ Container Operations Best Practices:</div>
+                            <div class="explanation-text">
+                                <strong>Health Monitoring:</strong> Regular health checks and resource monitoring<br>
+                                <strong>Log Management:</strong> Centralized logging for security container activities<br>
+                                <strong>Graceful Shutdown:</strong> Proper shutdown procedures for security services<br>
+                                <strong>Resource Management:</strong> CPU and memory limits for security workloads<br>
+                                <strong>Update Strategy:</strong> Regular updates and patching of security containers
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Persistent Security -->
+                <div class="scenario-card persistent-security" data-category="persistent-security">
+                    <div class="scenario-header">
+                        <div class="scenario-title">
+                            <span class="scenario-icon">💾</span>
+                            Persistent Security Data
+                        </div>
+                        <div class="scenario-description">Manage persistent volumes for security logs, configurations, and forensic data</div>
+                        <div class="difficulty-level">ADVANCED</div>
+                    </div>
+                    <div class="scenario-content">
+                        <div class="real-world-example">
+                            <div class="real-world-title">💾 PERSISTENT SECURITY DATA MANAGEMENT</div>
+                            <div class="real-world-text">Manage persistent data for security operations! Configure volumes for SIEM log storage, maintain security configurations across container restarts, preserve forensic analysis data, manage SELinux contexts for security volumes, and ensure data integrity for compliance requirements.</div>
+                        </div>
+
+                        <div class="volume-demo">
+                            <div class="volume-title">💾 Security Data Volume Configuration</div>
+                            <div class="volume-content"># Security Data Volume Requirements
+
+## SIEM Log Storage
+/opt/security/logs     -> /var/log/security      (Log retention)
+/opt/security/config   -> /etc/security          (Configuration persistence)  
+/opt/security/rules    -> /usr/share/rules       (Security rules database)
+
+## Forensic Analysis Data
+/opt/forensics/evidence -> /var/lib/evidence     (Chain of custody)
+/opt/forensics/tools    -> /opt/tools            (Analysis tools data)
+
+## SELinux Context Requirements
+container_file_t - Standard container volume access
+admin_home_t     - Administrative configuration access
+forensic_data_t  - Forensic evidence with special handling</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('mkdir -p /opt/security/{logs,config,rules} && chmod 755 /opt/security/*')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>mkdir -p <span class="path-highlight">/opt/security/{logs,config,rules}</span> &&<br>
+                                    &nbsp;&nbsp;chmod 755 <span class="path-highlight">/opt/security/*</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Create directory structure for persistent security data</div>
+                            <div class="command-notes">Separate directories for logs, configurations, and security rules</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('podman run -d --name siem-collector -v /opt/security/logs:/var/log/security:Z -v /opt/security/config:/etc/security:Z splunk:latest')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>podman run <span class="option-highlight">-d --name siem-collector</span><br>
+                                    &nbsp;&nbsp;<span class="option-highlight">-v</span> <span class="path-highlight">/opt/security/logs:/var/log/security:Z</span><br>
+                                    &nbsp;&nbsp;<span class="option-highlight">-v</span> <span class="path-highlight">/opt/security/config:/etc/security:Z</span><br>
+                                    &nbsp;&nbsp;splunk:latest
+                                </div>
+                            </div>
+                            <div class="command-description">Deploy SIEM collector with persistent log and config volumes</div>
+                            <div class="command-notes">:Z automatically sets SELinux context for container access</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('podman unshare chown 1000:1000 /opt/security/logs')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>podman unshare chown <span class="variable-highlight">1000:1000</span><br>
+                                    &nbsp;&nbsp;<span class="path-highlight">/opt/security/logs</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Set proper ownership for rootless container volumes</div>
+                            <div class="command-notes">podman unshare ensures correct UID/GID mapping for containers</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('ls -Z /opt/security/')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>ls <span class="option-highlight">-Z</span> <span class="path-highlight">/opt/security/</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Verify SELinux contexts on security data volumes</div>
+                            <div class="command-notes">-Z shows SELinux security contexts for container compatibility</div>
+                            <div class="example-output">system_u:object_r:container_file_t:s0:c123,c456 logs
+system_u:object_r:container_file_t:s0:c123,c456 config
+system_u:object_r:container_file_t:s0:c123,c456 rules</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('podman run -d --name forensics-lab -v /opt/forensics/evidence:/var/lib/evidence:Z,ro -v /opt/forensics/tools:/opt/tools:Z sleuthkit:latest')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>podman run <span class="option-highlight">-d --name forensics-lab</span><br>
+                                    &nbsp;&nbsp;<span class="option-highlight">-v</span> <span class="path-highlight">/opt/forensics/evidence:/var/lib/evidence:Z,ro</span><br>
+                                    &nbsp;&nbsp;<span class="option-highlight">-v</span> <span class="path-highlight">/opt/forensics/tools:/opt/tools:Z</span><br>
+                                    &nbsp;&nbsp;sleuthkit:latest
+                                </div>
+                            </div>
+                            <div class="command-description">Mount forensic evidence as read-only for chain of custody</div>
+                            <div class="command-notes">:ro ensures evidence integrity by preventing modifications</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('podman volume create security-logs && podman volume inspect security-logs')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>podman volume create <span class="variable-highlight">security-logs</span> &&<br>
+                                    &nbsp;&nbsp;podman volume inspect <span class="variable-highlight">security-logs</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Create and inspect managed volume for security logs</div>
+                            <div class="command-notes">Managed volumes provide automatic lifecycle management</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('findmnt | grep \"/opt/security\"')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>findmnt | grep <span class="string-highlight">"/opt/security"</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Verify mounted security volumes for compliance auditing</div>
+                            <div class="command-notes">Shows active mount points for security data verification</div>
+                        </div>
+
+                        <div class="explanation-box">
+                            <div class="explanation-title">💾 Persistent Security Data Strategy:</div>
+                            <div class="explanation-text">
+                                <strong>Data Classification:</strong> Separate volumes for logs, configs, and evidence<br>
+                                <strong>Access Control:</strong> Read-only mounts for evidence and audit trails<br>
+                                <strong>SELinux Integration:</strong> Proper contexts for container security policies<br>
+                                <strong>Backup Strategy:</strong> Regular backups of critical security data<br>
+                                <strong>Compliance:</strong> Chain of custody for forensic evidence volumes
+                            </div>
+                        </div>
+
+                        <div class="security-tip">
+                            <div class="security-tip-title">💾 Volume Security Controls</div>
+                            <div>
+                                <strong>Read-Only Mounts:</strong> Protect evidence integrity with read-only volumes<br>
+                                <strong>SELinux Contexts:</strong> Proper container_file_t contexts for security<br>
+                                <strong>Backup Verification:</strong> Regular integrity checks on security data<br>
+                                <strong>Access Logging:</strong> Audit all access to persistent security volumes
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Enterprise Integration -->
+                <div class="scenario-card enterprise-integration" data-category="enterprise-integration">
+                    <div class="scenario-header">
+                        <div class="scenario-title">
+                            <span class="scenario-icon">🏢</span>
+                            Enterprise Integration
+                        </div>
+                        <div class="scenario-description">Integrate containers with systemd and enterprise security management systems</div>
+                        <div class="difficulty-level">EXPERT</div>
+                    </div>
+                    <div class="scenario-content">
+                        <div class="real-world-example">
+                            <div class="real-world-title">🏢 ENTERPRISE CONTAINER SECURITY INTEGRATION</div>
+                            <div class="real-world-text">Integrate containers with enterprise security infrastructure! Create systemd services for security containers, automate container startup with system boot, manage container services with systemctl, integrate with enterprise monitoring, and ensure containers start automatically for 24/7 security operations.</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('podman generate systemd --name security-collector --files --new')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>podman generate systemd <span class="option-highlight">--name security-collector</span><br>
+                                    &nbsp;&nbsp;<span class="option-highlight">--files --new</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Generate systemd service file for security container</div>
+                            <div class="command-notes">--files creates service file, --new recreates container on start</div>
+                        </div>
+
+                        <div class="podman-config">
+                            <div class="config-title">🏢 Security Container Systemd Service:</div>
+                            <div class="config-content"># ~/.config/systemd/user/container-security-collector.service
+# Enterprise Security Container Service
+
+[Unit]
+Description=Security Log Collector Container
+Documentation=man:podman-generate-systemd(1)
+Wants=network-online.target
+After=network-online.target
+RequiresMountsFor=%t/containers
+
+[Service]
+Environment=PODMAN_SYSTEMD_UNIT=%n
+Restart=on-failure
+TimeoutStopSec=70
+ExecStartPre=/bin/rm -f %t/%n.ctr-id
+ExecStart=/usr/bin/podman run --cidfile=%t/%n.ctr-id --cgroups=no-conmon --rm --sdnotify=conmon 
+  --replace --name security-collector 
+  --detach 
+  --volume /opt/security/logs:/var/log/security:Z 
+  --publish 8080:80 
+  security-tools/collector:latest
+ExecStop=/usr/bin/podman stop --ignore --cidfile=%t/%n.ctr-id
+ExecStopPost=/usr/bin/podman rm -f --ignore --cidfile=%t/%n.ctr-id
+Type=notify
+NotifyAccess=all
+
+[Install]
+WantedBy=multi-user.target default.target</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('mkdir -p ~/.config/systemd/user && cp container-security-collector.service ~/.config/systemd/user/')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>mkdir -p <span class="path-highlight">~/.config/systemd/user</span> &&<br>
+                                    &nbsp;&nbsp;cp container-security-collector.service <span class="path-highlight">~/.config/systemd/user/</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Install security container service file for user systemd</div>
+                            <div class="command-notes">User systemd directory for rootless container management</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('systemctl --user daemon-reload && systemctl --user enable container-security-collector.service')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>systemctl <span class="option-highlight">--user daemon-reload</span> &&<br>
+                                    &nbsp;&nbsp;systemctl <span class="option-highlight">--user enable</span> container-security-collector.service
+                                </div>
+                            </div>
+                            <div class="command-description">Reload systemd and enable security container service</div>
+                            <div class="command-notes">--user manages services for current user account</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('loginctl enable-linger')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>loginctl enable-linger
+                                </div>
+                            </div>
+                            <div class="command-description">Enable security containers to start at system boot</div>
+                            <div class="command-notes">Allows user services to start without user login for 24/7 operations</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('systemctl --user start container-security-collector.service && systemctl --user status container-security-collector.service')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>systemctl <span class="option-highlight">--user start</span> container-security-collector.service &&<br>
+                                    &nbsp;&nbsp;systemctl <span class="option-highlight">--user status</span> container-security-collector.service
+                                </div>
+                            </div>
+                            <div class="command-description">Start and verify security container service status</div>
+                            <div class="command-notes">Verify service starts properly and shows active status</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('journalctl --user -u container-security-collector.service --since \"1 hour ago\"')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>journalctl <span class="option-highlight">--user -u</span> container-security-collector.service<br>
+                                    &nbsp;&nbsp;<span class="option-highlight">--since "1 hour ago"</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Monitor security container service logs through systemd</div>
+                            <div class="command-notes">Integrated logging with systemd journal for enterprise monitoring</div>
+                        </div>
+
+                        <div class="command-example">
+                            <div class="command-syntax" onclick="copyCommand('#!/bin/bash\necho \"=== Security Container Health Check ===\"\nfor service in container-security-collector container-siem-agent; do\n  echo \"Service: $service\"\n  systemctl --user is-active $service\n  systemctl --user is-enabled $service\ndone')">
+                                <span class="copy-indicator">Click to copy</span>
+                                <div class="command-text">
+                                    <span class="command-prompt">$</span>vim <span class="path-highlight">security_container_health.sh</span>
+                                </div>
+                            </div>
+                            <div class="command-description">Enterprise security container health monitoring script</div>
+                            <div class="podman-config">
+                                <div class="config-title">🏢 Enterprise Health Monitoring Script:</div>
+                                <div class="config-content">#!/bin/bash
+# Security Container Health Monitoring
+
+echo "=== Security Container Health Check ==="
+echo "Timestamp: $(date)"
+echo
+
+# Check Security Services
+for service in container-security-collector container-siem-agent container-threat-intel; do
+    echo "=== Service: $service ==="
+    
+    # Service Status
+    if systemctl --user is-active $service >/dev/null 2>&1; then
+        echo "✓ Status: ACTIVE"
+    else
+        echo "✗ Status: INACTIVE"
+    fi
+    
+    # Service Enabled
+    if systemctl --user is-enabled $service >/dev/null 2>&1; then
+        echo "✓ Enabled: YES"
+    else
+        echo "✗ Enabled: NO"
+    fi
+    
+    # Container Health
+    container_name=$(echo $service | sed 's/container-//')
+    if podman healthcheck run $container_name >/dev/null 2>&1; then
+        echo "✓ Health: HEALTHY"
+    else
+        echo "⚠ Health: CHECK REQUIRED"
+    fi
+    
+    echo
+done
+
+# Resource Usage
+echo "=== Resource Usage ==="
+podman stats --no-stream --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}"</div>
+                            </div>
+                        </div>
+
+                        <div class="workflow-steps">
+                            <div class="workflow-step">
+                                <div class="step-number">1</div>
+                                <div>Generate systemd service files for critical security containers</div>
+                            </div>
+                            <div class="workflow-step">
+                                <div class="step-number">2</div>
+                                <div>Configure automatic startup and restart policies for 24/7 operations</div>
+                            </div>
+                            <div class="workflow-step">
+                                <div class="step-number">3</div>
+                                <div>Enable linger for user services to start at system boot</div>
+                            </div>
+                            <div class="workflow-step">
+                                <div class="step-number">4</div>
+                                <div>Integrate with enterprise monitoring and alerting systems</div>
+                            </div>
+                            <div class="workflow-step">
+                                <div class="step-number">5</div>
+                                <div>Implement health checks and automated recovery procedures</div>
+                            </div>
+                        </div>
+
+                        <div class="explanation-box">
+                            <div class="explanation-title">🏢 Enterprise Integration Benefits:</div>
+                            <div class="explanation-text">
+                                <strong>Service Management:</strong> Standard systemctl commands for container management<br>
+                                <strong>Boot Integration:</strong> Automatic startup of security containers at system boot<br>
+                                <strong>Logging Integration:</strong> Unified logging through systemd journal<br>
+                                <strong>Monitoring Integration:</strong> Enterprise monitoring system compatibility<br>
+                                <strong>High Availability:</strong> Automatic restart and recovery capabilities
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer">
+                <p>© 2025 College of DuPage - Computer Information Technology Department</p>
+                <p>CIT 2455 Linux/Unix Systems | AI Cybersecurity Program</p>
+                <p><em>"Containerize security, scale operations!" 📦🔐</em></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // Initialize variables
+        const searchInput = document.getElementById('searchInput');
+        const filterTabs = document.querySelectorAll('.filter-tab');
+        const scenarioCards = document.querySelectorAll('.scenario-card');
+        let currentFilter = 'all';
+
+        // Search functionality
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            filterScenarios(searchTerm, currentFilter);
+        });
+
+        // Filter tab functionality
+        filterTabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                // Update active tab
+                filterTabs.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                
+                currentFilter = this.dataset.category;
+                const searchTerm = searchInput.value.toLowerCase();
+                filterScenarios(searchTerm, currentFilter);
+            });
+        });
+
+        // Filter scenarios based on search and category
+        function filterScenarios(searchTerm, category) {
+            scenarioCards.forEach(card => {
+                const cardCategory = card.dataset.category;
+                const cardText = card.textContent.toLowerCase();
+                
+                const matchesCategory = category === 'all' || category === cardCategory;
+                const matchesSearch = !searchTerm || cardText.includes(searchTerm);
+                
+                if (matchesCategory && matchesSearch) {
+                    card.classList.remove('hidden');
+                } else {
+                    card.classList.add('hidden');
+                }
+            });
+        }
+
+        // Copy command to clipboard
+        function copyCommand(command) {
+            // Clean up command text (remove HTML and extra whitespace)
+            const cleanCommand = command.replace(/<[^>]*>/g, '').trim();
+            
+            navigator.clipboard.writeText(cleanCommand).then(() => {
+                showToast(`Copied: ${cleanCommand.substring(0, 60)}${cleanCommand.length > 60 ? '...' : ''}`);
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+                showToast('Copy failed - try selecting manually');
+            });
+        }
+
+        // Show toast notification
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2500);
+        }
+
+        // Interactive container flow
+        const containerSteps = document.querySelectorAll('.container-step');
+        containerSteps.forEach((step, index) => {
+            step.addEventListener('click', function() {
+                const stepValue = this.querySelector('.step-value').textContent;
+                showToast(`Container Step ${index + 1}: ${stepValue}`);
+                
+                // Animate step
+                const icon = this.querySelector('.step-icon');
+                icon.style.transform = 'scale(1.1) rotate(5deg)';
+                setTimeout(() => {
+                    icon.style.transform = 'scale(1) rotate(0deg)';
+                }, 300);
+            });
+        });
+
+        // Interactive container types
+        const containerBoxes = document.querySelectorAll('.container-box');
+        containerBoxes.forEach(box => {
+            box.addEventListener('click', function() {
+                const containerTitle = this.querySelector('.container-title').textContent;
+                showToast(`Container Type: ${containerTitle}`);
+                
+                // Animate selection
+                this.style.transform = 'scale(1.05)';
+                setTimeout(() => {
+                    this.style.transform = 'scale(1)';
+                }, 300);
+            });
+        });
+
+        // Interactive volume demos
+        const volumeDemos = document.querySelectorAll('.volume-demo');
+        volumeDemos.forEach(demo => {
+            demo.addEventListener('click', function() {
+                const demoTitle = this.querySelector('.volume-title').textContent;
+                showToast(`Volume Demo: ${demoTitle}`);
+                
+                // Animate demo
+                this.style.boxShadow = '0 0 20px rgba(0, 255, 255, 0.3)';
+                setTimeout(() => {
+                    this.style.boxShadow = '';
+                }, 500);
+            });
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl/Cmd + K to focus search
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                searchInput.focus();
+                searchInput.select();
+            }
+            
+            // Escape to clear search
+            if (e.key === 'Escape') {
+                searchInput.value = '';
+                filterScenarios('', currentFilter);
+                searchInput.blur();
+            }
+        });
+
+        // Initialize page with container-themed animations
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animated search placeholder
+            const searchPlaceholder = "$ search podman, container, registry, volume, systemd...";
+            let i = 0;
+            const typeInterval = setInterval(() => {
+                if (i < searchPlaceholder.length) {
+                    searchInput.placeholder = searchPlaceholder.substring(0, i + 1);
+                    i++;
+                } else {
+                    clearInterval(typeInterval);
+                }
+            }, 50);
+
+            // Setup cards for animation
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, observerOptions);
+
+            scenarioCards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                card.style.transition = `opacity 0.6s ease ${index * 0.1}s, transform 0.6s ease ${index * 0.1}s`;
+                observer.observe(card);
+            });
+
+            // Animate container flow
+            containerSteps.forEach((step, index) => {
+                setTimeout(() => {
+                    const icon = step.querySelector('.step-icon');
+                    icon.style.transform = 'scale(1.1) rotate(5deg)';
+                    setTimeout(() => {
+                        icon.style.transform = 'scale(1) rotate(0deg)';
+                    }, 300);
+                }, index * 400 + 1000);
+            });
+
+            // Animate container boxes
+            containerBoxes.forEach((box, index) => {
+                setTimeout(() => {
+                    box.style.transform = 'scale(1.02)';
+                    setTimeout(() => {
+                        box.style.transform = 'scale(1)';
+                    }, 200);
+                }, index * 200 + 2000);
+            });
+        });
+    </script>
+</body>
+</html>
